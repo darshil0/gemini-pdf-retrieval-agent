@@ -327,7 +327,7 @@ export default function App() {
             ) : (
               <div className="text-center py-12 text-slate-500 bg-slate-800/30 rounded-xl border border-slate-700 border-dashed">
                 <Search className="w-12 h-12 mx-auto mb-4 opacity-50" />
-                <p className="text-lg">No exact matches found for "{keyword}".</p>
+                <p className="text-lg">No exact matches found for &quot;{keyword}&quot;.</p>
                 <p className="text-sm">Try broadening your search term.</p>
               </div>
             )}
