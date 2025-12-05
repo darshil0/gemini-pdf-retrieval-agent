@@ -63,6 +63,23 @@ export default function App() {
     }
   }, [viewingResult]);
 
+  // Add keyboard accessibility for the modal
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') {
+        setViewingResult(null);
+      }
+    };
+
+    if (viewingResult) {
+      document.addEventListener('keydown', handleKeyDown);
+    }
+
+    return () => {
+      document.removeEventListener('keydown', handleKeyDown);
+    };
+  }, [viewingResult]);
+
   const updateRecentSearches = (term: string) => {
     setRecentSearches(prev => {
       // Remove duplicates (case-insensitive check) and add to front
@@ -236,20 +253,21 @@ export default function App() {
                         <History className="w-3 h-3 mr-1.5" />
                         Recent Searches
                       </div>
-                      <div className="flex flex-wrap gap-2">
+                      <ul className="flex flex-wrap gap-2">
                         {recentSearches.map((term, i) => (
-                          <button
-                            key={i}
-                            onClick={() => executeSearch(term)}
-                            disabled={status === AppStatus.ANALYZING || files.length === 0}
-                            title={files.length === 0 ? "Upload files first" : "Run search"}
-                            className="px-3 py-1.5 rounded-lg bg-slate-800 border border-slate-700 hover:border-blue-500/50 hover:bg-slate-700 text-sm text-slate-300 transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center group"
-                          >
-                            <span>{term}</span>
-                            <Search className="w-3 h-3 ml-2 opacity-0 group-hover:opacity-100 transition-opacity text-blue-400" />
-                          </button>
+                          <li key={i}>
+                            <button
+                              onClick={() => executeSearch(term)}
+                              disabled={status === AppStatus.ANALYZING || files.length === 0}
+                              title={files.length === 0 ? "Upload files first" : "Run search"}
+                              className="px-3 py-1.5 rounded-lg bg-slate-800 border border-slate-700 hover:border-blue-500/50 hover:bg-slate-700 text-sm text-slate-300 transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center group"
+                            >
+                              <span>{term}</span>
+                              <Search className="w-3 h-3 ml-2 opacity-0 group-hover:opacity-100 transition-opacity text-blue-400" />
+                            </button>
+                          </li>
                         ))}
-                      </div>
+                      </ul>
                     </div>
                   )}
 
@@ -319,11 +337,15 @@ export default function App() {
 
       {/* PDF Viewer Modal */}
       {viewingResult && (
-        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 sm:p-6">
+        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 sm:p-6" role="dialog" aria-modal="true">
           {/* Backdrop */}
           <div
             className="absolute inset-0 bg-black/80 backdrop-blur-sm transition-opacity"
             onClick={() => setViewingResult(null)}
+            onKeyDown={(e) => (e.key === 'Enter' || e.key === ' ') && setViewingResult(null)}
+            role="button"
+            tabIndex={0}
+            aria-label="Close Viewer"
           ></div>
 
           {/* Modal Content */}
