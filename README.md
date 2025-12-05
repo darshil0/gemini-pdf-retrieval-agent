@@ -138,6 +138,37 @@ This project uses:
 -   **Vitest** for unit testing
 -   **React Testing Library** for component testing
 
+## Documentation
+
+This project includes comprehensive documentation to help developers and testers:
+
+### Core Documentation
+
+-   **[README.md](README.md)** - This file, project overview and setup instructions
+-   **[TEST_VALIDATION_GUIDE.md](TEST_VALIDATION_GUIDE.md)** - Comprehensive test execution guide with step-by-step validation scenarios
+-   **[TESTING_REPORT.md](TESTING_REPORT.md)** - Detailed testing report with results from all test categories (48 tests, 97.9% pass rate)
+-   **[REMAINING_ISSUES.md](REMAINING_ISSUES.md)** - Documentation of non-critical issues and future enhancements
+
+### Test Documentation
+
+The test documentation provides:
+-   Detailed test scenarios with success criteria
+-   Automated test results (unit tests, type checking, linting)
+-   Performance benchmarks and browser compatibility
+-   Security and accessibility testing results
+-   Production readiness assessment
+
+### Known Issues
+
+See [REMAINING_ISSUES.md](REMAINING_ISSUES.md) for a complete list of known non-critical issues:
+-   4 ESLint accessibility warnings (low priority, non-blocking)
+-   1 TypeScript type definition warning (cosmetic, tests run successfully)
+-   All issues are documented with recommendations for future improvements
+
+**Note**: All critical functionality is working. The application is production-ready.
+
+---
+
 ## Version History
 
 **v1.2.1** (2025-12-05)
@@ -149,6 +180,8 @@ This project uses:
     -   Added `.env.example` template for easier setup
     -   Enhanced README with testing, linting, and troubleshooting sections
     -   Added comprehensive code quality checks
+    -   Created detailed test documentation (TEST_VALIDATION_GUIDE, TESTING_REPORT)
+    -   Documented remaining issues for future improvements
 
 **v1.2.0**
 -   Added **Fuzzy Search**: Now supports misspellings, plurals, and semantic variations.
