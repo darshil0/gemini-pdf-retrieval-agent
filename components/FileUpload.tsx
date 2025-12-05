@@ -68,6 +68,7 @@ export const FileUpload: React.FC<FileUploadProps> = ({ files, setFiles, disable
           onChange={handleFileChange}
           disabled={disabled || files.length >= 10}
           className="absolute inset-0 w-full h-full opacity-0 cursor-pointer disabled:cursor-not-allowed"
+          data-testid="file-upload"
         />
         <div className="flex flex-col items-center justify-center text-slate-400 space-y-2">
           <Upload className="w-10 h-10 mb-2 text-blue-400" />

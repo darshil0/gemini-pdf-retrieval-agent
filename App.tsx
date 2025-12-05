@@ -103,7 +103,7 @@ export default function App() {
   };
 
   const handleReset = () => {
-    // Clean up object URLs immediately to free memory
+    // Revoke object URLs to prevent memory leaks
     files.forEach(file => {
       if (file.previewUrl) {
         URL.revokeObjectURL(file.previewUrl);
