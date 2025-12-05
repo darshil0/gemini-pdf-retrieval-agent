@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Search, Loader2, Sparkles, BookOpen, Trash2, X, FileText } from 'lucide-react';
+import { Search, Loader2, Sparkles, BookOpen, Trash2, X, FileText, RotateCw, RotateCcw } from 'lucide-react';
 import { FileUpload } from './components/FileUpload';
 import { SearchResultCard } from './components/SearchResultCard';
 import { searchInDocuments } from './services/geminiService';
@@ -12,6 +12,7 @@ export default function App() {
   const [data, setData] = useState<SearchResponse | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [viewingResult, setViewingResult] = useState<{ file: UploadedFile, page: number } | null>(null);
+  const [rotation, setRotation] = useState(0);
 
   // Cleanup object URLs when component unmounts to avoid memory leaks
   useEffect(() => {
@@ -23,6 +24,13 @@ export default function App() {
       });
     };
   }, [files]);
+
+  // Reset rotation when opening a new file/page
+  useEffect(() => {
+    if (viewingResult) {
+      setRotation(0);
+    }
+  }, [viewingResult]);
 
   const handleSearch = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -49,7 +57,7 @@ export default function App() {
     setStatus(AppStatus.IDLE);
     setKeyword('');
     setViewingResult(null);
-    // Optionally clear files: setFiles([]);
+    setFiles([]);
   };
 
   return (
@@ -236,21 +244,43 @@ export default function App() {
                   <p className="text-sm text-slate-400">Viewing Page {viewingResult.page}</p>
                 </div>
               </div>
-              <button 
-                onClick={() => setViewingResult(null)}
-                className="flex-shrink-0 p-2 hover:bg-slate-700 rounded-full text-slate-400 hover:text-white transition-colors focus:outline-none"
-                aria-label="Close Viewer"
-              >
-                <X size={24} />
-              </button>
+              
+              <div className="flex items-center space-x-4">
+                {/* Rotation Controls */}
+                <div className="flex items-center space-x-1 bg-slate-900/50 rounded-lg p-1 border border-slate-700">
+                   <button 
+                     onClick={() => setRotation(prev => prev - 90)}
+                     className="p-1.5 hover:bg-slate-700 rounded-md text-slate-400 hover:text-white transition-colors"
+                     title="Rotate Counter-Clockwise"
+                   >
+                     <RotateCcw size={18} />
+                   </button>
+                   <button 
+                     onClick={() => setRotation(prev => prev + 90)}
+                     className="p-1.5 hover:bg-slate-700 rounded-md text-slate-400 hover:text-white transition-colors"
+                     title="Rotate Clockwise"
+                   >
+                     <RotateCw size={18} />
+                   </button>
+                </div>
+
+                <button 
+                  onClick={() => setViewingResult(null)}
+                  className="flex-shrink-0 p-2 hover:bg-slate-700 rounded-full text-slate-400 hover:text-white transition-colors focus:outline-none"
+                  aria-label="Close Viewer"
+                >
+                  <X size={24} />
+                </button>
+              </div>
             </div>
             
             {/* Iframe Viewer */}
-            <div className="flex-1 bg-slate-800 relative">
+            <div className="flex-1 bg-slate-800 relative flex items-center justify-center overflow-hidden">
               <iframe
                 key={`${viewingResult.file.id}-${viewingResult.page}`}
                 src={`${viewingResult.file.previewUrl}#page=${viewingResult.page}`}
-                className="w-full h-full border-none"
+                className="w-full h-full border-none transition-transform duration-300 ease-in-out origin-center"
+                style={{ transform: `rotate(${rotation}deg)` }}
                 title={`PDF viewer for ${viewingResult.file.file.name}`}
               />
             </div>
