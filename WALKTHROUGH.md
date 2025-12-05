@@ -24,7 +24,8 @@ Upon loading the application, you are presented with a clean, dual-panel interfa
 
 1.  **Action**: Enter a keyword or phrase in the "Target Keyword or Phrase" input box.
     -   *Example*: "Quarterly Revenue" or "Project Timeline".
-2.  **State Change**: Once files are present and a keyword is typed, the "Find Occurrences" button lights up (becomes active), indicating the system is ready.
+2.  **Fuzzy Search Capability**: You do not need to be exact. Searching for "Behavior" will also find "Behaviour", and searching for "Funds" might find "Funding" or "Capital" depending on context.
+3.  **State Change**: Once files are present and a keyword is typed, the "Find Occurrences" button lights up (becomes active), indicating the system is ready.
 
 ## 4. Execution & Analysis
 
@@ -43,20 +44,22 @@ At the top of the results is an **Analysis Summary**. This is a generated natura
 
 ### Result Cards
 Below the summary is a grid of result cards. Each card contains:
--   **Document Name**: The source file.
+-   **Document Name**: The source file (with index number).
 -   **Page Number**: A badge indicating exactly where the match was found.
--   **Context Snippet**: A ~40 word excerpt. The keyword is **highlighted in yellow** (case-insensitive).
+-   **Context Snippet**: A ~40 word excerpt. The found term is **highlighted in yellow**.
+    -   *Note*: If you searched for "Color" but the document contained "Colour", "Colour" will be the text highlighted.
 -   **Relevance Note**: A brief explanation of why this match was returned.
 
-## 6. Integrated PDF Viewer
+## 6. Integrated PDF Viewer (react-pdf)
 
 1.  **Action**: Click the "View Page [X]" button on any result card.
 2.  **Outcome**:
     -   A modal overlay opens.
-    -   The PDF is loaded into an embedded viewer.
-    -   The viewer automatically scrolls to the specific page cited in the result.
+    -   The PDF is loaded into a high-fidelity embedded viewer (`react-pdf`).
+    -   The viewer automatically renders the specific page cited in the result.
 3.  **Controls**:
-    -   **Rotate**: Use the clockwise/counter-clockwise buttons in the top header to rotate the view if the document scan is sideways.
+    -   **Navigation**: Use the `<` and `>` arrows to change pages manually.
+    -   **Rotation**: Use the clockwise/counter-clockwise buttons in the top header to rotate the view if the document scan is sideways.
 4.  **Close**: Click the "X" in the top right or click the backdrop to close the viewer and return to results.
 
 ## 7. Resetting

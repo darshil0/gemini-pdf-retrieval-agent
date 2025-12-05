@@ -4,7 +4,7 @@
 
 **DocuSearch Agent** is an intelligent document retrieval system powered by Google's Gemini 2.5 Flash. It allows users to upload up to 10 PDF documents, search for specific keywords or phrases, and instantly retrieve exact citations. 
 
-The application scans all uploaded documents, highlights the context where keywords are found (including fuzzy matches), and provides a direct link to view the specific page within the app.
+The application scans all uploaded documents, highlights the context where keywords are found (including fuzzy matches), and provides a direct link to view the specific page within the app using a robust React-based PDF viewer.
 
 ## Key Features
 
