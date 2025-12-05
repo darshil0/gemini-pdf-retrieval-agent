@@ -332,7 +332,7 @@ DocuSearch follows a formal agent architecture pattern:
 4. AI analyzes query semantically
 5. AI returns ranked results with citations
 
-See `agent_architecture/` for detailed specifications.
+See `docs/agent_architecture/` for detailed specifications.
 
 ### Technology Stack
 
@@ -487,16 +487,12 @@ Current coverage (51/51 tests passing):
 ### Test Structure
 
 ```
-tests/
-├── unit/
-│   ├── components/          # React component tests
-│   ├── services/            # Service layer tests
-│   └── utils/               # Utility function tests
-├── integration/
-│   ├── search-flow.test.ts  # End-to-end search
-│   └── upload-flow.test.ts  # End-to-end upload
-└── accessibility/
-    └── a11y.test.ts         # WCAG compliance tests
+src/
+├── App.test.tsx             # Main app tests
+├── Architecture.test.ts     # Architecture validation
+├── vitest.setup.ts          # Test environment setup
+├── components/              # Component tests co-located
+└── services/                # Service tests co-located
 ```
 
 ### Writing Tests
@@ -520,7 +516,7 @@ describe('SearchBox', () => {
 });
 ```
 
-See [TESTING_REPORT.md](TESTING_REPORT.md) for detailed results.
+See [docs/TESTING_REPORT.md](docs/TESTING_REPORT.md) for detailed results.
 
 ---
 
@@ -643,8 +639,9 @@ Then check browser console for detailed logs:
 If you're still stuck:
 
 1. **Check Documentation**
-   - [TEST_VALIDATION_GUIDE.md](TEST_VALIDATION_GUIDE.md) for validation scenarios
-   - [REMAINING_ISSUES.md](REMAINING_ISSUES.md) for known issues
+   - [docs/TEST_VALIDATION_GUIDE.md](docs/TEST_VALIDATION_GUIDE.md) for validation scenarios
+   - [docs/REMAINING_ISSUES.md](docs/REMAINING_ISSUES.md) for known issues
+   - [docs/API_REFERENCE.md](docs/API_REFERENCE.md) for API details
 
 2. **Search Existing Issues**
    - [GitHub Issues](https://github.com/your-username/gemini-pdf-retrieval-agent/issues)
