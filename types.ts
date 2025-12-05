@@ -3,6 +3,7 @@ export interface SearchResult {
   pageNumber: number;
   contextSnippet: string;
   relevanceExplanation: string;
+  matchedTerm?: string; // The specific variation found (e.g. 'color' vs 'colour')
 }
 
 export interface SearchResponse {

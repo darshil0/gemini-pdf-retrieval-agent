@@ -10,6 +10,9 @@ interface SearchResultCardProps {
 }
 
 export const SearchResultCard: React.FC<SearchResultCardProps> = ({ result, fileName, keyword, onView }) => {
+  // Determine what to highlight: prefer the exact term found by AI, fallback to search keyword
+  const termToHighlight = result.matchedTerm || keyword;
+
   // Highlight logic with regex escaping for special characters
   const getHighlightedText = (text: string, highlight: string) => {
     if (!highlight.trim()) {
@@ -56,7 +59,7 @@ export const SearchResultCard: React.FC<SearchResultCardProps> = ({ result, file
 
       <div className="mb-4 text-slate-300 leading-relaxed text-sm bg-slate-900/50 p-4 rounded-lg border border-slate-700/50 flex-grow">
         <span className="text-slate-500 mr-1">"...</span>
-        {getHighlightedText(result.contextSnippet, keyword)}
+        {getHighlightedText(result.contextSnippet, termToHighlight)}
         <span className="text-slate-500 ml-1">..."</span>
       </div>
 

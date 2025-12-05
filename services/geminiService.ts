@@ -39,18 +39,23 @@ export const searchInDocuments = async (
     I have provided ${files.length} PDF document(s).
     
     YOUR TASK:
-    Search for the specific keyword or phrase: "${keyword}".
+    Search for the specific keyword, phrase, or concept: "${keyword}".
     
     REQUIREMENTS:
     1. Scan all pages of all provided documents.
-    2. Identify every occurrence of the keyword (or very close semantic matches if exact match isn't found, but prefer exact).
-    3. Return a structured JSON response listing every match found.
-    4. For each match, you MUST provide:
+    2. Identify every occurrence of the keyword.
+    3. FUZZY MATCHING: You MUST also include matches for:
+       - Slight misspellings or typos.
+       - Plural/Singular variations.
+       - Very close synonyms or semantic matches (e.g., "Revenue" -> "Sales", "Behavior" -> "Behaviour").
+    4. Return a structured JSON response listing every match found.
+    5. For each match, you MUST provide:
        - 'docIndex': The index of the document (0 to ${files.length - 1}) based on the order provided.
        - 'pageNumber': The specific page number where the keyword is found (integer).
        - 'contextSnippet': A specific excerpt of text (approx. 20-40 words) surrounding the keyword from the document.
-       - 'relevanceExplanation': A very brief note on why this was selected (e.g., "Exact match", "Related concept").
-    5. Also provide a 'summary' string giving a high-level overview of how often the keyword appears across the docs.
+       - 'matchedTerm': The EXACT word or phrase found in the text that triggered the match (used for highlighting).
+       - 'relevanceExplanation': A very brief note on why this was selected (e.g., "Exact match", "Fuzzy match: 'Colour'", "Related concept").
+    6. Also provide a 'summary' string giving a high-level overview of how often the keyword appears across the docs.
     
     If no matches are found, return an empty array for results and a summary stating that.
   `;
@@ -67,9 +72,10 @@ export const searchInDocuments = async (
             docIndex: { type: Type.INTEGER, description: "Index of the document in the provided list" },
             pageNumber: { type: Type.INTEGER, description: "The page number where the match was found" },
             contextSnippet: { type: Type.STRING, description: "The text context surrounding the keyword" },
+            matchedTerm: { type: Type.STRING, description: "The exact substring found in the document corresponding to the match" },
             relevanceExplanation: { type: Type.STRING, description: "Why this match was included" }
           },
-          required: ["docIndex", "pageNumber", "contextSnippet", "relevanceExplanation"]
+          required: ["docIndex", "pageNumber", "contextSnippet", "matchedTerm", "relevanceExplanation"]
         }
       },
       summary: {
@@ -98,12 +104,10 @@ export const searchInDocuments = async (
     if (!text) throw new Error("No response from Gemini");
 
     // Robust JSON extraction
-    // 1. Try to find a JSON code block with or without the 'json' language specifier
     const codeBlockMatch = text.match(/```(?:json)?\s*([\s\S]*?)\s*```/);
     if (codeBlockMatch) {
       text = codeBlockMatch[1];
     } else {
-        // 2. If no code block, try to find the first { and last } to strip conversational text
         const firstBrace = text.indexOf('{');
         const lastBrace = text.lastIndexOf('}');
         if (firstBrace !== -1 && lastBrace !== -1) {
