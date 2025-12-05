@@ -42,7 +42,11 @@ To validate the test cases and run the application locally:
     ```
 
 3.  **Configure API Key**
-    Create a `.env` file in the root directory:
+    Copy the example environment file and add your API key:
+    ```bash
+    cp .env.example .env
+    ```
+    Then edit `.env` and add your actual API key:
     ```env
     API_KEY=your_actual_api_key_here
     ```
@@ -56,7 +60,35 @@ To validate the test cases and run the application locally:
     Open your browser and navigate to:
     `http://localhost:5173`
 
-## Validation
+## Testing & Quality Assurance
+
+### Running Tests
+
+Run the automated test suite:
+```bash
+npm test
+```
+
+Run tests in watch mode during development:
+```bash
+npm run test:watch
+```
+
+### Linting
+
+Check code quality with ESLint:
+```bash
+npm run lint
+```
+
+### Type Checking
+
+Verify TypeScript types:
+```bash
+npm run type-check
+```
+
+### Manual Validation
 
 Refer to `TEST_VALIDATION_GUIDE.md` for a step-by-step checklist to verify all features and edge cases reported in the Testing Report.
 
@@ -68,7 +100,55 @@ Refer to `TEST_VALIDATION_GUIDE.md` for a step-by-step checklist to verify all f
 4.  **Review**: Browse the result cards. The "Analysis Summary" provides a high-level overview.
 5.  **View**: Click "View Page" on any card to open the document viewer at the exact location.
 
+## Troubleshooting
+
+### API Key Issues
+
+-   **Error: "API Key is missing"**: Ensure you have created a `.env` file in the root directory with your `API_KEY`. You can copy `.env.example` as a template.
+-   **Invalid API Key**: Verify your API key is valid and has access to Gemini 2.5 Flash model.
+
+### Build Issues
+
+-   **TypeScript errors**: Run `npm run type-check` to identify type issues.
+-   **Dependency issues**: Delete `node_modules` and `package-lock.json`, then run `npm install` again.
+
+### Runtime Issues
+
+-   **PDF not loading**: Ensure the PDF file is valid and not corrupted. Try with a different PDF.
+-   **Search timeout**: Large files (>200MB total) may cause timeouts. Try with smaller files or fewer documents.
+-   **No results found**: The AI performs fuzzy matching, but very obscure terms may not match. Try broader search terms.
+
+## Development
+
+### Available Scripts
+
+-   `npm run dev` - Start development server
+-   `npm run build` - Build for production
+-   `npm run preview` - Preview production build
+-   `npm test` - Run tests once
+-   `npm run test:watch` - Run tests in watch mode
+-   `npm run lint` - Check code quality with ESLint
+-   `npm run type-check` - Verify TypeScript types
+
+### Code Quality
+
+This project uses:
+-   **TypeScript** with strict mode enabled for type safety
+-   **ESLint** for code quality and consistency
+-   **Vitest** for unit testing
+-   **React Testing Library** for component testing
+
 ## Version History
+
+**v1.2.1** (2025-12-05)
+-   **Code Quality Improvements**:
+    -   Added ESLint configuration with TypeScript and React rules
+    -   Enabled TypeScript strict mode for better type safety
+    -   Added test scripts and improved testing infrastructure
+    -   Removed console.error statements, improved error handling
+    -   Added `.env.example` template for easier setup
+    -   Enhanced README with testing, linting, and troubleshooting sections
+    -   Added comprehensive code quality checks
 
 **v1.2.0**
 -   Added **Fuzzy Search**: Now supports misspellings, plurals, and semantic variations.

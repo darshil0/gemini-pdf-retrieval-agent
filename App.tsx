@@ -18,7 +18,7 @@ export default function App() {
   const [error, setError] = useState<string | null>(null);
   const [viewingResult, setViewingResult] = useState<{ file: UploadedFile, page: number } | null>(null);
   const [recentSearches, setRecentSearches] = useState<string[]>([]);
-  
+
   // PDF Viewer State
   const [rotation, setRotation] = useState(0);
   const [numPages, setNumPages] = useState<number | null>(null);
@@ -46,8 +46,9 @@ export default function App() {
     if (saved) {
       try {
         setRecentSearches(JSON.parse(saved));
-      } catch (e) {
-        console.error("Failed to parse recent searches", e);
+      } catch {
+        // Invalid JSON in localStorage, ignore and start fresh
+        localStorage.removeItem('docuSearch_recent');
       }
     }
   }, []);
@@ -77,7 +78,7 @@ export default function App() {
 
     // Update input to reflect what is being searched
     setKeyword(term);
-    
+
     // Add to history
     updateRecentSearches(term);
 
@@ -90,9 +91,9 @@ export default function App() {
       const response = await searchInDocuments(fileObjects, term);
       setData(response);
       setStatus(AppStatus.COMPLETE);
-    } catch (err: any) {
-      console.error(err);
-      setError(err.message || "An error occurred while analyzing the documents.");
+    } catch (err: unknown) {
+      const errorMessage = err instanceof Error ? err.message : "An error occurred while analyzing the documents.";
+      setError(errorMessage);
       setStatus(AppStatus.ERROR);
     }
   };
@@ -142,24 +143,24 @@ export default function App() {
             </h1>
           </div>
           <div className="flex items-center space-x-4">
-             {status === AppStatus.COMPLETE && (
-                <button 
-                  onClick={handleReset}
-                  className="text-sm text-slate-400 hover:text-white flex items-center space-x-2 transition-colors"
-                >
-                  <Trash2 size={16} />
-                  <span>Clear Results</span>
-                </button>
-             )}
-             <div className="px-3 py-1 rounded-full bg-slate-800 border border-slate-700 text-xs font-mono text-slate-400">
-                Gemini 2.5 Flash
-             </div>
+            {status === AppStatus.COMPLETE && (
+              <button
+                onClick={handleReset}
+                className="text-sm text-slate-400 hover:text-white flex items-center space-x-2 transition-colors"
+              >
+                <Trash2 size={16} />
+                <span>Clear Results</span>
+              </button>
+            )}
+            <div className="px-3 py-1 rounded-full bg-slate-800 border border-slate-700 text-xs font-mono text-slate-400">
+              Gemini 2.5 Flash
+            </div>
           </div>
         </div>
       </header>
 
       <main className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-8">
-        
+
         {/* Input Section */}
         <section className="space-y-6">
           <div className="bg-slate-800/50 rounded-2xl p-1 border border-slate-700">
@@ -170,10 +171,10 @@ export default function App() {
                   <span className="w-6 h-6 rounded-full bg-slate-700 flex items-center justify-center text-xs mr-2">1</span>
                   Upload Documents
                 </h2>
-                <FileUpload 
-                  files={files} 
-                  setFiles={setFiles} 
-                  disabled={status === AppStatus.ANALYZING} 
+                <FileUpload
+                  files={files}
+                  setFiles={setFiles}
+                  disabled={status === AppStatus.ANALYZING}
                 />
               </div>
 
@@ -186,9 +187,9 @@ export default function App() {
                   <span className="w-6 h-6 rounded-full bg-slate-700 flex items-center justify-center text-xs mr-2">2</span>
                   Define Search Criteria
                 </h2>
-                
+
                 <div className="flex-1 flex flex-col justify-center space-y-6">
-                   <div>
+                  <div>
                     <label htmlFor="keyword" className="block text-sm font-medium text-slate-400 mb-2">
                       Target Keyword or Phrase
                     </label>
@@ -204,9 +205,9 @@ export default function App() {
                       />
                       <Search className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-500 w-5 h-5" />
                     </div>
-                   </div>
+                  </div>
 
-                   <button
+                  <button
                     onClick={handleSearch}
                     disabled={status === AppStatus.ANALYZING || files.length === 0 || !keyword.trim()}
                     className={`w-full py-4 rounded-xl font-bold text-lg shadow-lg flex items-center justify-center space-x-2 transition-all transform active:scale-95
@@ -278,14 +279,14 @@ export default function App() {
 
             {/* AI Summary */}
             <div className="bg-gradient-to-r from-slate-800 to-slate-800/50 p-6 rounded-xl border border-blue-500/20 relative overflow-hidden">
-               <div className="absolute top-0 right-0 w-32 h-32 bg-blue-500/10 blur-3xl rounded-full pointer-events-none"></div>
-               <h4 className="text-blue-400 font-semibold mb-2 flex items-center">
-                 <Sparkles className="w-4 h-4 mr-2" />
-                 Analysis Summary
-               </h4>
-               <p className="text-slate-300 leading-relaxed">
-                 {data.summary}
-               </p>
+              <div className="absolute top-0 right-0 w-32 h-32 bg-blue-500/10 blur-3xl rounded-full pointer-events-none"></div>
+              <h4 className="text-blue-400 font-semibold mb-2 flex items-center">
+                <Sparkles className="w-4 h-4 mr-2" />
+                Analysis Summary
+              </h4>
+              <p className="text-slate-300 leading-relaxed">
+                {data.summary}
+              </p>
             </div>
 
             {/* Results Grid */}
@@ -295,7 +296,7 @@ export default function App() {
                   const file = files[result.docIndex];
                   if (!file) return null;
                   return (
-                    <SearchResultCard 
+                    <SearchResultCard
                       key={idx}
                       result={result}
                       fileName={file.file.name}
@@ -320,11 +321,11 @@ export default function App() {
       {viewingResult && (
         <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 sm:p-6">
           {/* Backdrop */}
-          <div 
-            className="absolute inset-0 bg-black/80 backdrop-blur-sm transition-opacity" 
+          <div
+            className="absolute inset-0 bg-black/80 backdrop-blur-sm transition-opacity"
             onClick={() => setViewingResult(null)}
           ></div>
-          
+
           {/* Modal Content */}
           <div className="relative w-full h-full max-w-6xl bg-slate-900 rounded-2xl shadow-2xl flex flex-col border border-slate-700 overflow-hidden animate-fade-in-up">
             {/* Header */}
@@ -340,47 +341,47 @@ export default function App() {
                   </p>
                 </div>
               </div>
-              
+
               <div className="flex items-center space-x-4">
-                 {/* Page Navigation Controls */}
-                 <div className="flex items-center space-x-1 bg-slate-900/50 rounded-lg p-1 border border-slate-700 mr-2">
-                   <button 
-                     onClick={() => changePage(-1)}
-                     disabled={currentPage <= 1}
-                     className="p-1.5 hover:bg-slate-700 rounded-md text-slate-400 hover:text-white transition-colors disabled:opacity-30 disabled:hover:bg-transparent"
-                     title="Previous Page"
-                   >
-                     <ChevronLeft size={18} />
-                   </button>
-                   <span className="px-2 text-xs font-mono text-slate-400 w-12 text-center">
-                     {currentPage} / {numPages || '-'}
-                   </span>
-                   <button 
-                     onClick={() => changePage(1)}
-                     disabled={numPages ? currentPage >= numPages : true}
-                     className="p-1.5 hover:bg-slate-700 rounded-md text-slate-400 hover:text-white transition-colors disabled:opacity-30 disabled:hover:bg-transparent"
-                     title="Next Page"
-                   >
-                     <ChevronRight size={18} />
-                   </button>
+                {/* Page Navigation Controls */}
+                <div className="flex items-center space-x-1 bg-slate-900/50 rounded-lg p-1 border border-slate-700 mr-2">
+                  <button
+                    onClick={() => changePage(-1)}
+                    disabled={currentPage <= 1}
+                    className="p-1.5 hover:bg-slate-700 rounded-md text-slate-400 hover:text-white transition-colors disabled:opacity-30 disabled:hover:bg-transparent"
+                    title="Previous Page"
+                  >
+                    <ChevronLeft size={18} />
+                  </button>
+                  <span className="px-2 text-xs font-mono text-slate-400 w-12 text-center">
+                    {currentPage} / {numPages || '-'}
+                  </span>
+                  <button
+                    onClick={() => changePage(1)}
+                    disabled={numPages ? currentPage >= numPages : true}
+                    className="p-1.5 hover:bg-slate-700 rounded-md text-slate-400 hover:text-white transition-colors disabled:opacity-30 disabled:hover:bg-transparent"
+                    title="Next Page"
+                  >
+                    <ChevronRight size={18} />
+                  </button>
                 </div>
 
                 {/* Rotation Controls */}
                 <div className="flex items-center space-x-1 bg-slate-900/50 rounded-lg p-1 border border-slate-700">
-                   <button 
-                     onClick={() => setRotation(prev => (prev - 90 + 360) % 360)}
-                     className="p-1.5 hover:bg-slate-700 rounded-md text-slate-400 hover:text-white transition-colors"
-                     title="Rotate Counter-Clockwise"
-                   >
-                     <RotateCcw size={18} />
-                   </button>
-                   <button 
-                     onClick={() => setRotation(prev => (prev + 90) % 360)}
-                     className="p-1.5 hover:bg-slate-700 rounded-md text-slate-400 hover:text-white transition-colors"
-                     title="Rotate Clockwise"
-                   >
-                     <RotateCw size={18} />
-                   </button>
+                  <button
+                    onClick={() => setRotation(prev => (prev - 90 + 360) % 360)}
+                    className="p-1.5 hover:bg-slate-700 rounded-md text-slate-400 hover:text-white transition-colors"
+                    title="Rotate Counter-Clockwise"
+                  >
+                    <RotateCcw size={18} />
+                  </button>
+                  <button
+                    onClick={() => setRotation(prev => (prev + 90) % 360)}
+                    className="p-1.5 hover:bg-slate-700 rounded-md text-slate-400 hover:text-white transition-colors"
+                    title="Rotate Clockwise"
+                  >
+                    <RotateCw size={18} />
+                  </button>
                 </div>
 
                 {/* Download Button */}
@@ -390,12 +391,12 @@ export default function App() {
                   className="p-2 hover:bg-slate-700 rounded-lg text-slate-400 hover:text-white transition-colors flex items-center justify-center border border-transparent hover:border-slate-600"
                   title="Download Document"
                 >
-                   <Download size={20} />
+                  <Download size={20} />
                 </a>
 
                 <div className="w-px h-6 bg-slate-700 mx-2"></div>
 
-                <button 
+                <button
                   onClick={() => setViewingResult(null)}
                   className="flex-shrink-0 p-2 hover:bg-slate-700 rounded-full text-slate-400 hover:text-white transition-colors focus:outline-none"
                   aria-label="Close Viewer"
@@ -404,7 +405,7 @@ export default function App() {
                 </button>
               </div>
             </div>
-            
+
             {/* PDF Canvas Viewer */}
             <div className="flex-1 bg-slate-800 relative overflow-auto flex justify-center p-8">
               <Document
@@ -412,14 +413,14 @@ export default function App() {
                 onLoadSuccess={onDocumentLoadSuccess}
                 loading={
                   <div className="flex flex-col items-center justify-center h-full min-h-[400px] w-full animate-fade-in">
-                     <div className="relative mb-6">
-                        <div className="w-20 h-20 border-4 border-slate-700 border-t-blue-500 rounded-full animate-spin"></div>
-                        <div className="absolute inset-0 flex items-center justify-center">
-                           <FileText className="w-8 h-8 text-slate-600" />
-                        </div>
-                     </div>
-                     <h4 className="text-xl font-semibold text-white mb-2">Loading Document</h4>
-                     <p className="text-slate-400">Rendering page {viewingResult.page}...</p>
+                    <div className="relative mb-6">
+                      <div className="w-20 h-20 border-4 border-slate-700 border-t-blue-500 rounded-full animate-spin"></div>
+                      <div className="absolute inset-0 flex items-center justify-center">
+                        <FileText className="w-8 h-8 text-slate-600" />
+                      </div>
+                    </div>
+                    <h4 className="text-xl font-semibold text-white mb-2">Loading Document</h4>
+                    <p className="text-slate-400">Rendering page {viewingResult.page}...</p>
                   </div>
                 }
                 error={
@@ -429,8 +430,8 @@ export default function App() {
                 }
                 className="shadow-2xl"
               >
-                <Page 
-                  pageNumber={currentPage} 
+                <Page
+                  pageNumber={currentPage}
                   rotate={rotation}
                   renderTextLayer={false}
                   renderAnnotationLayer={false}

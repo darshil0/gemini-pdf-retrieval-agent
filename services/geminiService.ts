@@ -108,17 +108,19 @@ export const searchInDocuments = async (
     if (codeBlockMatch) {
       text = codeBlockMatch[1];
     } else {
-        const firstBrace = text.indexOf('{');
-        const lastBrace = text.lastIndexOf('}');
-        if (firstBrace !== -1 && lastBrace !== -1) {
-            text = text.substring(firstBrace, lastBrace + 1);
-        }
+      const firstBrace = text.indexOf('{');
+      const lastBrace = text.lastIndexOf('}');
+      if (firstBrace !== -1 && lastBrace !== -1) {
+        text = text.substring(firstBrace, lastBrace + 1);
+      }
     }
 
     return JSON.parse(text) as SearchResponse;
 
   } catch (error) {
-    console.error("Gemini Search Error:", error);
-    throw error;
+    if (error instanceof Error) {
+      throw new Error(`Gemini API Error: ${error.message}`);
+    }
+    throw new Error("An unexpected error occurred while searching documents");
   }
 };
