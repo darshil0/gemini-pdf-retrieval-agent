@@ -24,8 +24,11 @@ The application scans all uploaded documents, highlights the context where keywo
 -   **AI Model**: Google Gemini 2.5 Flash (`@google/genai` SDK)
 -   **PDF Engine**: `react-pdf` / `pdfjs-dist`
 -   **Icons**: Lucide React
+-   **Tooling**: Vite
 
 ## Setup & Installation
+
+To validate the test cases and run the application locally:
 
 1.  **Clone the repository**
     ```bash
@@ -39,12 +42,23 @@ The application scans all uploaded documents, highlights the context where keywo
     ```
 
 3.  **Configure API Key**
-    Ensure you have a valid Google Gemini API Key. This application expects the key to be available in the environment as `API_KEY`.
+    Create a `.env` file in the root directory:
+    ```env
+    API_KEY=your_actual_api_key_here
+    ```
 
 4.  **Run the Application**
     ```bash
-    npm start
+    npm run dev
     ```
+
+5.  **Access the App**
+    Open your browser and navigate to:
+    `http://localhost:5173`
+
+## Validation
+
+Refer to `TEST_VALIDATION_GUIDE.md` for a step-by-step checklist to verify all features and edge cases reported in the Testing Report.
 
 ## Usage
 

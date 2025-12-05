@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { Search, Loader2, Sparkles, BookOpen, Trash2, X, FileText, RotateCw, RotateCcw, ChevronLeft, ChevronRight, History } from 'lucide-react';
+import { Search, Loader2, Sparkles, BookOpen, Trash2, X, FileText, RotateCw, RotateCcw, ChevronLeft, ChevronRight, History, Download } from 'lucide-react';
 import { FileUpload } from './components/FileUpload';
 import { SearchResultCard } from './components/SearchResultCard';
 import { searchInDocuments } from './services/geminiService';
@@ -375,6 +375,18 @@ export default function App() {
                      <RotateCw size={18} />
                    </button>
                 </div>
+
+                {/* Download Button */}
+                <a
+                  href={viewingResult.file.previewUrl}
+                  download={viewingResult.file.file.name}
+                  className="p-2 hover:bg-slate-700 rounded-lg text-slate-400 hover:text-white transition-colors flex items-center justify-center border border-transparent hover:border-slate-600"
+                  title="Download Document"
+                >
+                   <Download size={20} />
+                </a>
+
+                <div className="w-px h-6 bg-slate-700 mx-2"></div>
 
                 <button 
                   onClick={() => setViewingResult(null)}
