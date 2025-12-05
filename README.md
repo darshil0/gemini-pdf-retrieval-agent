@@ -188,27 +188,15 @@ VITE_ENABLE_DEBUG=false
 
 ### Application Settings
 
-Edit `src/config/constants.ts`:
+Application limits are currently configured directly in the components:
 
-```typescript
-export const CONFIG = {
-  // File upload limits
-  MAX_FILE_SIZE: 200 * 1024 * 1024, // 200MB
-  MAX_FILES: 10,
-  ALLOWED_TYPES: ['application/pdf'],
-  
-  // Search settings
-  SEARCH_TIMEOUT: 30000, // 30 seconds
-  MIN_QUERY_LENGTH: 3,
-  MAX_RESULTS_PER_DOC: 5,
-  
-  // PDF viewer settings
-  DEFAULT_ZOOM: 1.0,
-  MIN_ZOOM: 0.5,
-  MAX_ZOOM: 2.0,
-  ZOOM_STEP: 0.25,
-};
-```
+- **File Upload Limits**: Edit `src/components/FileUpload.tsx`
+  - `MAX_RECOMMENDED_SIZE_MB`: Max file size (default 200MB)
+  - `files.slice(0, 10)`: Max file count (default 10)
+
+- **Search Configuration**: Edit `src/services/geminiService.ts`
+  - `temperature`: AI model temperature
+  - `responseSchema`: Output structure
 
 ---
 

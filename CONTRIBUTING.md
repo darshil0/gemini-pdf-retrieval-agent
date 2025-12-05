@@ -307,25 +307,15 @@ export function SearchBox({ onSearch, placeholder = 'Search...', disabled = fals
 ```
 src/
 ├── components/          # React components
-│   ├── SearchBox/
-│   │   ├── SearchBox.tsx
-│   │   ├── SearchBox.test.tsx
-│   │   └── index.ts
+│   ├── FileUpload.tsx
+│   ├── SearchResultCard.tsx
 │   └── ...
 ├── services/           # Business logic
-│   ├── GeminiService.ts
-│   ├── GeminiService.test.ts
-│   └── ...
-├── hooks/              # Custom React hooks
-│   ├── useSearch.ts
-│   └── ...
-├── utils/              # Utility functions
-│   ├── validation.ts
-│   └── ...
-├── types/              # TypeScript types
-│   └── index.ts
-└── config/             # Configuration
-    └── constants.ts
+│   ├── geminiService.ts
+│   └── agentPrompts.ts
+├── types.ts            # TypeScript types
+├── App.tsx             # Main application component
+└── index.tsx           # Entry point
 ```
 
 ---
