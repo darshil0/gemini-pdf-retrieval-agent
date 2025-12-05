@@ -1,9 +1,14 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { Search, Loader2, Sparkles, BookOpen, Trash2, X, FileText, RotateCw, RotateCcw } from 'lucide-react';
+import { Search, Loader2, Sparkles, BookOpen, Trash2, X, FileText, RotateCw, RotateCcw, ChevronLeft, ChevronRight } from 'lucide-react';
 import { FileUpload } from './components/FileUpload';
 import { SearchResultCard } from './components/SearchResultCard';
 import { searchInDocuments } from './services/geminiService';
 import { UploadedFile, AppStatus, SearchResponse } from './types';
+import { Document, Page, pdfjs } from 'react-pdf';
+
+// Configure worker for react-pdf
+// Using esm.sh to match the version in importmap
+pdfjs.GlobalWorkerOptions.workerSrc = `https://esm.sh/pdfjs-dist@4.4.168/build/pdf.worker.min.mjs`;
 
 export default function App() {
   const [files, setFiles] = useState<UploadedFile[]>([]);
@@ -12,7 +17,12 @@ export default function App() {
   const [data, setData] = useState<SearchResponse | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [viewingResult, setViewingResult] = useState<{ file: UploadedFile, page: number } | null>(null);
+  
+  // PDF Viewer State
   const [rotation, setRotation] = useState(0);
+  const [numPages, setNumPages] = useState<number | null>(null);
+  const [currentPage, setCurrentPage] = useState<number>(1);
+  const [pdfScale, setPdfScale] = useState(1.0);
 
   // Use a ref to keep track of files for cleanup on unmount
   const filesRef = useRef(files);
@@ -29,10 +39,13 @@ export default function App() {
     };
   }, []);
 
-  // Reset rotation when opening a new file/page
+  // Initialize viewer state when opening a file
   useEffect(() => {
     if (viewingResult) {
+      setCurrentPage(viewingResult.page);
       setRotation(0);
+      setNumPages(null); // Reset page count until loaded
+      setPdfScale(1.0);
     }
   }, [viewingResult]);
 
@@ -61,9 +74,19 @@ export default function App() {
     setStatus(AppStatus.IDLE);
     setKeyword('');
     setViewingResult(null);
-    // Note: We don't revoke URLs here immediately because we might implement undo later,
-    // but for now, they will be cleaned up on unmount or garbage collected.
     setFiles([]);
+  };
+
+  const onDocumentLoadSuccess = ({ numPages }: { numPages: number }) => {
+    setNumPages(numPages);
+  };
+
+  const changePage = (offset: number) => {
+    setCurrentPage(prev => {
+      const newPage = prev + offset;
+      if (numPages && (newPage < 1 || newPage > numPages)) return prev;
+      return newPage;
+    });
   };
 
   return (
@@ -247,22 +270,47 @@ export default function App() {
                 </div>
                 <div className="min-w-0">
                   <h3 className="font-medium text-white truncate">{viewingResult.file.file.name}</h3>
-                  <p className="text-sm text-slate-400">Viewing Page {viewingResult.page}</p>
+                  <p className="text-sm text-slate-400">
+                    Page {currentPage} of {numPages || '--'}
+                  </p>
                 </div>
               </div>
               
               <div className="flex items-center space-x-4">
+                 {/* Page Navigation Controls */}
+                 <div className="flex items-center space-x-1 bg-slate-900/50 rounded-lg p-1 border border-slate-700 mr-2">
+                   <button 
+                     onClick={() => changePage(-1)}
+                     disabled={currentPage <= 1}
+                     className="p-1.5 hover:bg-slate-700 rounded-md text-slate-400 hover:text-white transition-colors disabled:opacity-30 disabled:hover:bg-transparent"
+                     title="Previous Page"
+                   >
+                     <ChevronLeft size={18} />
+                   </button>
+                   <span className="px-2 text-xs font-mono text-slate-400 w-12 text-center">
+                     {currentPage} / {numPages || '-'}
+                   </span>
+                   <button 
+                     onClick={() => changePage(1)}
+                     disabled={numPages ? currentPage >= numPages : true}
+                     className="p-1.5 hover:bg-slate-700 rounded-md text-slate-400 hover:text-white transition-colors disabled:opacity-30 disabled:hover:bg-transparent"
+                     title="Next Page"
+                   >
+                     <ChevronRight size={18} />
+                   </button>
+                </div>
+
                 {/* Rotation Controls */}
                 <div className="flex items-center space-x-1 bg-slate-900/50 rounded-lg p-1 border border-slate-700">
                    <button 
-                     onClick={() => setRotation(prev => prev - 90)}
+                     onClick={() => setRotation(prev => (prev - 90 + 360) % 360)}
                      className="p-1.5 hover:bg-slate-700 rounded-md text-slate-400 hover:text-white transition-colors"
                      title="Rotate Counter-Clockwise"
                    >
                      <RotateCcw size={18} />
                    </button>
                    <button 
-                     onClick={() => setRotation(prev => prev + 90)}
+                     onClick={() => setRotation(prev => (prev + 90) % 360)}
                      className="p-1.5 hover:bg-slate-700 rounded-md text-slate-400 hover:text-white transition-colors"
                      title="Rotate Clockwise"
                    >
@@ -280,15 +328,34 @@ export default function App() {
               </div>
             </div>
             
-            {/* Iframe Viewer */}
-            <div className="flex-1 bg-slate-800 relative flex items-center justify-center overflow-hidden">
-              <iframe
-                key={`${viewingResult.file.id}-${viewingResult.page}`}
-                src={`${viewingResult.file.previewUrl}#page=${viewingResult.page}`}
-                className="w-full h-full border-none transition-transform duration-300 ease-in-out origin-center"
-                style={{ transform: `rotate(${rotation}deg)` }}
-                title={`PDF viewer for ${viewingResult.file.file.name}`}
-              />
+            {/* PDF Canvas Viewer */}
+            <div className="flex-1 bg-slate-800 relative overflow-auto flex justify-center p-8">
+              <Document
+                file={viewingResult.file.file}
+                onLoadSuccess={onDocumentLoadSuccess}
+                loading={
+                  <div className="flex items-center justify-center h-full text-slate-400">
+                     <Loader2 className="w-8 h-8 animate-spin mr-3 text-blue-500" />
+                     Loading PDF...
+                  </div>
+                }
+                error={
+                  <div className="flex items-center justify-center h-full text-red-400">
+                    <p>Failed to load PDF document.</p>
+                  </div>
+                }
+                className="shadow-2xl"
+              >
+                <Page 
+                  pageNumber={currentPage} 
+                  rotate={rotation}
+                  renderTextLayer={false}
+                  renderAnnotationLayer={false}
+                  scale={pdfScale}
+                  height={window.innerHeight * 0.75}
+                  className="border border-slate-600 shadow-xl"
+                />
+              </Document>
             </div>
           </div>
         </div>
