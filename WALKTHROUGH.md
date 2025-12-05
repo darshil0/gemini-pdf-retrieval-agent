@@ -18,6 +18,7 @@ Upon loading the application, you are presented with a clean, dual-panel interfa
     -   Uploaded files appear as a list below the upload area.
     -   Each file shows a red PDF icon, the filename, and the file size.
     -   You can remove individual files by clicking the "X" button next to them.
+4.  **Warning**: If the total size of files exceeds 200MB, an amber warning banner appears to alert you about potential performance impacts.
 
 ## 3. Defining Search Criteria
 
@@ -44,7 +45,7 @@ At the top of the results is an **Analysis Summary**. This is a generated natura
 Below the summary is a grid of result cards. Each card contains:
 -   **Document Name**: The source file.
 -   **Page Number**: A badge indicating exactly where the match was found.
--   **Context Snippet**: A ~40 word excerpt. The keyword is **highlighted in yellow**.
+-   **Context Snippet**: A ~40 word excerpt. The keyword is **highlighted in yellow** (case-insensitive).
 -   **Relevance Note**: A brief explanation of why this match was returned.
 
 ## 6. Integrated PDF Viewer
@@ -54,8 +55,10 @@ Below the summary is a grid of result cards. Each card contains:
     -   A modal overlay opens.
     -   The PDF is loaded into an embedded viewer.
     -   The viewer automatically scrolls to the specific page cited in the result.
-3.  **Close**: Click the "X" in the top right or click the backdrop to close the viewer and return to results.
+3.  **Controls**:
+    -   **Rotate**: Use the clockwise/counter-clockwise buttons in the top header to rotate the view if the document scan is sideways.
+4.  **Close**: Click the "X" in the top right or click the backdrop to close the viewer and return to results.
 
 ## 7. Resetting
 
-To start over, click the "Trash / Clear Results" icon in the top navigation bar. This removes the search results but keeps your uploaded files, allowing you to quickly search for a new term.
+To start over, click the "Trash / Clear Results" icon in the top navigation bar. This removes the search results and clears the uploaded files list, returning the application to its initial state.

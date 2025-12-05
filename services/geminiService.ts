@@ -16,7 +16,7 @@ const fileToGenerativePart = async (file: File) => {
   return {
     inlineData: {
       data: await base64EncodedDataPromise,
-      mimeType: file.type,
+      mimeType: file.type || 'application/pdf',
     },
   };
 };
@@ -97,9 +97,18 @@ export const searchInDocuments = async (
     let text = response.text;
     if (!text) throw new Error("No response from Gemini");
 
-    // Clean up markdown code blocks if present (e.g., ```json ... ```)
-    if (text.startsWith('```')) {
-      text = text.replace(/^```json\s*/, '').replace(/^```\s*/, '').replace(/\s*```$/, '');
+    // Robust JSON extraction
+    // 1. Try to find a JSON code block with or without the 'json' language specifier
+    const codeBlockMatch = text.match(/```(?:json)?\s*([\s\S]*?)\s*```/);
+    if (codeBlockMatch) {
+      text = codeBlockMatch[1];
+    } else {
+        // 2. If no code block, try to find the first { and last } to strip conversational text
+        const firstBrace = text.indexOf('{');
+        const lastBrace = text.lastIndexOf('}');
+        if (firstBrace !== -1 && lastBrace !== -1) {
+            text = text.substring(firstBrace, lastBrace + 1);
+        }
     }
 
     return JSON.parse(text) as SearchResponse;

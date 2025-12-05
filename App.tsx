@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { Search, Loader2, Sparkles, BookOpen, Trash2, X, FileText, RotateCw, RotateCcw } from 'lucide-react';
 import { FileUpload } from './components/FileUpload';
 import { SearchResultCard } from './components/SearchResultCard';
@@ -14,16 +14,20 @@ export default function App() {
   const [viewingResult, setViewingResult] = useState<{ file: UploadedFile, page: number } | null>(null);
   const [rotation, setRotation] = useState(0);
 
-  // Cleanup object URLs when component unmounts to avoid memory leaks
+  // Use a ref to keep track of files for cleanup on unmount
+  const filesRef = useRef(files);
+  filesRef.current = files;
+
+  // Cleanup object URLs ONLY when component unmounts to avoid memory leaks
   useEffect(() => {
     return () => {
-      files.forEach(file => {
+      filesRef.current.forEach(file => {
         if (file.previewUrl) {
           URL.revokeObjectURL(file.previewUrl);
         }
       });
     };
-  }, [files]);
+  }, []);
 
   // Reset rotation when opening a new file/page
   useEffect(() => {
@@ -57,6 +61,8 @@ export default function App() {
     setStatus(AppStatus.IDLE);
     setKeyword('');
     setViewingResult(null);
+    // Note: We don't revoke URLs here immediately because we might implement undo later,
+    // but for now, they will be cleaned up on unmount or garbage collected.
     setFiles([]);
   };
 

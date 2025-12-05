@@ -13,6 +13,8 @@ The application scans all uploaded documents, highlights the context where keywo
 -   **Exact Page Citations**: Returns the exact page number for every match.
 -   **Keyword Highlighting**: Visually highlights keywords within the search result snippets (case-insensitive).
 -   **Integrated PDF Viewer**: Click "View Page" to open the PDF directly to the cited page without leaving the app.
+-   **Rotation Controls**: Easily rotate PDF pages (90° increments) within the viewer for better readability.
+-   **Size Warning**: Alerts users when total upload size exceeds 200MB to prevent timeout issues.
 -   **Secure & Private**: Processing happens via the Gemini API with strict schema enforcement.
 
 ## Tech Stack
