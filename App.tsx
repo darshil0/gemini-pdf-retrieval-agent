@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Search, Loader2, Sparkles, BookOpen, Trash2, X, FileText } from 'lucide-react';
 import { FileUpload } from './components/FileUpload';
 import { SearchResultCard } from './components/SearchResultCard';
@@ -12,6 +12,17 @@ export default function App() {
   const [data, setData] = useState<SearchResponse | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [viewingResult, setViewingResult] = useState<{ file: UploadedFile, page: number } | null>(null);
+
+  // Cleanup object URLs when component unmounts to avoid memory leaks
+  useEffect(() => {
+    return () => {
+      files.forEach(file => {
+        if (file.previewUrl) {
+          URL.revokeObjectURL(file.previewUrl);
+        }
+      });
+    };
+  }, [files]);
 
   const handleSearch = async (e: React.FormEvent) => {
     e.preventDefault();

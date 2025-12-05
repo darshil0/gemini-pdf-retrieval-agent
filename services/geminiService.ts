@@ -94,8 +94,13 @@ export const searchInDocuments = async (
       }
     });
 
-    const text = response.text;
+    let text = response.text;
     if (!text) throw new Error("No response from Gemini");
+
+    // Clean up markdown code blocks if present (e.g., ```json ... ```)
+    if (text.startsWith('```')) {
+      text = text.replace(/^```json\s*/, '').replace(/^```\s*/, '').replace(/\s*```$/, '');
+    }
 
     return JSON.parse(text) as SearchResponse;
 
