@@ -103,6 +103,13 @@ export default function App() {
   };
 
   const handleReset = () => {
+    // Clean up object URLs immediately to free memory
+    files.forEach(file => {
+      if (file.previewUrl) {
+        URL.revokeObjectURL(file.previewUrl);
+      }
+    });
+
     setData(null);
     setStatus(AppStatus.IDLE);
     setKeyword('');

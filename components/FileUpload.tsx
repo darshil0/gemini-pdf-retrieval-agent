@@ -1,5 +1,5 @@
-import React, { useCallback } from 'react';
-import { Upload, X, FileText, AlertCircle, AlertTriangle } from 'lucide-react';
+import React, { useState } from 'react';
+import { Upload, X, FileText, AlertCircle, AlertTriangle, AlertOctagon } from 'lucide-react';
 import { UploadedFile } from '../types';
 
 interface FileUploadProps {
@@ -9,24 +9,46 @@ interface FileUploadProps {
 }
 
 export const FileUpload: React.FC<FileUploadProps> = ({ files, setFiles, disabled }) => {
+  const [validationError, setValidationError] = useState<string | null>(null);
+  
   const MAX_RECOMMENDED_SIZE_MB = 200;
   const totalSize = files.reduce((acc, curr) => acc + curr.file.size, 0);
   const totalSizeMB = totalSize / 1024 / 1024;
   const isOverSizeLimit = totalSizeMB > MAX_RECOMMENDED_SIZE_MB;
 
   const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+    setValidationError(null);
+    
     if (event.target.files && event.target.files.length > 0) {
-      const newFiles = Array.from(event.target.files).map((file: File) => ({
-        file,
-        id: Math.random().toString(36).substring(7),
-        previewUrl: URL.createObjectURL(file)
-      }));
+      const selectedFiles = Array.from(event.target.files);
+      const validFiles: File[] = [];
+      const invalidNames: string[] = [];
 
-      setFiles(prev => {
-        const combined = [...prev, ...newFiles];
-        // Limit to 10 files
-        return combined.slice(0, 10);
+      selectedFiles.forEach(file => {
+        if (file.type === 'application/pdf') {
+          validFiles.push(file);
+        } else {
+          invalidNames.push(file.name);
+        }
       });
+
+      if (invalidNames.length > 0) {
+        setValidationError(`Invalid file type. Only PDFs are allowed. Skipped: ${invalidNames.slice(0, 3).join(', ')}${invalidNames.length > 3 ? '...' : ''}`);
+      }
+
+      if (validFiles.length > 0) {
+        const newFiles = validFiles.map((file: File) => ({
+          file,
+          id: Math.random().toString(36).substring(7),
+          previewUrl: URL.createObjectURL(file)
+        }));
+
+        setFiles(prev => {
+          const combined = [...prev, ...newFiles];
+          // Limit to 10 files
+          return combined.slice(0, 10);
+        });
+      }
     }
     // Reset input
     event.target.value = '';
@@ -56,8 +78,25 @@ export const FileUpload: React.FC<FileUploadProps> = ({ files, setFiles, disable
         </div>
       </div>
 
-      {files.length > 0 && (
+      {(files.length > 0 || validationError) && (
         <div className="space-y-3">
+          {/* Validation Error */}
+          {validationError && (
+            <div className="flex items-start p-3 bg-red-900/20 border border-red-500/30 rounded-lg text-red-200 animate-fade-in">
+              <AlertOctagon className="w-5 h-5 mr-3 flex-shrink-0 mt-0.5" />
+              <div className="text-sm">
+                <p className="font-semibold">Upload Failed</p>
+                <p className="opacity-80">{validationError}</p>
+              </div>
+              <button 
+                onClick={() => setValidationError(null)}
+                className="ml-auto text-red-300 hover:text-white"
+              >
+                <X size={16} />
+              </button>
+            </div>
+          )}
+
           {/* Size Warning */}
           {isOverSizeLimit && (
             <div className="flex items-start p-3 bg-amber-900/20 border border-amber-500/30 rounded-lg text-amber-200 animate-fade-in">
@@ -101,7 +140,7 @@ export const FileUpload: React.FC<FileUploadProps> = ({ files, setFiles, disable
         </div>
       )}
       
-      {files.length === 0 && (
+      {files.length === 0 && !validationError && (
         <div className="flex items-center p-4 bg-blue-900/20 border border-blue-500/20 rounded-lg text-blue-200">
           <AlertCircle className="w-5 h-5 mr-3 flex-shrink-0" />
           <p className="text-sm">Please upload at least one PDF to begin.</p>
