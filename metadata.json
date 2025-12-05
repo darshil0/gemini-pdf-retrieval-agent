@@ -1,0 +1,5 @@
+{
+  "name": "DocuSearch Agent",
+  "description": "An intelligent document retrieval agent powered by Gemini 2.5 Flash. Upload up to 10 PDFs, search for keywords, and get exact page citations with context highlights.",
+  "requestFramePermissions": []
+}
