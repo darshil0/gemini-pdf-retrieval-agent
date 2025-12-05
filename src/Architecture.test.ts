@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { buildSearchPrompt, SYSTEM_PERSONA, SEARCH_TOOL_INSTRUCTIONS, SEARCH_PROTOCOL } from './services/agentPrompts';
+import { buildSearchPrompt, SEARCH_TOOL_INSTRUCTIONS, SEARCH_PROTOCOL } from './services/agentPrompts';
 
 describe('Agent Architecture (v1.2.2)', () => {
     it('should strictly include the SYSTEM definition in the prompt', () => {
