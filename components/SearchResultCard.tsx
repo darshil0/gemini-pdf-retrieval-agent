@@ -22,13 +22,13 @@ export const SearchResultCard: React.FC<SearchResultCardProps> = ({ result, file
     // Escape special characters to ensure they are treated as literals in RegExp
     const escapedHighlight = highlight.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
     const regex = new RegExp(`(${escapedHighlight})`, 'gi');
-    
+
     // Split includes the captured groups (the matches)
     const parts = text.split(regex);
 
     return (
       <span>
-        {parts.map((part, i) => 
+        {parts.map((part, i) =>
           part.toLowerCase() === highlight.toLowerCase() ? (
             <span key={i} className="bg-yellow-500/30 text-yellow-200 border-b border-yellow-500 px-1 rounded-sm font-medium">
               {part}
@@ -58,16 +58,16 @@ export const SearchResultCard: React.FC<SearchResultCardProps> = ({ result, file
       </div>
 
       <div className="mb-4 text-slate-300 leading-relaxed text-sm bg-slate-900/50 p-4 rounded-lg border border-slate-700/50 flex-grow">
-        <span className="text-slate-500 mr-1">"...</span>
+        <span className="text-slate-500 mr-1">&quot;...</span>
         {getHighlightedText(result.contextSnippet, termToHighlight)}
-        <span className="text-slate-500 ml-1">..."</span>
+        <span className="text-slate-500 ml-1">...&quot;</span>
       </div>
 
       <div className="flex items-center justify-between pt-2 border-t border-slate-700/50 mt-auto">
         <span className="text-xs text-slate-500 italic truncate pr-2" title={result.relevanceExplanation}>
           {result.relevanceExplanation}
         </span>
-        <button 
+        <button
           onClick={onView}
           className="flex-shrink-0 flex items-center space-x-2 text-xs font-medium text-blue-400 bg-blue-500/10 hover:bg-blue-500/20 px-3 py-1.5 rounded transition-colors border border-blue-500/20"
         >
