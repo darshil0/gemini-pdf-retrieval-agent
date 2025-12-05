@@ -43,7 +43,7 @@ export const SearchResultCard: React.FC<SearchResultCardProps> = ({ result, file
       <div className="flex justify-between items-start mb-3">
         <div className="flex items-center space-x-2 text-blue-400">
           <FileText size={16} />
-          <span className="text-xs font-semibold uppercase tracking-wider">Document</span>
+          <span className="text-xs font-semibold uppercase tracking-wider">Doc #{result.docIndex + 1}</span>
           <span className="text-sm text-slate-300 font-medium truncate max-w-[200px]" title={fileName}>
             {fileName}
           </span>
