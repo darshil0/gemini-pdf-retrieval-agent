@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { Search, Loader2, Sparkles, BookOpen, Trash2, X, FileText, RotateCw, RotateCcw, ChevronLeft, ChevronRight } from 'lucide-react';
+import { Search, Loader2, Sparkles, BookOpen, Trash2, X, FileText, RotateCw, RotateCcw, ChevronLeft, ChevronRight, History } from 'lucide-react';
 import { FileUpload } from './components/FileUpload';
 import { SearchResultCard } from './components/SearchResultCard';
 import { searchInDocuments } from './services/geminiService';
@@ -17,6 +17,7 @@ export default function App() {
   const [data, setData] = useState<SearchResponse | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [viewingResult, setViewingResult] = useState<{ file: UploadedFile, page: number } | null>(null);
+  const [recentSearches, setRecentSearches] = useState<string[]>([]);
   
   // PDF Viewer State
   const [rotation, setRotation] = useState(0);
@@ -39,6 +40,18 @@ export default function App() {
     };
   }, []);
 
+  // Load recent searches from local storage on mount
+  useEffect(() => {
+    const saved = localStorage.getItem('docuSearch_recent');
+    if (saved) {
+      try {
+        setRecentSearches(JSON.parse(saved));
+      } catch (e) {
+        console.error("Failed to parse recent searches", e);
+      }
+    }
+  }, []);
+
   // Initialize viewer state when opening a file
   useEffect(() => {
     if (viewingResult) {
@@ -49,9 +62,24 @@ export default function App() {
     }
   }, [viewingResult]);
 
-  const handleSearch = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (files.length === 0 || !keyword.trim()) return;
+  const updateRecentSearches = (term: string) => {
+    setRecentSearches(prev => {
+      // Remove duplicates (case-insensitive check) and add to front
+      const filtered = prev.filter(t => t.toLowerCase() !== term.toLowerCase());
+      const updated = [term, ...filtered].slice(0, 5); // Keep top 5
+      localStorage.setItem('docuSearch_recent', JSON.stringify(updated));
+      return updated;
+    });
+  };
+
+  const executeSearch = async (term: string) => {
+    if (files.length === 0 || !term.trim()) return;
+
+    // Update input to reflect what is being searched
+    setKeyword(term);
+    
+    // Add to history
+    updateRecentSearches(term);
 
     setStatus(AppStatus.ANALYZING);
     setError(null);
@@ -59,7 +87,7 @@ export default function App() {
 
     try {
       const fileObjects = files.map(f => f.file);
-      const response = await searchInDocuments(fileObjects, keyword);
+      const response = await searchInDocuments(fileObjects, term);
       setData(response);
       setStatus(AppStatus.COMPLETE);
     } catch (err: any) {
@@ -67,6 +95,11 @@ export default function App() {
       setError(err.message || "An error occurred while analyzing the documents.");
       setStatus(AppStatus.ERROR);
     }
+  };
+
+  const handleSearch = (e: React.FormEvent) => {
+    e.preventDefault();
+    executeSearch(keyword);
   };
 
   const handleReset = () => {
@@ -187,6 +220,31 @@ export default function App() {
                       </>
                     )}
                   </button>
+
+                  {/* Recent Searches */}
+                  {recentSearches.length > 0 && (
+                    <div className="pt-2 animate-fade-in">
+                      <div className="flex items-center text-xs font-semibold text-slate-500 mb-3 uppercase tracking-wider">
+                        <History className="w-3 h-3 mr-1.5" />
+                        Recent Searches
+                      </div>
+                      <div className="flex flex-wrap gap-2">
+                        {recentSearches.map((term, i) => (
+                          <button
+                            key={i}
+                            onClick={() => executeSearch(term)}
+                            disabled={status === AppStatus.ANALYZING || files.length === 0}
+                            title={files.length === 0 ? "Upload files first" : "Run search"}
+                            className="px-3 py-1.5 rounded-lg bg-slate-800 border border-slate-700 hover:border-blue-500/50 hover:bg-slate-700 text-sm text-slate-300 transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center group"
+                          >
+                            <span>{term}</span>
+                            <Search className="w-3 h-3 ml-2 opacity-0 group-hover:opacity-100 transition-opacity text-blue-400" />
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+
                 </div>
               </div>
             </div>
@@ -334,9 +392,15 @@ export default function App() {
                 file={viewingResult.file.file}
                 onLoadSuccess={onDocumentLoadSuccess}
                 loading={
-                  <div className="flex items-center justify-center h-full text-slate-400">
-                     <Loader2 className="w-8 h-8 animate-spin mr-3 text-blue-500" />
-                     Loading PDF...
+                  <div className="flex flex-col items-center justify-center h-full min-h-[400px] w-full animate-fade-in">
+                     <div className="relative mb-6">
+                        <div className="w-20 h-20 border-4 border-slate-700 border-t-blue-500 rounded-full animate-spin"></div>
+                        <div className="absolute inset-0 flex items-center justify-center">
+                           <FileText className="w-8 h-8 text-slate-600" />
+                        </div>
+                     </div>
+                     <h4 className="text-xl font-semibold text-white mb-2">Loading Document</h4>
+                     <p className="text-slate-400">Rendering page {viewingResult.page}...</p>
                   </div>
                 }
                 error={
