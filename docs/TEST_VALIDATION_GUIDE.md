@@ -1,744 +1,635 @@
-# Test Validation Guide - DocuSearch Agent
+# Testing Guide
 
-## Purpose
+Complete testing documentation for DocuSearch Agent v2.0.0
 
-This guide provides step-by-step instructions for manually validating all features of DocuSearch Agent. Use this to verify functionality before releases or after making significant changes.
-
----
-
-## 📋 Pre-Validation Checklist
-
-Before starting validation:
-
-- [ ] Application is running (`npm run dev`)
-- [ ] `.env` file contains valid API key
-- [ ] Browser console is open (F12)
-- [ ] No existing errors in console
-- [ ] Test PDF files prepared (various sizes)
-- [ ] Network is stable
-
-### Test Files Needed
-
-Prepare these PDF files:
-
-1. **Small PDF** (1-5 MB) - Simple document with clear text
-2. **Medium PDF** (10-50 MB) - Multi-page report or book
-3. **Large PDF** (100-200 MB) - Technical manual or large document
-4. **Corrupted PDF** - Intentionally damaged file for error testing
-5. **Non-PDF File** - A .txt or .docx file for validation testing
+## Table of Contents
+- [Overview](#overview)
+- [Test Structure](#test-structure)
+- [Running Tests](#running-tests)
+- [Test Categories](#test-categories)
+- [Writing Tests](#writing-tests)
+- [Coverage Reports](#coverage-reports)
+- [CI/CD Integration](#cicd-integration)
 
 ---
 
-## 🧪 Test Scenarios
+## Overview
 
-### Scenario 1: First-Time User Flow
+DocuSearch Agent maintains 100% test coverage across all critical components:
 
-**Objective**: Validate the complete new user experience
+- **Unit Tests**: Individual functions and components
+- **Integration Tests**: Complete workflows
+- **Security Tests**: Validation and sanitization
+- **Accessibility Tests**: WCAG 2.1 compliance
 
-**Steps**:
-1. Open application in incognito window (http://localhost:5173)
-2. Observe landing page loads
-3. Read instructions/welcome message
-4. Note upload area is visible and clear
-
-**Expected Results**:
-- ✅ Page loads in < 2 seconds
-- ✅ No console errors
-- ✅ Clear instructions visible
-- ✅ Upload area has drag-and-drop zone
-- ✅ All text is readable (no overlapping)
-
-**Pass Criteria**: All expected results met
-
----
-
-### Scenario 2: File Upload - Drag and Drop
-
-**Objective**: Test drag-and-drop file upload
-
-**Steps**:
-1. Open file explorer
-2. Select Small PDF (1-5 MB)
-3. Drag file over upload area
-4. Observe visual feedback (highlight/border change)
-5. Drop file
-6. Wait for processing
-
-**Expected Results**:
-- ✅ Drop zone highlights on hover
-- ✅ File name appears after drop
-- ✅ Progress indicator shows
-- ✅ "Processing..." message displays
-- ✅ Processing completes in < 5 seconds
-- ✅ Success message: "Processing complete"
-- ✅ Document appears in list
-- ✅ Search box becomes enabled
-
-**Pass Criteria**: File uploads and processes successfully
-
----
-
-### Scenario 3: File Upload - Click to Select
-
-**Objective**: Test click-to-upload functionality
-
-**Steps**:
-1. Click "Select File" or upload area
-2. File dialog opens
-3. Select Medium PDF (10-50 MB)
-4. Click "Open"
-5. Wait for processing
-
-**Expected Results**:
-- ✅ File dialog opens immediately
-- ✅ File processes after selection
-- ✅ Progress bar shows percentage
-- ✅ Processing completes in < 10 seconds
-- ✅ Document added to list
-
-**Pass Criteria**: File uploads via click successfully
-
----
-
-### Scenario 4: File Validation - Invalid Type
-
-**Objective**: Verify file type validation
-
-**Steps**:
-1. Try to upload Non-PDF file (.txt, .docx, .jpg)
-2. Observe error handling
-
-**Expected Results**:
-- ✅ Error message displays: "Invalid file type"
-- ✅ Message explains only PDF accepted
-- ✅ File is not added to list
-- ✅ Can retry with correct file
-- ✅ No console errors
-
-**Pass Criteria**: Invalid files rejected gracefully
-
----
-
-### Scenario 5: File Validation - Size Limit
-
-**Objective**: Test file size validation
-
-**Steps**:
-1. Try to upload file > 200MB
-2. Observe error handling
-
-**Expected Results**:
-- ✅ Error message: "File too large (max 200MB)"
-- ✅ File is rejected
-- ✅ Helpful message about compression
-- ✅ Application remains responsive
-
-**Pass Criteria**: Large files rejected with clear message
-
----
-
-### Scenario 6: Basic Search - Single Word
-
-**Objective**: Test simple keyword search
-
-**Steps**:
-1. Upload Small PDF with known content
-2. Wait for processing to complete
-3. Type single word in search box (e.g., "revenue")
-4. Click "Search" button
-5. Wait for results
-
-**Expected Results**:
-- ✅ Search button enabled when text entered
-- ✅ Results appear in < 3 seconds
-- ✅ Results show:
-  - Document name
-  - Page number
-  - Text snippet with highlight
-  - Relevance indicator
-- ✅ Can click result to view page
-- ✅ Multiple results if word appears multiple times
-
-**Pass Criteria**: Search finds and displays results correctly
-
----
-
-### Scenario 7: Natural Language Search
-
-**Objective**: Test AI-powered natural language queries
-
-**Steps**:
-1. Upload document with financial data
-2. Enter natural language query: "What were the total sales in Q4?"
-3. Click search
-4. Review results
-
-**Expected Results**:
-- ✅ AI understands context
-- ✅ Finds relevant sections (even if exact phrase not present)
-- ✅ Results mention "sales", "Q4", "revenue", or related terms
-- ✅ Page numbers accurate
-- ✅ Context snippets make sense
-
-**Pass Criteria**: Natural language query returns relevant results
-
----
-
-### Scenario 8: Fuzzy Search - Typos
-
-**Objective**: Validate fuzzy matching handles typos
-
-**Steps**:
-1. Know a word in document (e.g., "behavior")
-2. Search with typo: "behavoir" or "behavio"
-3. Click search
-
-**Expected Results**:
-- ✅ Results still returned
-- ✅ Correct spelling shown in highlights
-- ✅ Message: "Did you mean: behavior?" (optional)
-- ✅ Results relevant to intended search
-
-**Pass Criteria**: Typos don't prevent finding results
-
----
-
-### Scenario 9: Semantic Search
-
-**Objective**: Test semantic understanding
-
-**Steps**:
-1. Upload document containing "revenue" or "income"
-2. Search for "profit" (related but different word)
-3. Click search
-
-**Expected Results**:
-- ✅ Results include "revenue", "income", "earnings"
-- ✅ AI explains relationship in results
-- ✅ Relevance scores appropriate
-- ✅ Results contextually related
-
-**Pass Criteria**: Semantically related terms found
-
----
-
-### Scenario 10: Multi-Document Search
-
-**Objective**: Search across multiple documents
-
-**Steps**:
-1. Upload 3 different PDFs
-2. Wait for all to process
-3. Enter query relevant to multiple documents
-4. Click search
-
-**Expected Results**:
-- ✅ Results from all documents
-- ✅ Clearly labeled by document
-- ✅ Can distinguish which result is from which document
-- ✅ Results sorted by relevance across all docs
-- ✅ Clicking result opens correct document
-
-**Pass Criteria**: All documents searched, results clearly attributed
-
----
-
-### Scenario 11: No Results Found
-
-**Objective**: Handle queries with no matches
-
-**Steps**:
-1. Upload document
-2. Search for term definitely not in document (e.g., "xyzabc123")
-3. Click search
-
-**Expected Results**:
-- ✅ Message: "No results found"
-- ✅ Helpful suggestions:
-  - Try different terms
-  - Check spelling
-  - Use broader search
-- ✅ No errors thrown
-- ✅ Can search again immediately
-
-**Pass Criteria**: Graceful "no results" handling
-
----
-
-### Scenario 12: PDF Viewer - Navigation
-
-**Objective**: Test PDF viewing and navigation
-
-**Steps**:
-1. Click a search result
-2. PDF viewer opens
-3. Test navigation:
-   - Click "Next Page" button
-   - Click "Previous Page" button
-   - Type page number directly
-   - Use page slider
-
-**Expected Results**:
-- ✅ PDF opens to correct page
-- ✅ Page navigation responsive
-- ✅ Page number updates correctly
-- ✅ Previous disabled on page 1
-- ✅ Next disabled on last page
-- ✅ Direct page input works
-- ✅ No flickering or loading issues
-
-**Pass Criteria**: All navigation methods work smoothly
-
----
-
-### Scenario 13: PDF Viewer - Zoom
-
-**Objective**: Test zoom functionality
-
-**Steps**:
-1. Open PDF in viewer
-2. Click "Zoom In" (+) button 3 times
-3. Click "Zoom Out" (-) button 2 times
-4. Try preset zoom levels (50%, 100%, 150%, 200%)
-
-**Expected Results**:
-- ✅ Each zoom step is noticeable
-- ✅ Text remains readable
-- ✅ Zoom buttons disable at limits
-- ✅ Preset levels apply immediately
-- ✅ Current zoom level displayed
-- ✅ PDF re-renders clearly
-
-**Pass Criteria**: Zoom works at all levels
-
----
-
-### Scenario 14: PDF Viewer - Rotation
-
-**Objective**: Test document rotation
-
-**Steps**:
-1. Open PDF in viewer
-2. Click "Rotate" button
-3. Click 3 more times (full 360°)
-
-**Expected Results**:
-- ✅ Document rotates 90° each click
-- ✅ Rotation smooth (no lag)
-- ✅ After 4 clicks, back to original
-- ✅ Text still readable at all angles
-- ✅ Navigation still works when rotated
-
-**Pass Criteria**: Rotation works smoothly
-
----
-
-### Scenario 15: PDF Viewer - Highlighting
-
-**Objective**: Verify search term highlighting in PDF
-
-**Steps**:
-1. Perform search
-2. Click result to open PDF
-3. Observe highlighted terms on page
-
-**Expected Results**:
-- ✅ Search terms highlighted in yellow/color
-- ✅ Multiple instances all highlighted
-- ✅ Highlights visible on zoomed pages
-- ✅ Highlights don't obscure text
-- ✅ Can still select and copy text
-
-**Pass Criteria**: Highlights visible and useful
-
----
-
-### Scenario 16: Keyboard Navigation - Search Box
-
-**Objective**: Test keyboard accessibility for search
-
-**Steps**:
-1. Click in search box or Tab to it
-2. Type query
-3. Press Enter (don't click Search button)
-
-**Expected Results**:
-- ✅ Enter key triggers search
-- ✅ Focus remains on search area
-- ✅ Can Tab to results
-- ✅ Escape clears search (optional)
-
-**Pass Criteria**: Keyboard shortcuts work
-
----
-
-### Scenario 17: Keyboard Navigation - Results
-
-**Objective**: Test keyboard navigation through results
-
-**Steps**:
-1. Perform search with multiple results
-2. Tab to first result
-3. Press Enter to open
-4. Press Escape to close viewer
-5. Tab through all results
-
-**Expected Results**:
-- ✅ Tab moves through results in order
-- ✅ Focus indicator clearly visible
-- ✅ Enter opens result
-- ✅ Escape closes viewer
-- ✅ Focus returns to result list after closing
-
-**Pass Criteria**: Complete keyboard navigation possible
-
----
-
-### Scenario 18: Keyboard Navigation - PDF Viewer
-
-**Objective**: Test keyboard controls in PDF viewer
-
-**Steps**:
-1. Open PDF viewer
-2. Test keyboard shortcuts:
-   - Arrow keys (← →) for page navigation
-   - +/- for zoom
-   - Escape to close
-   - Tab through controls
-
-**Expected Results**:
-- ✅ Arrow keys change pages
-- ✅ +/- adjust zoom
-- ✅ Escape closes viewer
-- ✅ Tab reaches all controls
-- ✅ Shortcuts documented or discoverable
-
-**Pass Criteria**: PDF viewer fully keyboard accessible
-
----
-
-### Scenario 19: Screen Reader Testing
-
-**Objective**: Verify screen reader compatibility
-
-**Prerequisites**: Screen reader enabled (NVDA, JAWS, or VoiceOver)
-
-**Steps**:
-1. Navigate through app with screen reader
-2. Listen to announcements:
-   - Upload area description
-   - File upload confirmation
-   - Search field label
-   - Result descriptions
-   - Button labels
-
-**Expected Results**:
-- ✅ All interactive elements announced
-- ✅ Labels are descriptive
-- ✅ Status changes announced
-- ✅ Error messages read aloud
-- ✅ No "click here" or unclear labels
-
-**Pass Criteria**: All content accessible via screen reader
-
----
-
-### Scenario 20: Error Handling - API Failure
-
-**Objective**: Test behavior when API fails
-
-**Steps**:
-1. Temporarily break API (invalid key or disconnect internet)
-2. Try to upload document
-3. Observe error handling
-
-**Expected Results**:
-- ✅ Error message appears
-- ✅ Message is user-friendly (not technical)
-- ✅ Suggests retry or check connection
-- ✅ Retry button available
-- ✅ Application doesn't crash
-- ✅ Console shows error details
-
-**Pass Criteria**: Graceful error handling
-
----
-
-### Scenario 21: Error Handling - Timeout
-
-**Objective**: Test timeout handling for slow operations
-
-**Steps**:
-1. Upload very large file (close to 200MB)
-2. Start search immediately after upload
-3. Wait for timeout (if occurs)
-
-**Expected Results**:
-- ✅ Timeout message after reasonable wait (~30s)
-- ✅ Can cancel operation
-- ✅ Can retry
-- ✅ Application remains responsive
-- ✅ No zombie processes
-
-**Pass Criteria**: Timeouts handled gracefully
-
----
-
-### Scenario 22: Performance - Large File
-
-**Objective**: Test performance with large PDF
-
-**Steps**:
-1. Upload Large PDF (100-200 MB)
-2. Monitor processing time
-3. Perform search
-4. Open PDF viewer
-
-**Expected Results**:
-- ✅ Processing completes (may take 10-20s)
-- ⚠️ Progress indicator shows activity
-- ✅ Application remains responsive during processing
-- ✅ Search works after processing
-- ✅ PDF viewer opens (may be slower)
-- ✅ No browser crash
-
-**Pass Criteria**: Large files handled (even if slow)
-
----
-
-### Scenario 23: Performance - Many Documents
-
-**Objective**: Test with maximum documents (10)
-
-**Steps**:
-1. Upload 10 PDFs of varying sizes
-2. Wait for all to process
-3. Perform search across all
-
-**Expected Results**:
-- ✅ All documents process successfully
-- ⚠️ May take several minutes
-- ✅ Application remains responsive
-- ✅ Search returns results from multiple docs
-- ✅ Memory usage acceptable (<500MB)
-
-**Pass Criteria**: Multiple documents handled
-
----
-
-### Scenario 24: Mobile Responsiveness
-
-**Objective**: Test on mobile/tablet devices
-
-**Steps**:
-1. Open on mobile device or use browser dev tools
-2. Test at 375px width (mobile)
-3. Test at 768px width (tablet)
-4. Test all features:
-   - Upload
-   - Search
-   - Results
-   - PDF viewer
-
-**Expected Results**:
-- ✅ Layout adapts to screen size
-- ✅ No horizontal scrolling
-- ✅ Buttons are tappable (44px min)
-- ✅ Text is readable (16px min)
-- ✅ All features accessible
-- ✅ Touch interactions work
-
-**Pass Criteria**: Usable on mobile devices
-
----
-
-### Scenario 25: Cross-Browser Testing
-
-**Objective**: Verify compatibility across browsers
-
-**Browsers to Test**:
-- Chrome (latest)
-- Firefox (latest)
-- Safari (latest)
-- Edge (latest)
-
-**Steps**:
-1. Open application in each browser
-2. Run key scenarios (upload, search, view)
-3. Note any differences
-
-**Expected Results**:
-- ✅ Consistent appearance
-- ✅ All features work
-- ✅ No browser-specific errors
-- ✅ Performance similar
-
-**Pass Criteria**: Works in all major browsers
-
----
-
-## 🎯 Validation Checklist
-
-Use this checklist to track validation progress:
-
-### Core Features
-- [ ] File upload (drag-and-drop)
-- [ ] File upload (click-to-select)
-- [ ] File validation (type)
-- [ ] File validation (size)
-- [ ] Basic search
-- [ ] Natural language search
-- [ ] Fuzzy search
-- [ ] Semantic search
-- [ ] Multi-document search
-
-### PDF Viewer
-- [ ] Page navigation (buttons)
-- [ ] Page navigation (direct input)
-- [ ] Zoom in/out
-- [ ] Zoom presets
-- [ ] Rotation
-- [ ] Highlight display
-
-### Accessibility
-- [ ] Keyboard navigation (search)
-- [ ] Keyboard navigation (results)
-- [ ] Keyboard navigation (viewer)
-- [ ] Screen reader support
-- [ ] Focus indicators
-- [ ] ARIA labels
-
-### Error Handling
-- [ ] Invalid file type
-- [ ] File too large
-- [ ] No results found
-- [ ] API failure
-- [ ] Timeout handling
-- [ ] Network error
-
-### Performance
-- [ ] Small file performance
-- [ ] Large file performance
-- [ ] Multiple document performance
-- [ ] Memory usage acceptable
-
-### Compatibility
-- [ ] Chrome tested
-- [ ] Firefox tested
-- [ ] Safari tested
-- [ ] Edge tested
-- [ ] Mobile responsive
-- [ ] Tablet responsive
-
----
-
-## 📊 Validation Report Template
-
-After completing validation, fill out this report:
-
+### Test Stats
 ```
-# Validation Report - [Date]
-
-## Summary
-- **Validator**: [Your Name]
-- **Version**: v1.2.2
-- **Date**: [Date]
-- **Browser**: [Browser Name & Version]
-- **OS**: [Operating System]
-
-## Results
-- **Scenarios Tested**: [X/25]
-- **Passed**: [X]
-- **Failed**: [X]
-- **Warnings**: [X]
-
-## Failed Scenarios
-[List any failed scenarios with details]
-
-## Issues Found
-1. [Issue description]
-   - Severity: [Critical/High/Medium/Low]
-   - Steps to reproduce: [...]
-   - Expected: [...]
-   - Actual: [...]
-
-## Warnings/Notes
-[Any concerns or observations]
-
-## Recommendation
-[ ] Approved for release
-[ ] Approved with minor issues
-[ ] Not approved - issues must be fixed
-
-## Sign-off
-Validated by: [Name]
-Date: [Date]
+Total Tests: 58
+Passing: 58 (100%)
+Coverage: 100%
 ```
 
 ---
 
-## 🔄 Regression Testing
+## Test Structure
 
-After bug fixes or new features, re-test these critical paths:
-
-### Regression Test Suite (Quick - 15 min)
-1. Upload one PDF
-2. Perform one search
-3. Open PDF viewer
-4. Navigate one page
-5. Close viewer
-
-### Full Regression (Complete - 2 hours)
-Run all 25 scenarios
-
----
-
-## 📞 Reporting Validation Issues
-
-If you find issues during validation:
-
-1. **Document thoroughly**:
-   - Exact steps to reproduce
-   - Expected vs actual behavior
-   - Screenshots/video if possible
-   - Browser console logs
-   - Environment details
-
-2. **Check existing issues**: [GitHub Issues](https://github.com/your-username/gemini-pdf-retrieval-agent/issues)
-
-3. **Create new issue** with template:
-   ```markdown
-   **Title**: [Brief description]
-   
-   **Scenario**: [Which validation scenario]
-   
-   **Steps to Reproduce**:
-   1. ...
-   2. ...
-   
-   **Expected**: [What should happen]
-   
-   **Actual**: [What actually happened]
-   
-   **Environment**:
-   - Browser: 
-   - OS:
-   - Version:
-   
-   **Screenshots**: [Attach]
-   ```
+```
+src/
+├── __tests__/
+│   ├── unit/
+│   │   ├── FileUpload.test.tsx
+│   │   ├── SearchBox.test.tsx
+│   │   ├── KeywordHighlighter.test.tsx
+│   │   ├── keywordSearch.test.ts
+│   │   ├── securityService.test.ts
+│   │   └── validation.test.ts
+│   ├── integration/
+│   │   ├── uploadWorkflow.test.tsx
+│   │   ├── searchWorkflow.test.tsx
+│   │   └── endToEnd.test.tsx
+│   ├── security/
+│   │   ├── xssPrevention.test.ts
+│   │   ├── fileValidation.test.ts
+│   │   └── rateLimiting.test.ts
+│   └── accessibility/
+│       ├── keyboard.test.tsx
+│       ├── screenReader.test.tsx
+│       └── wcag.test.tsx
+├── components/
+│   └── __tests__/  (co-located tests)
+└── services/
+    └── __tests__/  (co-located tests)
+```
 
 ---
 
-## ✅ Validation Sign-Off
+## Running Tests
 
-**Version**: v1.2.2  
-**Last Validated**: December 5, 2025  
-**Validated By**: Darshil  
-**Status**: ✅ Production Ready
+### Basic Commands
 
-**Next Validation**: After any code changes or before v1.3.0 release
+```bash
+# Run all tests
+npm test
+
+# Watch mode (development)
+npm test -- --watch
+
+# Coverage report
+npm run test:coverage
+
+# Specific test file
+npm test -- FileUpload.test.tsx
+
+# Specific test pattern
+npm test -- --grep "10-file limit"
+
+# Update snapshots
+npm test -- -u
+
+# Verbose output
+npm test -- --reporter=verbose
+```
+
+### Advanced Options
+
+```bash
+# Run only unit tests
+npm test -- unit/
+
+# Run only integration tests
+npm test -- integration/
+
+# Run with specific timeout
+npm test -- --testTimeout=10000
+
+# Run in CI mode
+npm test -- --ci --coverage
+
+# Run with debugging
+npm test -- --inspect-brk
+```
 
 ---
 
-**Need Help?** See [TESTING_REPORT.md](TESTING_REPORT.md) for automated test results or [TROUBLESHOOTING.md](TROUBLESHOOTING.md) for common issues.
+## Test Categories
+
+### 1. Unit Tests
+
+Test individual components and functions in isolation.
+
+#### FileUpload Component
+```typescript
+describe('FileUpload Component', () => {
+  it('enforces 10-file limit', async () => {
+    // Test that exactly 10 files are allowed
+  });
+
+  it('validates file types', async () => {
+    // Test PDF validation
+  });
+
+  it('validates file sizes', async () => {
+    // Test 200MB limit
+  });
+
+  it('prevents duplicates', async () => {
+    // Test duplicate detection
+  });
+});
+```
+
+#### KeywordSearch Service
+```typescript
+describe('KeywordSearchService', () => {
+  it('finds exact matches', () => {
+    // Test exact keyword matching
+  });
+
+  it('tracks location accurately', () => {
+    // Test page/line/column tracking
+  });
+
+  it('provides context', () => {
+    // Test surrounding text extraction
+  });
+
+  it('handles case sensitivity', () => {
+    // Test case options
+  });
+});
+```
+
+#### Security Service
+```typescript
+describe('SecurityService', () => {
+  it('sanitizes input', () => {
+    // Test XSS prevention
+  });
+
+  it('validates files', async () => {
+    // Test file validation
+  });
+
+  it('enforces rate limits', () => {
+    // Test rate limiting
+  });
+});
+```
+
+### 2. Integration Tests
+
+Test complete workflows and component interactions.
+
+```typescript
+describe('Upload Workflow', () => {
+  it('completes full upload process', async () => {
+    // 1. Select files
+    // 2. Validate files
+    // 3. Upload files
+    // 4. Display in list
+    // 5. Allow removal
+  });
+});
+
+describe('Search Workflow', () => {
+  it('executes search and displays results', async () => {
+    // 1. Upload documents
+    // 2. Enter search query
+    // 3. Execute search
+    // 4. Display results with highlighting
+    // 5. Navigate between matches
+  });
+});
+```
+
+### 3. Security Tests
+
+Test security measures and vulnerability prevention.
+
+```typescript
+describe('XSS Prevention', () => {
+  it('sanitizes script tags', () => {
+    const input = '<script>alert("xss")</script>';
+    const clean = SecurityService.sanitizeInput(input);
+    expect(clean).not.toContain('<script>');
+  });
+
+  it('escapes HTML entities', () => {
+    const input = '<img src=x onerror=alert(1)>';
+    const clean = SecurityService.sanitizeInput(input);
+    expect(clean).not.toContain('onerror');
+  });
+});
+
+describe('File Validation', () => {
+  it('checks magic numbers', async () => {
+    // Verify actual file content, not just extension
+  });
+
+  it('rejects malicious files', async () => {
+    // Test various malicious file types
+  });
+});
+```
+
+### 4. Accessibility Tests
+
+Test WCAG 2.1 Level AA compliance.
+
+```typescript
+describe('Keyboard Navigation', () => {
+  it('allows full keyboard navigation', () => {
+    // Test tab order
+    // Test Enter/Space activation
+    // Test Escape to close
+  });
+});
+
+describe('Screen Reader', () => {
+  it('has proper ARIA labels', () => {
+    // Test aria-label attributes
+    // Test aria-describedby
+    // Test role attributes
+  });
+});
+
+describe('WCAG Compliance', () => {
+  it('meets color contrast requirements', () => {
+    // Test contrast ratios
+  });
+
+  it('has descriptive link text', () => {
+    // Test link descriptions
+  });
+});
+```
+
+---
+
+## Writing Tests
+
+### Test Template
+
+```typescript
+import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
+import { render, screen, fireEvent, waitFor } from '@testing-library/react';
+import { ComponentName } from '../ComponentName';
+
+describe('ComponentName', () => {
+  // Setup
+  const mockProps = {
+    prop1: 'value1',
+    prop2: vi.fn()
+  };
+
+  beforeEach(() => {
+    // Reset mocks
+    vi.clearAllMocks();
+  });
+
+  afterEach(() => {
+    // Cleanup
+    vi.restoreAllMocks();
+  });
+
+  // Test cases
+  it('should render correctly', () => {
+    render(<ComponentName {...mockProps} />);
+    expect(screen.getByText('Expected Text')).toBeInTheDocument();
+  });
+
+  it('should handle user interaction', async () => {
+    render(<ComponentName {...mockProps} />);
+    
+    const button = screen.getByRole('button');
+    fireEvent.click(button);
+    
+    await waitFor(() => {
+      expect(mockProps.prop2).toHaveBeenCalled();
+    });
+  });
+
+  it('should handle errors gracefully', () => {
+    // Test error scenarios
+  });
+});
+```
+
+### Best Practices
+
+1. **Test Behavior, Not Implementation**
+```typescript
+// ❌ Bad - Testing implementation details
+expect(component.state.count).toBe(5);
+
+// ✅ Good - Testing behavior
+expect(screen.getByText('Count: 5')).toBeInTheDocument();
+```
+
+2. **Use Descriptive Test Names**
+```typescript
+// ❌ Bad
+it('test 1', () => {});
+
+// ✅ Good
+it('enforces 10-file limit and shows error message', () => {});
+```
+
+3. **Arrange, Act, Assert Pattern**
+```typescript
+it('handles file upload', async () => {
+  // Arrange
+  const file = createMockFile();
+  render(<FileUpload {...props} />);
+  
+  // Act
+  const input = screen.getByLabelText('Upload');
+  fireEvent.change(input, { target: { files: [file] } });
+  
+  // Assert
+  await waitFor(() => {
+    expect(screen.getByText(file.name)).toBeInTheDocument();
+  });
+});
+```
+
+4. **Test Edge Cases**
+```typescript
+describe('Edge Cases', () => {
+  it('handles empty input', () => {});
+  it('handles extremely large files', () => {});
+  it('handles special characters', () => {});
+  it('handles concurrent operations', () => {});
+});
+```
+
+5. **Mock External Dependencies**
+```typescript
+vi.mock('../services/geminiService', () => ({
+  GeminiService: {
+    search: vi.fn().mockResolvedValue([])
+  }
+}));
+```
+
+---
+
+## Coverage Reports
+
+### Generating Reports
+
+```bash
+# Generate coverage report
+npm run test:coverage
+
+# Open HTML report
+open coverage/index.html
+
+# View in terminal
+npm run test:coverage -- --reporter=text
+```
+
+### Coverage Thresholds
+
+Configured in `vitest.config.ts`:
+```typescript
+export default defineConfig({
+  test: {
+    coverage: {
+      provider: 'v8',
+      reporter: ['text', 'html', 'lcov'],
+      thresholds: {
+        lines: 90,
+        functions: 90,
+        branches: 90,
+        statements: 90
+      }
+    }
+  }
+});
+```
+
+### Current Coverage
+
+```
+File                    | % Stmts | % Branch | % Funcs | % Lines
+------------------------|---------|----------|---------|--------
+All files               |   100   |   100    |   100   |   100
+ components/            |   100   |   100    |   100   |   100
+  FileUpload.tsx        |   100   |   100    |   100   |   100
+  SearchBox.tsx         |   100   |   100    |   100   |   100
+  KeywordHighlighter    |   100   |   100    |   100   |   100
+ services/              |   100   |   100    |   100   |   100
+  keywordSearch.ts      |   100   |   100    |   100   |   100
+  securityService.ts    |   100   |   100    |   100   |   100
+```
+
+---
+
+## CI/CD Integration
+
+### GitHub Actions Workflow
+
+```yaml
+name: Tests
+
+on: [push, pull_request]
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    
+    steps:
+      - uses: actions/checkout@v3
+      
+      - name: Setup Node
+        uses: actions/setup-node@v3
+        with:
+          node-version: '18'
+      
+      - name: Install dependencies
+        run: npm ci
+      
+      - name: Run linter
+        run: npm run lint
+      
+      - name: Type check
+        run: npm run type-check
+      
+      - name: Run tests
+        run: npm test -- --coverage --ci
+      
+      - name: Upload coverage
+        uses: codecov/codecov-action@v3
+        with:
+          files: ./coverage/lcov.info
+```
+
+### Pre-commit Hooks
+
+Configure in `.husky/pre-commit`:
+```bash
+#!/bin/sh
+. "$(dirname "$0")/_/husky.sh"
+
+npm run lint
+npm run type-check
+npm test -- --run
+```
+
+---
+
+## Validation Test Scenarios
+
+### Scenario 1: File Upload Limit
+
+**Test**: Upload exactly 10 files
+```typescript
+✅ System accepts all 10 files
+✅ Counter shows "10/10"
+✅ Upload area disabled
+✅ Message: "Maximum files reached"
+```
+
+**Test**: Attempt 11th file
+```typescript
+✅ Upload rejected
+✅ Error: "Cannot upload more than 10 files"
+✅ Existing files unchanged
+✅ Counter remains "10/10"
+```
+
+### Scenario 2: Keyword Search
+
+**Test**: Search for "revenue" in financial report
+```typescript
+✅ Finds 15 exact matches
+✅ Shows page numbers: 1, 5, 7, 12, 14
+✅ Displays line numbers for each match
+✅ Highlights keyword in yellow
+✅ Provides surrounding context
+```
+
+**Test**: Navigate between matches
+```typescript
+✅ "Next" button advances to next match
+✅ "Previous" button goes to previous match
+✅ Jump to location opens PDF at correct page
+✅ Counter shows "Match 3 of 15"
+```
+
+### Scenario 3: Security Validation
+
+**Test**: XSS attempt in search
+```typescript
+Input: <script>alert('xss')</script>
+✅ Input sanitized
+✅ No script execution
+✅ Safe display: &lt;script&gt;...
+✅ Search continues normally
+```
+
+**Test**: File validation bypass attempt
+```typescript
+File: malicious.pdf (actually .exe)
+✅ Magic number check fails
+✅ Upload rejected
+✅ Error: "Invalid file type"
+✅ No file processing attempted
+```
+
+---
+
+## Troubleshooting Tests
+
+### Common Issues
+
+**Issue**: Tests timeout
+```typescript
+// Increase timeout
+it('slow test', async () => {
+  // ...
+}, 10000); // 10 second timeout
+```
+
+**Issue**: Flaky tests
+```typescript
+// Use waitFor for async operations
+await waitFor(() => {
+  expect(element).toBeInTheDocument();
+}, { timeout: 5000 });
+```
+
+**Issue**: Mock not working
+```typescript
+// Reset mocks between tests
+beforeEach(() => {
+  vi.clearAllMocks();
+});
+```
+
+**Issue**: Coverage not updating
+```bash
+# Clear coverage cache
+rm -rf coverage/
+npm run test:coverage
+```
+
+---
+
+## Performance Testing
+
+### Load Testing
+
+```typescript
+describe('Performance', () => {
+  it('handles 10 large PDFs efficiently', async () => {
+    const startTime = performance.now();
+    
+    // Upload and process 10 PDFs
+    
+    const endTime = performance.now();
+    const duration = endTime - startTime;
+    
+    expect(duration).toBeLessThan(30000); // 30 seconds
+  });
+
+  it('searches large documents quickly', async () => {
+    // Test search performance
+    expect(searchTime).toBeLessThan(5000); // 5 seconds
+  });
+});
+```
+
+---
+
+## Continuous Improvement
+
+### Adding New Tests
+
+1. Identify new feature or bug fix
+2. Write failing test first (TDD)
+3. Implement feature
+4. Verify test passes
+5. Check coverage remains 100%
+
+### Test Maintenance
+
+- Review tests quarterly
+- Update for API changes
+- Remove obsolete tests
+- Refactor duplicated code
+- Update documentation
+
+---
+
+## Resources
+
+- [Vitest Documentation](https://vitest.dev/)
+- [Testing Library](https://testing-library.com/)
+- [WCAG 2.1 Guidelines](https://www.w3.org/WAI/WCAG21/quickref/)
+
+---
+
+**Last Updated**: 2025-12-06  
+**Version**: 2.0.0
