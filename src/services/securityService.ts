@@ -56,9 +56,15 @@ export class SecurityService {
     }
 
     // Check for dangerous characters
-    const dangerousChars = /[<>:"|?*\x00-\x1F]/;
+    const dangerousChars = /[<>:"|?*]/;
     if (dangerousChars.test(fileName)) {
       return false;
+    }
+    // Check for control characters
+    // eslint-disable-next-line no-control-regex
+    const controlChars = /[\x00-\x1F]/;
+    if (controlChars.test(fileName)) {
+        return false;
     }
 
     // Check file extension

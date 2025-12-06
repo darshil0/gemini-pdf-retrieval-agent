@@ -7,6 +7,26 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [2.0.0] - 2025-12-06
+
+### 🚀 Complete Edition
+
+#### Added
+- **Self-Hosted PDF Worker** - `pdfjs-dist` worker is now self-hosted to improve reliability and performance.
+- **Individual File Removal** - Users can now remove individual files from the upload list.
+- **Memory Leak Fix** - Patched a memory leak in the `FileUpload` component by revoking object URLs on file removal.
+
+#### Changed
+- **Version Bump** - Project version updated to `2.0.0` to reflect the significant improvements.
+- **UI Version Display** - The UI now correctly displays the updated version number.
+- **Updated Dependencies** - All outdated dependencies have been updated to their latest versions.
+
+#### Fixed
+- **Version Mismatch** - Resolved the version inconsistency between `package.json` and the `README.md`.
+- **Hardcoded URL** - Removed the hardcoded URL for the PDF worker.
+
+---
+
 ## [1.2.2] - 2025-12-05
 
 ### 🎯 Agent Architecture Formalization

@@ -10,7 +10,7 @@ vi.mock('./services/geminiService');
 // Mock react-pdf to avoid canvas/loading issues in jsdom
 vi.mock('react-pdf', () => ({
   pdfjs: { GlobalWorkerOptions: { workerSrc: '' } },
-  Document: ({ children, onLoadSuccess }: any) => {
+  Document: ({ children, onLoadSuccess }: { children: React.ReactNode; onLoadSuccess?: (pdf: { numPages: number }) => void; }) => {
     // Simulate successful load immediately
     React.useEffect(() => {
       onLoadSuccess?.({ numPages: 5 });
