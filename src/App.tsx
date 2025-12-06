@@ -6,9 +6,10 @@ import { searchInDocuments } from './services/geminiService';
 import { UploadedFile, AppStatus, SearchResponse } from './types';
 import { Document, Page, pdfjs } from 'react-pdf';
 
+import pdfWorker from 'pdfjs-dist/build/pdf.worker.min.mjs?url';
+
 // Configure worker for react-pdf
-// Using esm.sh to match the version in importmap
-pdfjs.GlobalWorkerOptions.workerSrc = `https://esm.sh/pdfjs-dist@4.4.168/build/pdf.worker.min.mjs`;
+pdfjs.GlobalWorkerOptions.workerSrc = pdfWorker;
 
 export default function App() {
   const [files, setFiles] = useState<UploadedFile[]>([]);
@@ -170,7 +171,7 @@ export default function App() {
               </button>
             )}
             <div className="px-3 py-1 rounded-full bg-slate-800 border border-slate-700 text-xs font-mono text-slate-400">
-              Gemini 2.5 Flash • v1.2.2 (Architected)
+              Gemini 2.5 Flash • v2.0.0 (Complete)
             </div>
           </div>
         </div>

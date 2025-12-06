@@ -142,12 +142,9 @@ export class KeywordSearchService {
     wholeWord: boolean
   ): Array<{ start: number; end: number }> {
     const matches: Array<{ start: number; end: number }> = [];
-    let startIndex = 0;
 
-    while (true) {
-      const index = searchLine.indexOf(searchTerm, startIndex);
-      if (index === -1) break;
-
+    let index = searchLine.indexOf(searchTerm);
+    while (index !== -1) {
       const isValid = !wholeWord || this.isWholeWordMatch(
         searchLine,
         index,
@@ -161,7 +158,7 @@ export class KeywordSearchService {
         });
       }
 
-      startIndex = index + 1;
+      index = searchLine.indexOf(searchTerm, index + 1);
     }
 
     return matches;
@@ -188,7 +185,7 @@ export class KeywordSearchService {
   static async extractPDFTextContent(file: File): Promise<PDFTextContent> {
     // This requires pdf.js or similar library
     // For now, returning structure - implementation depends on pdf.js setup
-    const pdfjsLib = (window as any).pdfjsLib;
+    const pdfjsLib = (window as { pdfjsLib?: { getDocument: (config: { data: ArrayBuffer }) => { promise: { numPages: number; getPage: (pageNumber: number) => Promise<{ getTextContent: () => Promise<{ items: { str: string }[] }> }> } } } }).pdfjsLib;
     if (!pdfjsLib) {
       throw new Error('PDF.js library not loaded');
     }
@@ -200,7 +197,7 @@ export class KeywordSearchService {
     for (let i = 1; i <= pdf.numPages; i++) {
       const page = await pdf.getPage(i);
       const textContent = await page.getTextContent();
-      const text = textContent.items.map((item: any) => item.str).join(' ');
+      const text = textContent.items.map((item: { str: string }) => item.str).join(' ');
       const lines = text.split(/\n/).filter(line => line.trim().length > 0);
 
       pages.push({
