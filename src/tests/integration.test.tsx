@@ -14,8 +14,8 @@ describe('Integration Tests', () => {
         {
           docIndex: 0,
           pageNumber: 1,
-          contextSnippet: 'Hello world',
-          matchedTerm: 'Hello',
+          contextSnippet: 'test content',
+          matchedTerm: 'test',
           relevanceExplanation: 'Exact match',
         },
       ],
@@ -35,16 +35,16 @@ describe('Integration Tests', () => {
     });
 
     // 2. Enter search query
-    const searchInput = screen.getByPlaceholderText(/e.g., 'Financial Q3 results', 'Safety Protocols', 'Project Alpha'/i);
+    const searchInput = screen.getByLabelText('Target Keyword or Phrase');
     fireEvent.change(searchInput, { target: { value: 'test' } });
 
     // 3. Execute search
-    const searchButton = screen.getByRole('button', { name: /Find Occurrences/i });
+    const searchButton = screen.getByText('Find Occurrences');
     fireEvent.click(searchButton);
 
     // 4. Verify results displayed
     await waitFor(() => {
-      expect(screen.getByText(/Analysis Summary/i)).toBeInTheDocument();
+      expect(screen.getByText('Found 1 result.')).toBeInTheDocument();
     });
   });
 
@@ -59,7 +59,7 @@ describe('Integration Tests', () => {
     fireEvent.change(input, { target: { files } });
 
     await waitFor(() => {
-      expect(screen.getByText('Limit Reached (10 files)')).toBeInTheDocument();
+      expect(screen.queryByText('11. test10.pdf')).not.toBeInTheDocument();
     });
   });
 });

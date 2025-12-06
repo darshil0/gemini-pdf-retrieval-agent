@@ -1,6 +1,6 @@
 import { GoogleGenAI, Type } from "@google/genai";
 import { SearchResponse } from "../types";
-import { buildSearchPrompt } from "./agentPrompts";
+import { buildSearchPrompt } from "../../agent_architecture/prompts";
 
 // Helper to convert File to Base64
 const fileToGenerativePart = async (file: File) => {
@@ -26,11 +26,11 @@ export const searchInDocuments = async (
   files: File[],
   keyword: string
 ): Promise<SearchResponse> => {
-  if (!process.env.API_KEY) {
+  if (!import.meta.env.VITE_API_KEY) {
     throw new Error("API Key is missing. Please check your environment configuration.");
   }
 
-  const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
+  const ai = new GoogleGenAI({ apiKey: import.meta.env.VITE_API_KEY });
 
   // Prepare file parts
   const fileParts = await Promise.all(files.map(fileToGenerativePart));

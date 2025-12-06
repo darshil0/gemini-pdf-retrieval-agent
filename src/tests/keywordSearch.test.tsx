@@ -1,6 +1,6 @@
 // src/__tests__/keywordSearch.test.ts
 import { describe, it, expect } from 'vitest';
-import { KeywordSearchService } from '../../services/KeywordSearch';
+import { KeywordSearchService } from '../services/keywordSearch';
 
 describe('KeywordSearchService', () => {
   const mockDocuments = [

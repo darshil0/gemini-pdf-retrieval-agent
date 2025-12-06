@@ -1,11 +1,11 @@
-// src/__tests__/security.test.tsx
+// src/__tests__/security.test.ts
 import { describe, it, expect } from 'vitest';
 import { SecurityService } from '../services/securityService';
 
 describe('SecurityService', () => {
   it('validates PDF file type', async () => {
     const pdfFile = new File(
-      [new Uint8Array([0x25, 0x50, 0x44, 0x46, 0x2d, 0x31, 0x2e, 0x37])],
+      [new Uint8Array([0x25, 0x50, 0x44, 0x46])],
       'test.pdf',
       { type: 'application/pdf' }
     );
