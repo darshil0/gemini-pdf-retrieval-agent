@@ -1,207 +1,416 @@
-# Deployment Guide - DocuSearch Agent
+# Deployment Guide - DocuSearch Agent v2.0.0
 
-## Overview
-
-This guide covers deploying DocuSearch Agent to various platforms, from simple static hosting to advanced cloud deployments.
-
-**Target Platforms**:
-- Vercel (Recommended for simplicity)
-- Netlify
-- AWS S3 + CloudFront
-- Google Cloud Platform
-- Self-hosted (Nginx/Apache)
-- Docker containers
+Complete guide for deploying the Gemini PDF Retrieval Agent to production.
 
 ---
 
-## 📋 Pre-Deployment Checklist
-
-Before deploying, ensure:
-
-- [ ] All tests passing (`npm test`)
-- [ ] TypeScript compiles without errors (`npm run type-check`)
-- [ ] ESLint shows no errors (`npm run lint`)
-- [ ] Production build succeeds (`npm run build`)
-- [ ] Environment variables configured
-- [ ] API keys secured
-- [ ] Performance tested with production build
-- [ ] Security scan completed
-- [ ] Documentation updated
-- [ ] Changelog updated
+## Table of Contents
+- [Quick Start](#quick-start)
+- [Installation](#installation)
+- [Configuration](#configuration)
+- [Development](#development)
+- [Testing](#testing)
+- [Building](#building)
+- [Deployment](#deployment)
+- [Monitoring](#monitoring)
+- [Troubleshooting](#troubleshooting)
 
 ---
 
-## 🚀 Vercel (Recommended)
-
-### Why Vercel?
-
-- **Zero configuration** for Vite projects
-- **Automatic HTTPS** with custom domains
-- **Global CDN** for fast delivery
-- **Preview deployments** for PRs
-- **Built-in analytics**
-- **Free tier** available
-
-### Deployment Steps
-
-#### Option 1: GitHub Integration (Recommended)
-
-1. **Push code to GitHub**
-   ```bash
-   git add .
-   git commit -m "Prepare for deployment"
-   git push origin main
-   ```
-
-2. **Connect to Vercel**
-   - Go to [vercel.com](https://vercel.com)
-   - Click "Add New Project"
-   - Import your GitHub repository
-   - Vercel auto-detects Vite configuration
-
-3. **Configure Environment Variables**
-   - In Vercel dashboard → Settings → Environment Variables
-   - Add: `VITE_GEMINI_API_KEY=your_api_key_here`
-   - Select: Production, Preview, Development
-
-4. **Deploy**
-   - Click "Deploy"
-   - Wait 2-3 minutes
-   - Your app is live!
-
-#### Option 2: Vercel CLI
+## Quick Start
 
 ```bash
-# Install Vercel CLI
-npm install -g vercel
+# 1. Clone repository
+git clone https://github.com/darshil0/gemini-pdf-retrieval-agent.git
+cd gemini-pdf-retrieval-agent
 
-# Login
-vercel login
+# 2. Install dependencies
+npm install
 
-# Deploy
+# 3. Configure environment
+cp .env.example .env
+# Edit .env and add your Gemini API key
+
+# 4. Run tests
+npm test
+
+# 5. Start development server
+npm run dev
+```
+
+Access at `http://localhost:5173`
+
+---
+
+## Installation
+
+### System Requirements
+
+**Minimum**:
+- Node.js v18.0.0
+- npm v9.0.0
+- 4GB RAM
+- 1GB disk space
+
+**Recommended**:
+- Node.js v20.0.0+
+- npm v10.0.0+
+- 8GB RAM
+- 2GB disk space
+
+### Step-by-Step Installation
+
+#### 1. Install Node.js
+
+**macOS** (via Homebrew):
+```bash
+brew install node@20
+```
+
+**Ubuntu/Debian**:
+```bash
+curl -fsSL https://deb.nodesource.com/setup_20.x | sudo -E bash -
+sudo apt-get install -y nodejs
+```
+
+**Windows**:
+- Download from [nodejs.org](https://nodejs.org/)
+- Run installer
+- Verify: `node --version`
+
+#### 2. Clone Repository
+
+```bash
+# HTTPS
+git clone https://github.com/darshil0/gemini-pdf-retrieval-agent.git
+
+# SSH (if configured)
+git clone git@github.com:darshil0/gemini-pdf-retrieval-agent.git
+
+# Navigate to directory
+cd gemini-pdf-retrieval-agent
+```
+
+#### 3. Install Dependencies
+
+```bash
+# Clean install (recommended)
+npm ci
+
+# Or regular install
+npm install
+
+# Verify installation
+npm list --depth=0
+```
+
+---
+
+## Configuration
+
+### Environment Variables
+
+Create `.env` file in project root:
+
+```bash
+# Copy example file
+cp .env.example .env
+```
+
+Edit `.env`:
+```env
+# Required: Gemini API Key
+VITE_GEMINI_API_KEY=your_api_key_here
+
+# Optional: API Configuration
+VITE_GEMINI_MODEL=gemini-2.0-flash-exp
+VITE_API_TIMEOUT=30000
+
+# Optional: Feature Flags
+VITE_MAX_FILE_SIZE=209715200  # 200MB in bytes
+VITE_MAX_FILES=10
+VITE_ENABLE_DEBUG=false
+
+# Optional: Rate Limiting
+VITE_RATE_LIMIT_REQUESTS=10
+VITE_RATE_LIMIT_WINDOW=60000  # 1 minute
+```
+
+### Getting API Key
+
+1. Go to [Google AI Studio](https://makersuite.google.com/app/apikey)
+2. Sign in with Google account
+3. Click "Create API Key"
+4. Copy key to `.env` file
+
+**Important**: Never commit `.env` to version control!
+
+### Configuration Files
+
+#### package.json
+```json
+{
+  "name": "gemini-pdf-retrieval-agent",
+  "version": "2.0.0",
+  "scripts": {
+    "dev": "vite",
+    "build": "tsc && vite build",
+    "preview": "vite preview",
+    "test": "vitest",
+    "test:coverage": "vitest --coverage",
+    "lint": "eslint . --ext ts,tsx",
+    "lint:fix": "eslint . --ext ts,tsx --fix",
+    "type-check": "tsc --noEmit"
+  }
+}
+```
+
+#### tsconfig.json
+```json
+{
+  "compilerOptions": {
+    "target": "ES2020",
+    "lib": ["ES2020", "DOM", "DOM.Iterable"],
+    "module": "ESNext",
+    "strict": true,
+    "jsx": "react-jsx",
+    "moduleResolution": "bundler",
+    "resolveJsonModule": true,
+    "isolatedModules": true,
+    "noEmit": true,
+    "noUnusedLocals": true,
+    "noUnusedParameters": true,
+    "noFallthroughCasesInSwitch": true
+  }
+}
+```
+
+#### vite.config.ts
+```typescript
+import { defineConfig } from 'vite';
+import react from '@vitejs/plugin-react';
+
+export default defineConfig({
+  plugins: [react()],
+  server: {
+    port: 5173,
+    host: true
+  },
+  build: {
+    outDir: 'dist',
+    sourcemap: true,
+    rollupOptions: {
+      output: {
+        manualChunks: {
+          'react-vendor': ['react', 'react-dom'],
+          'pdf-vendor': ['react-pdf', 'pdfjs-dist']
+        }
+      }
+    }
+  }
+});
+```
+
+---
+
+## Development
+
+### Development Server
+
+```bash
+# Start dev server with hot reload
+npm run dev
+
+# Start on specific port
+npm run dev -- --port 3000
+
+# Start with host accessible on network
+npm run dev -- --host
+```
+
+### Development Workflow
+
+1. **Make changes** to source files
+2. **See changes** instantly (hot reload)
+3. **Run tests** as you develop
+4. **Check types** regularly
+5. **Lint code** before committing
+
+```bash
+# Terminal 1: Dev server
+npm run dev
+
+# Terminal 2: Tests in watch mode
+npm test -- --watch
+
+# Terminal 3: Type checking
+npm run type-check -- --watch
+```
+
+### Code Quality
+
+```bash
+# Type check
+npm run type-check
+
+# Lint
+npm run lint
+
+# Lint and auto-fix
+npm run lint:fix
+
+# Format code (if Prettier configured)
+npm run format
+```
+
+---
+
+## Testing
+
+### Running Tests
+
+```bash
+# All tests
+npm test
+
+# Watch mode
+npm test -- --watch
+
+# Coverage report
+npm run test:coverage
+
+# Specific test file
+npm test -- FileUpload.test.tsx
+
+# Test pattern
+npm test -- --grep "keyword"
+
+# UI mode (interactive)
+npm test -- --ui
+```
+
+### Test Output
+
+```
+✓ src/__tests__/unit/FileUpload.test.tsx (15)
+✓ src/__tests__/unit/keywordSearch.test.ts (12)
+✓ src/__tests__/integration/workflow.test.tsx (8)
+✓ src/__tests__/security/validation.test.ts (6)
+
+Test Files  4 passed (4)
+     Tests  41 passed (41)
+   Duration  2.34s
+```
+
+### Pre-Commit Testing
+
+Set up Git hooks:
+
+```bash
+# Install husky
+npm install --save-dev husky
+
+# Initialize
+npx husky install
+
+# Add pre-commit hook
+npx husky add .husky/pre-commit "npm test -- --run"
+```
+
+---
+
+## Building
+
+### Production Build
+
+```bash
+# Build for production
+npm run build
+
+# Output directory: dist/
+# ├── index.html
+# ├── assets/
+# │   ├── index-[hash].js
+# │   ├── index-[hash].css
+# │   └── ...
+# └── ...
+```
+
+### Build Options
+
+```bash
+# Build with source maps
+npm run build -- --sourcemap
+
+# Build without minification (debugging)
+npm run build -- --minify false
+
+# Analyze bundle size
+npm run build -- --analyze
+```
+
+### Build Verification
+
+```bash
+# Preview production build locally
+npm run preview
+
+# Access at http://localhost:4173
+
+# Test production build
+npm test -- --run
+```
+
+---
+
+## Deployment
+
+### Deployment Platforms
+
+#### 1. Vercel (Recommended)
+
+**Install Vercel CLI**:
+```bash
+npm i -g vercel
+```
+
+**Deploy**:
+```bash
+# First time
 vercel
 
-# Follow prompts:
-# - Set up and deploy? Yes
-# - Scope: Your account
-# - Link to existing project? No
-# - Project name: docusearch-agent
-# - Directory: ./
-# - Override settings? No
-
-# Add environment variables
-vercel env add VITE_GEMINI_API_KEY
-
-# Deploy to production
+# Production
 vercel --prod
 ```
 
-### Custom Domain
-
-```bash
-# Add custom domain
-vercel domains add yourdomain.com
-
-# Configure DNS records (in your domain registrar):
-# Type: CNAME
-# Name: www
-# Value: cname.vercel-dns.com
-
-# Or for apex domain:
-# Type: A
-# Name: @
-# Value: 76.76.21.21
-```
-
-### Configuration File
-
-Create `vercel.json`:
-
+**Configure** `vercel.json`:
 ```json
 {
   "buildCommand": "npm run build",
   "outputDirectory": "dist",
-  "devCommand": "npm run dev",
-  "installCommand": "npm install",
-  "framework": "vite",
-  "routes": [
-    {
-      "src": "/(.*)",
-      "dest": "/index.html"
-    }
-  ],
-  "headers": [
-    {
-      "source": "/(.*)",
-      "headers": [
-        {
-          "key": "X-Content-Type-Options",
-          "value": "nosniff"
-        },
-        {
-          "key": "X-Frame-Options",
-          "value": "DENY"
-        },
-        {
-          "key": "X-XSS-Protection",
-          "value": "1; mode=block"
-        }
-      ]
-    }
-  ]
+  "env": {
+    "VITE_GEMINI_API_KEY": "@gemini-api-key"
+  }
 }
 ```
 
----
+#### 2. Netlify
 
-## 🔷 Netlify
-
-### Deployment Steps
-
-#### Option 1: Git Integration
-
-1. **Connect Repository**
-   - Go to [netlify.com](https://netlify.com)
-   - Click "Add new site" → "Import existing project"
-   - Connect to GitHub
-   - Select your repository
-
-2. **Build Settings**
-   ```
-   Build command: npm run build
-   Publish directory: dist
-   ```
-
-3. **Environment Variables**
-   - Site settings → Environment variables
-   - Add: `VITE_GEMINI_API_KEY`
-
-4. **Deploy**
-   - Click "Deploy site"
-
-#### Option 2: Netlify CLI
-
+**Install Netlify CLI**:
 ```bash
-# Install CLI
-npm install -g netlify-cli
-
-# Login
-netlify login
-
-# Initialize
-netlify init
-
-# Deploy
-netlify deploy
-
-# Deploy to production
-netlify deploy --prod
+npm i -g netlify-cli
 ```
 
-### Configuration File
+**Deploy**:
+```bash
+# Build
+npm run build
 
-Create `netlify.toml`:
+# Deploy
+netlify deploy --prod --dir=dist
+```
 
+**Configure** `netlify.toml`:
 ```toml
 [build]
   command = "npm run build"
@@ -211,568 +420,375 @@ Create `netlify.toml`:
   from = "/*"
   to = "/index.html"
   status = 200
-
-[[headers]]
-  for = "/*"
-  [headers.values]
-    X-Frame-Options = "DENY"
-    X-Content-Type-Options = "nosniff"
-    X-XSS-Protection = "1; mode=block"
-    Referrer-Policy = "strict-origin-when-cross-origin"
-
-[[headers]]
-  for = "/assets/*"
-  [headers.values]
-    Cache-Control = "public, max-age=31536000, immutable"
 ```
 
----
+#### 3. GitHub Pages
 
-## ☁️ AWS S3 + CloudFront
-
-### Prerequisites
-
-- AWS account
-- AWS CLI installed
-- Domain name (optional)
-
-### Step 1: Build Application
-
+**Install gh-pages**:
 ```bash
-npm run build
+npm install --save-dev gh-pages
 ```
 
-### Step 2: Create S3 Bucket
-
-```bash
-# Create bucket
-aws s3 mb s3://your-bucket-name --region us-east-1
-
-# Enable static website hosting
-aws s3 website s3://your-bucket-name --index-document index.html --error-document index.html
-
-# Set bucket policy (public read)
-cat > bucket-policy.json << EOF
+**Add to package.json**:
+```json
 {
-  "Version": "2012-10-17",
-  "Statement": [
-    {
-      "Sid": "PublicReadGetObject",
-      "Effect": "Allow",
-      "Principal": "*",
-      "Action": "s3:GetObject",
-      "Resource": "arn:aws:s3:::your-bucket-name/*"
-    }
-  ]
-}
-EOF
-
-aws s3api put-bucket-policy --bucket your-bucket-name --policy file://bucket-policy.json
-```
-
-### Step 3: Upload Files
-
-```bash
-# Upload build files
-aws s3 sync dist/ s3://your-bucket-name --delete
-
-# Set cache headers
-aws s3 cp s3://your-bucket-name/assets s3://your-bucket-name/assets \
-  --recursive \
-  --metadata-directive REPLACE \
-  --cache-control max-age=31536000,public
-```
-
-### Step 4: Create CloudFront Distribution
-
-```bash
-# Create distribution configuration
-cat > cloudfront-config.json << EOF
-{
-  "CallerReference": "$(date +%s)",
-  "Comment": "DocuSearch Agent",
-  "DefaultCacheBehavior": {
-    "TargetOriginId": "S3-your-bucket-name",
-    "ViewerProtocolPolicy": "redirect-to-https",
-    "AllowedMethods": {
-      "Quantity": 2,
-      "Items": ["GET", "HEAD"]
-    },
-    "ForwardedValues": {
-      "QueryString": false,
-      "Cookies": {"Forward": "none"}
-    },
-    "MinTTL": 0,
-    "DefaultTTL": 86400,
-    "MaxTTL": 31536000
+  "scripts": {
+    "predeploy": "npm run build",
+    "deploy": "gh-pages -d dist"
   },
-  "Origins": {
-    "Quantity": 1,
-    "Items": [
-      {
-        "Id": "S3-your-bucket-name",
-        "DomainName": "your-bucket-name.s3.amazonaws.com",
-        "S3OriginConfig": {
-          "OriginAccessIdentity": ""
-        }
-      }
-    ]
-  },
-  "Enabled": true,
-  "CustomErrorResponses": {
-    "Quantity": 1,
-    "Items": [
-      {
-        "ErrorCode": 404,
-        "ResponsePagePath": "/index.html",
-        "ResponseCode": "200",
-        "ErrorCachingMinTTL": 300
-      }
-    ]
-  }
+  "homepage": "https://username.github.io/repo-name"
 }
-EOF
-
-aws cloudfront create-distribution --distribution-config file://cloudfront-config.json
 ```
 
-### Step 5: Configure Environment Variables
+**Deploy**:
+```bash
+npm run deploy
+```
 
-For client-side environment variables in S3/CloudFront:
+#### 4. Docker
 
-1. Create `env-config.js` during build:
-   ```javascript
-   window.ENV = {
-     VITE_GEMINI_API_KEY: 'your_key_here'
-   };
-   ```
-
-2. Load in `index.html`:
-   ```html
-   <script src="/env-config.js"></script>
-   ```
-
-3. Use in app:
-   ```typescript
-   const apiKey = window.ENV?.VITE_GEMINI_API_KEY || import.meta.env.VITE_GEMINI_API_KEY;
-   ```
-
----
-
-## 🐳 Docker Deployment
-
-### Dockerfile
-
-Create `Dockerfile`:
-
+**Dockerfile**:
 ```dockerfile
 # Build stage
-FROM node:18-alpine AS build
-
+FROM node:20-alpine AS builder
 WORKDIR /app
-
-# Copy package files
 COPY package*.json ./
-
-# Install dependencies
 RUN npm ci
-
-# Copy source code
 COPY . .
-
-# Build application
 RUN npm run build
 
 # Production stage
 FROM nginx:alpine
-
-# Copy built files
-COPY --from=build /app/dist /usr/share/nginx/html
-
-# Copy nginx configuration
-COPY nginx.conf /etc/nginx/conf.d/default.conf
-
-# Expose port
+COPY --from=builder /app/dist /usr/share/nginx/html
+COPY nginx.conf /etc/nginx/nginx.conf
 EXPOSE 80
-
-# Health check
-HEALTHCHECK --interval=30s --timeout=3s \
-  CMD wget --quiet --tries=1 --spider http://localhost/ || exit 1
-
 CMD ["nginx", "-g", "daemon off;"]
 ```
 
-### Nginx Configuration
-
-Create `nginx.conf`:
-
-```nginx
-server {
-    listen 80;
-    server_name _;
-    root /usr/share/nginx/html;
-    index index.html;
-
-    # Gzip compression
-    gzip on;
-    gzip_vary on;
-    gzip_types text/plain text/css text/xml text/javascript 
-               application/x-javascript application/xml+rss 
-               application/json application/javascript;
-
-    # Security headers
-    add_header X-Frame-Options "DENY" always;
-    add_header X-Content-Type-Options "nosniff" always;
-    add_header X-XSS-Protection "1; mode=block" always;
-    add_header Referrer-Policy "strict-origin-when-cross-origin" always;
-
-    # Cache static assets
-    location /assets/ {
-        expires 1y;
-        add_header Cache-Control "public, immutable";
-    }
-
-    # SPA fallback
-    location / {
-        try_files $uri $uri/ /index.html;
-    }
-}
-```
-
-### Build and Run
-
+**Build and run**:
 ```bash
 # Build image
-docker build -t docusearch-agent .
+docker build -t docusearch .
 
 # Run container
-docker run -d \
-  -p 80:80 \
-  --name docusearch \
-  --restart unless-stopped \
-  docusearch-agent
-
-# View logs
-docker logs -f docusearch
-
-# Stop container
-docker stop docusearch
+docker run -p 80:80 docusearch
 ```
 
-### Docker Compose
+#### 5. AWS S3 + CloudFront
 
-Create `docker-compose.yml`:
-
-```yaml
-version: '3.8'
-
-services:
-  app:
-    build: .
-    ports:
-      - "80:80"
-    restart: unless-stopped
-    environment:
-      - NODE_ENV=production
-    healthcheck:
-      test: ["CMD", "wget", "--quiet", "--tries=1", "--spider", "http://localhost/"]
-      interval: 30s
-      timeout: 3s
-      retries: 3
-    networks:
-      - docusearch-network
-
-networks:
-  docusearch-network:
-    driver: bridge
-```
-
-Run with:
 ```bash
-docker-compose up -d
+# Build
+npm run build
+
+# Deploy to S3
+aws s3 sync dist/ s3://your-bucket-name --delete
+
+# Invalidate CloudFront cache
+aws cloudfront create-invalidation --distribution-id YOUR_ID --paths "/*"
+```
+
+### Environment Variables in Production
+
+**Vercel**:
+```bash
+vercel env add VITE_GEMINI_API_KEY production
+```
+
+**Netlify**:
+- Go to Site Settings → Environment Variables
+- Add `VITE_GEMINI_API_KEY`
+
+**GitHub Pages**:
+- Add to repository secrets
+- Use in GitHub Actions workflow
+
+### Security Headers
+
+**Nginx** (`nginx.conf`):
+```nginx
+add_header Content-Security-Policy "default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval'; style-src 'self' 'unsafe-inline';";
+add_header X-Frame-Options "DENY";
+add_header X-Content-Type-Options "nosniff";
+add_header Referrer-Policy "strict-origin-when-cross-origin";
+```
+
+**Vercel** (`vercel.json`):
+```json
+{
+  "headers": [
+    {
+      "source": "/(.*)",
+      "headers": [
+        {
+          "key": "X-Frame-Options",
+          "value": "DENY"
+        },
+        {
+          "key": "X-Content-Type-Options",
+          "value": "nosniff"
+        }
+      ]
+    }
+  ]
+}
 ```
 
 ---
 
-## 🔐 Security Considerations
+## Monitoring
 
-### Environment Variables
+### Error Tracking
 
-**Never commit `.env` files!**
-
+**Sentry Integration**:
 ```bash
-# .gitignore
-.env
-.env.local
-.env.production
+npm install @sentry/react
 ```
-
-**Production secrets management:**
-
-- Use platform-specific secrets (Vercel, Netlify, AWS Secrets Manager)
-- Rotate API keys regularly
-- Use different keys for dev/staging/production
-
-### Content Security Policy
-
-Add to `index.html`:
-
-```html
-<meta http-equiv="Content-Security-Policy" 
-      content="
-        default-src 'self';
-        script-src 'self' 'unsafe-inline' https://cdnjs.cloudflare.com;
-        style-src 'self' 'unsafe-inline';
-        img-src 'self' data: blob:;
-        font-src 'self';
-        connect-src 'self' https://generativelanguage.googleapis.com;
-        frame-ancestors 'none';
-      ">
-```
-
-### CORS Configuration
-
-For API requests, ensure proper CORS headers:
 
 ```typescript
-// In API configuration
-headers: {
-  'Access-Control-Allow-Origin': 'https://yourdomain.com',
-  'Access-Control-Allow-Methods': 'POST, OPTIONS',
-  'Access-Control-Allow-Headers': 'Content-Type, x-goog-api-key',
-}
-```
-
----
-
-## 📊 Monitoring & Analytics
-
-### Vercel Analytics
-
-```bash
-# Install
-npm install @vercel/analytics
-
-# Add to App.tsx
-import { Analytics } from '@vercel/analytics/react';
-
-function App() {
-  return (
-    <>
-      <YourApp />
-      <Analytics />
-    </>
-  );
-}
-```
-
-### Error Tracking (Sentry)
-
-```bash
-# Install
-npm install @sentry/react @sentry/vite-plugin
-
-# Configure vite.config.ts
-import { sentryVitePlugin } from '@sentry/vite-plugin';
-
-export default defineConfig({
-  plugins: [
-    react(),
-    sentryVitePlugin({
-      org: "your-org",
-      project: "docusearch-agent"
-    })
-  ]
-});
-
-// Initialize in main.tsx
+// src/main.tsx
 import * as Sentry from "@sentry/react";
 
 Sentry.init({
-  dsn: "your-dsn",
+  dsn: "your-sentry-dsn",
   environment: import.meta.env.MODE,
-  integrations: [
-    new Sentry.BrowserTracing(),
-    new Sentry.Replay(),
-  ],
-  tracesSampleRate: 0.1,
-  replaysSessionSampleRate: 0.1,
-  replaysOnErrorSampleRate: 1.0,
+  tracesSampleRate: 1.0,
 });
 ```
 
----
+### Analytics
 
-## 🔄 CI/CD Pipeline
-
-### GitHub Actions
-
-Create `.github/workflows/deploy.yml`:
-
-```yaml
-name: Deploy to Production
-
-on:
-  push:
-    branches: [main]
-  workflow_dispatch:
-
-jobs:
-  test:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v3
-      
-      - name: Setup Node.js
-        uses: actions/setup-node@v3
-        with:
-          node-version: '18'
-          cache: 'npm'
-      
-      - name: Install dependencies
-        run: npm ci
-      
-      - name: Type check
-        run: npm run type-check
-      
-      - name: Lint
-        run: npm run lint
-      
-      - name: Test
-        run: npm test
-      
-      - name: Build
-        run: npm run build
-        env:
-          VITE_GEMINI_API_KEY: ${{ secrets.VITE_GEMINI_API_KEY }}
-
-  deploy:
-    needs: test
-    runs-on: ubuntu-latest
-    if: github.ref == 'refs/heads/main'
-    
-    steps:
-      - uses: actions/checkout@v3
-      
-      - name: Deploy to Vercel
-        uses: amondnet/vercel-action@v20
-        with:
-          vercel-token: ${{ secrets.VERCEL_TOKEN }}
-          vercel-org-id: ${{ secrets.VERCEL_ORG_ID }}
-          vercel-project-id: ${{ secrets.VERCEL_PROJECT_ID }}
-          vercel-args: '--prod'
+**Google Analytics**:
+```html
+<!-- index.html -->
+<script async src="https://www.googletagmanager.com/gtag/js?id=GA_MEASUREMENT_ID"></script>
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('js', new Date());
+  gtag('config', 'GA_MEASUREMENT_ID');
+</script>
 ```
 
----
+### Performance Monitoring
 
-## 🧪 Deployment Verification
-
-### Post-Deployment Checklist
-
-After deploying, verify:
-
-- [ ] Site loads at production URL
-- [ ] All pages accessible
-- [ ] PDF upload works
-- [ ] Search functionality works
-- [ ] PDF viewer displays correctly
-- [ ] No console errors
-- [ ] API calls succeed
-- [ ] Performance acceptable (Lighthouse score >90)
-- [ ] Mobile responsive
-- [ ] HTTPS enabled
-- [ ] Security headers present
-- [ ] Analytics tracking
-- [ ] Error monitoring active
-
-### Automated Checks
-
+**Web Vitals**:
 ```bash
-# Run Lighthouse CI
-npm install -g @lhci/cli
-
-lhci autorun --config=lighthouserc.json
+npm install web-vitals
 ```
 
-Create `lighthouserc.json`:
+```typescript
+// src/main.tsx
+import { getCLS, getFID, getFCP, getLCP, getTTFB } from 'web-vitals';
 
-```json
-{
-  "ci": {
-    "collect": {
-      "url": ["https://yourdomain.com"],
-      "numberOfRuns": 3
-    },
-    "assert": {
-      "assertions": {
-        "categories:performance": ["error", {"minScore": 0.9}],
-        "categories:accessibility": ["error", {"minScore": 0.9}],
-        "categories:best-practices": ["error", {"minScore": 0.9}],
-        "categories:seo": ["error", {"minScore": 0.9}]
+getCLS(console.log);
+getFID(console.log);
+getFCP(console.log);
+getLCP(console.log);
+getTTFB(console.log);
+```
+
+---
+
+## Troubleshooting
+
+### Common Issues
+
+#### Build Fails
+
+**Problem**: TypeScript errors during build
+
+**Solution**:
+```bash
+# Check for type errors
+npm run type-check
+
+# Fix common issues
+npm run lint:fix
+
+# Clear cache and rebuild
+rm -rf node_modules dist .vite
+npm install
+npm run build
+```
+
+#### Environment Variables Not Working
+
+**Problem**: API key not found in production
+
+**Solution**:
+1. Verify variables prefixed with `VITE_`
+2. Check deployment platform settings
+3. Rebuild after changing variables
+4. Check browser console for errors
+
+#### Large Bundle Size
+
+**Problem**: Slow initial load
+
+**Solution**:
+```bash
+# Analyze bundle
+npm run build -- --analyze
+
+# Optimize imports
+# Use dynamic imports for heavy components
+const PDFViewer = lazy(() => import('./PDFViewer'));
+```
+
+#### CORS Errors
+
+**Problem**: API requests blocked by CORS
+
+**Solution**:
+1. Verify API key is correct
+2. Check API endpoint URLs
+3. Review CSP headers
+4. Use proxy in development:
+
+```typescript
+// vite.config.ts
+export default defineConfig({
+  server: {
+    proxy: {
+      '/api': {
+        target: 'https://generativelanguage.googleapis.com',
+        changeOrigin: true,
+        rewrite: (path) => path.replace(/^\/api/, '')
       }
     }
   }
-}
+});
 ```
+
+### Debug Mode
+
+Enable detailed logging:
+
+```env
+# .env
+VITE_ENABLE_DEBUG=true
+```
+
+Check browser console for logs.
 
 ---
 
-## 🔧 Rollback Procedures
+## Rollback Procedure
 
-### Vercel Rollback
-
-```bash
-# List deployments
-vercel ls
-
-# Rollback to previous deployment
-vercel rollback [deployment-url]
-```
-
-### Git-based Rollback
+If deployment fails:
 
 ```bash
-# Revert last commit
+# Vercel
+vercel rollback
+
+# Netlify
+netlify rollback
+
+# Git
 git revert HEAD
-git push origin main
+git push
 
-# Or reset to specific commit
-git reset --hard <commit-hash>
-git push origin main --force
+# Manual
+# Restore previous dist/ folder
+# Redeploy
 ```
 
 ---
 
-## 📈 Scaling Considerations
+## Checklist
 
-### Performance Optimization
+### Pre-Deployment
+- [ ] All tests passing
+- [ ] TypeScript compiles without errors
+- [ ] ESLint clean
+- [ ] Security audit clean (`npm audit`)
+- [ ] Dependencies updated
+- [ ] Documentation updated
+- [ ] CHANGELOG updated
+- [ ] Environment variables configured
+- [ ] Build successful locally
+- [ ] Preview tested
 
-1. **Enable CDN caching**
-2. **Compress assets** (Brotli/Gzip)
-3. **Lazy load components**
-4. **Optimize images** (WebP format)
-5. **Use HTTP/2**
+### Deployment
+- [ ] Deploy to staging
+- [ ] Run smoke tests on staging
+- [ ] Verify functionality
+- [ ] Check performance
+- [ ] Monitor error logs
+- [ ] Deploy to production
+- [ ] Verify production
+- [ ] Update status page
 
-### Cost Optimization
-
-- **Vercel**: Free for personal projects, $20/mo for Pro
-- **Netlify**: Free for 100GB bandwidth, $19/mo for Pro
-- **AWS**: ~$5-10/mo for moderate traffic
-- **Self-hosted**: Variable based on VPS provider
+### Post-Deployment
+- [ ] Monitor for 24 hours
+- [ ] Check analytics
+- [ ] Review error logs
+- [ ] Collect user feedback
+- [ ] Document issues
+- [ ] Plan next iteration
 
 ---
 
-## 📞 Support
+## Support
 
-If deployment issues occur:
+### Getting Help
 
-1. Check deployment logs
-2. Verify environment variables
-3. Test production build locally
-4. Review platform status pages
-5. Open issue on GitHub
+**Documentation**:
+- [README.md](README.md)
+- [TESTING_GUIDE.md](docs/TESTING_GUIDE.md)
+- [SECURITY.md](docs/SECURITY.md)
+
+**Community**:
+- [GitHub Issues](https://github.com/darshil0/gemini-pdf-retrieval-agent/issues)
+- [Discussions](https://github.com/darshil0/gemini-pdf-retrieval-agent/discussions)
+
+**Contact**:
+- Email: support@example.com
+- Response time: 24-48 hours
 
 ---
 
-**Last Updated**: December 5, 2025  
-**Maintained By**: Darshil
+## Appendix
+
+### Useful Commands
+
+```bash
+# Development
+npm run dev              # Start dev server
+npm test -- --watch      # Watch tests
+npm run type-check       # Check types
+
+# Quality
+npm run lint             # Lint code
+npm run lint:fix         # Fix lint issues
+npm test                 # Run all tests
+npm run test:coverage    # Coverage report
+
+# Production
+npm run build            # Build for production
+npm run preview          # Preview build
+npm audit                # Security audit
+npm outdated             # Check for updates
+
+# Deployment
+vercel --prod            # Deploy to Vercel
+netlify deploy --prod    # Deploy to Netlify
+npm run deploy           # Deploy to GitHub Pages
+```
+
+### Environment Variables Reference
+
+| Variable | Required | Default | Description |
+|----------|----------|---------|-------------|
+| `VITE_GEMINI_API_KEY` | Yes | - | Google Gemini API key |
+| `VITE_GEMINI_MODEL` | No | `gemini-2.0-flash-exp` | AI model to use |
+| `VITE_API_TIMEOUT` | No | `30000` | API timeout (ms) |
+| `VITE_MAX_FILE_SIZE` | No | `209715200` | Max file size (bytes) |
+| `VITE_MAX_FILES` | No | `10` | Maximum files allowed |
+| `VITE_ENABLE_DEBUG` | No | `false` | Enable debug logging |
+
+---
+
+**Version**: 2.0.0  
+**Last Updated**: 2025-12-06  
+**Status**: Production Ready ✅
