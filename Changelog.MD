@@ -7,24 +7,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
-## [2.0.0] - 2025-12-06
-
-### Added
-- Created `agent_architecture` directory.
-- Restored `KeywordSearchService` and `SecurityService`.
-
-### Changed
-- Moved `agentPrompts.ts` to `agent_architecture/prompts.ts`.
-- Updated version to `2.0.0`.
-- Re-organized and updated `README.md`.
-
-### Fixed
-- Corrected broken imports in test files.
-- Fixed all failing tests.
-- Refactored oversized test file into smaller, more focused files.
-
----
-
 ## [1.2.2] - 2025-12-05
 
 ### 🎯 Agent Architecture Formalization

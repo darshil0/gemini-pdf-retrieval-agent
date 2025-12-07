@@ -51,7 +51,7 @@ export async function searchInDocuments(files: File[], keyword: string): Promise
         });
 
         const responseText = result.response.text();
-        const cleanedResponse = responseText.replace(/^ \`\`\`json\s*|\`\`\` \s*$/g, '');
+        const cleanedResponse = responseText.replace(/^ ```json\s*|``` \s*$/g, '');
         const parsedResponse: SearchResponse = JSON.parse(cleanedResponse);
         return parsedResponse;
     } catch (error) {
