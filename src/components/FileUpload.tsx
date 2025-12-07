@@ -1,162 +1,225 @@
-import React, { useState, useEffect } from 'react';
-import { Upload, X, FileText, AlertCircle, AlertTriangle, AlertOctagon } from 'lucide-react';
-import { UploadedFile } from '../types';
+// src/components/FileUpload.tsx
+import React, { useCallback, useState } from 'react';
+import { Upload, X, FileText, AlertCircle } from 'lucide-react';
+
+const MAX_FILES = 10;
+const MAX_FILE_SIZE_MB = 200;
+const MAX_FILE_SIZE_BYTES = MAX_FILE_SIZE_MB * 1024 * 1024;
+const ALLOWED_MIME_TYPES = ['application/pdf'];
 
 interface FileUploadProps {
-  files: UploadedFile[];
-  setFiles: React.Dispatch<React.SetStateAction<UploadedFile[]>>;
-  disabled?: boolean;
+  onFilesSelected: (files: File[]) => void;
+  uploadedFiles: File[];
+  onRemoveFile: (index: number) => void;
+  isProcessing?: boolean;
 }
 
-export const FileUpload: React.FC<FileUploadProps> = ({ files, setFiles, disabled }) => {
-  const [validationError, setValidationError] = useState<string | null>(null);
-  
-  const MAX_RECOMMENDED_SIZE_MB = 200;
-  const totalSize = files.reduce((acc, curr) => acc + curr.file.size, 0);
-  const totalSizeMB = totalSize / 1024 / 1024;
-  const isOverSizeLimit = totalSizeMB > MAX_RECOMMENDED_SIZE_MB;
+interface FileValidationError {
+  file: string;
+  error: string;
+}
 
-  const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-    setValidationError(null);
-    
-    if (event.target.files && event.target.files.length > 0) {
-        const selectedFiles = Array.from(event.target.files);
-        const validFiles: File[] = [];
-        const invalidNames: string[] = [];
+export const FileUpload: React.FC<FileUploadProps> = ({
+  onFilesSelected,
+  uploadedFiles,
+  onRemoveFile,
+  isProcessing = false
+}) => {
+  const [dragActive, setDragActive] = useState(false);
+  const [errors, setErrors] = useState<FileValidationError[]>([]);
 
-        selectedFiles.forEach(file => {
-            if (file.type === 'application/pdf') {
-                validFiles.push(file);
-            } else {
-                invalidNames.push(file.name);
-            }
+  const validateFiles = (files: File[]): { valid: File[]; errors: FileValidationError[] } => {
+    const validFiles: File[] = [];
+    const validationErrors: FileValidationError[] = [];
+
+    files.forEach(file => {
+      // Check file type
+      if (!ALLOWED_MIME_TYPES.includes(file.type)) {
+        validationErrors.push({
+          file: file.name,
+          error: 'Only PDF files are allowed'
         });
-
-        if (invalidNames.length > 0) {
-            setValidationError(`Invalid file type. Only PDFs are allowed. Skipped: ${invalidNames.slice(0, 3).join(', ')}${invalidNames.length > 3 ? '...' : ''}`);
-        }
-
-        if (validFiles.length > 0) {
-            const newFiles = validFiles.map((file: File) => ({
-                file,
-                id: Math.random().toString(36).substring(7),
-                previewUrl: URL.createObjectURL(file)
-            }));
-
-            setFiles(prev => {
-                const combined = [...prev, ...newFiles];
-                // Limit to 10 files
-                return combined.slice(0, 10);
-            });
-        }
-    }
-    // Reset input
-    event.target.value = '';
-  };
-
-  const removeFile = (id: string) => {
-    setFiles(prev => {
-      const fileToRemove = prev.find(f => f.id === id);
-      if (fileToRemove) {
-        URL.revokeObjectURL(fileToRemove.previewUrl);
+        return;
       }
-      return prev.filter(f => f.id !== id);
+
+      // Check file size
+      if (file.size > MAX_FILE_SIZE_BYTES) {
+        validationErrors.push({
+          file: file.name,
+          error: `File size exceeds ${MAX_FILE_SIZE_MB}MB limit`
+        });
+        return;
+      }
+
+      // Check for duplicates
+      if (uploadedFiles.some(f => f.name === file.name && f.size === file.size)) {
+        validationErrors.push({
+          file: file.name,
+          error: 'File already uploaded'
+        });
+        return;
+      }
+
+      validFiles.push(file);
     });
+
+    return { valid: validFiles, errors: validationErrors };
   };
 
-  useEffect(() => {
-    return () => {
-      files.forEach(file => URL.revokeObjectURL(file.previewUrl));
-    };
-  }, [files]);
+  const handleFiles = useCallback((files: FileList | null) => {
+    if (!files || files.length === 0) return;
+
+    const fileArray = Array.from(files);
+    const totalFiles = uploadedFiles.length + fileArray.length;
+
+    // Check 10-file limit
+    if (totalFiles > MAX_FILES) {
+      setErrors([{
+        file: 'System',
+        error: `Cannot upload more than ${MAX_FILES} files. Currently have ${uploadedFiles.length} file(s). Attempting to add ${fileArray.length} more.`
+      }]);
+      return;
+    }
+
+    const { valid, errors: validationErrors } = validateFiles(fileArray);
+
+    if (validationErrors.length > 0) {
+      setErrors(validationErrors);
+    } else {
+      setErrors([]);
+    }
+
+    if (valid.length > 0) {
+      onFilesSelected(valid);
+    }
+  }, [uploadedFiles, onFilesSelected]);
+
+  const handleDrag = useCallback((e: React.DragEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    if (e.type === "dragenter" || e.type === "dragover") {
+      setDragActive(true);
+    } else if (e.type === "dragleave") {
+      setDragActive(false);
+    }
+  }, []);
+
+  const handleDrop = useCallback((e: React.DragEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setDragActive(false);
+    handleFiles(e.dataTransfer.files);
+  }, [handleFiles]);
+
+  const handleChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
+    e.preventDefault();
+    handleFiles(e.target.files);
+  }, [handleFiles]);
+
+  const remainingSlots = MAX_FILES - uploadedFiles.length;
 
   return (
     <div className="w-full space-y-4">
-      <div className={`relative border-2 border-dashed border-slate-600 rounded-xl p-8 transition-colors ${disabled ? 'opacity-50 cursor-not-allowed' : 'hover:border-blue-500 hover:bg-slate-800/50'}`}>
-        <input
-          type="file"
-          accept="application/pdf"
-          multiple
-          onChange={handleFileChange}
-          disabled={disabled || files.length >= 10}
-          className="absolute inset-0 w-full h-full opacity-0 cursor-pointer disabled:cursor-not-allowed"
-          data-testid="file-upload"
-        />
-        <div className="flex flex-col items-center justify-center text-slate-400 space-y-2">
-          <Upload className="w-10 h-10 mb-2 text-blue-400" />
-          <p className="text-lg font-medium text-slate-200">
-            {files.length >= 10 ? 'Limit Reached (10 files)' : 'Drop PDFs here or click to upload'}
-          </p>
-          <p className="text-sm text-slate-500">Max 10 files. PDF only.</p>
-        </div>
+      {/* File Counter */}
+      <div className="flex items-center justify-between p-3 bg-blue-50 border border-blue-200 rounded-lg">
+        <span className="text-sm font-medium text-blue-900">
+          Files: {uploadedFiles.length} / {MAX_FILES}
+        </span>
+        {remainingSlots > 0 && (
+          <span className="text-xs text-blue-700">
+            {remainingSlots} slot(s) remaining
+          </span>
+        )}
       </div>
 
-      {(files.length > 0 || validationError) && (
-        <div className="space-y-3">
-          {/* Validation Error */}
-          {validationError && (
-            <div className="flex items-start p-3 bg-red-900/20 border border-red-500/30 rounded-lg text-red-200 animate-fade-in">
-              <AlertOctagon className="w-5 h-5 mr-3 flex-shrink-0 mt-0.5" />
-              <div className="text-sm">
-                <p className="font-semibold">Upload Failed</p>
-                <p className="opacity-80">{validationError}</p>
+      {/* Error Messages */}
+      {errors.length > 0 && (
+        <div className="space-y-2">
+          {errors.map((error, index) => (
+            <div key={index} className="flex items-start gap-2 p-3 bg-red-50 border border-red-200 rounded-lg">
+              <AlertCircle className="w-5 h-5 text-red-600 flex-shrink-0 mt-0.5" />
+              <div className="flex-1">
+                <p className="text-sm font-medium text-red-900">{error.file}</p>
+                <p className="text-xs text-red-700">{error.error}</p>
               </div>
-              <button 
-                onClick={() => setValidationError(null)}
-                className="ml-auto text-red-300 hover:text-white"
+              <button
+                onClick={() => setErrors(errors.filter((_, i) => i !== index))}
+                className="text-red-600 hover:text-red-800"
+                aria-label="Dismiss error"
               >
-                <X size={16} />
+                <X className="w-4 h-4" />
               </button>
             </div>
-          )}
+          ))}
+        </div>
+      )}
 
-          {/* Size Warning */}
-          {isOverSizeLimit && (
-            <div className="flex items-start p-3 bg-amber-900/20 border border-amber-500/30 rounded-lg text-amber-200 animate-fade-in">
-              <AlertTriangle className="w-5 h-5 mr-3 flex-shrink-0 mt-0.5" />
-              <div className="text-sm">
-                <p className="font-semibold">Large Total Size ({totalSizeMB.toFixed(1)} MB)</p>
-                <p className="opacity-80">
-                  Total size exceeds {MAX_RECOMMENDED_SIZE_MB}MB. This may result in longer processing times or API timeouts.
-                </p>
-              </div>
-            </div>
-          )}
+      {/* Upload Area */}
+      <div
+        className={`relative border-2 border-dashed rounded-lg p-8 text-center transition-colors ${
+          dragActive
+            ? 'border-blue-500 bg-blue-50'
+            : 'border-gray-300 hover:border-gray-400'
+        } ${isProcessing || uploadedFiles.length >= MAX_FILES ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer'}`}
+        onDragEnter={handleDrag}
+        onDragLeave={handleDrag}
+        onDragOver={handleDrag}
+        onDrop={handleDrop}
+      >
+        <input
+          type="file"
+          multiple
+          accept=".pdf"
+          onChange={handleChange}
+          disabled={isProcessing || uploadedFiles.length >= MAX_FILES}
+          className="absolute inset-0 w-full h-full opacity-0 cursor-pointer disabled:cursor-not-allowed"
+          aria-label="Upload PDF files"
+        />
+        <Upload className="w-12 h-12 mx-auto mb-4 text-gray-400" />
+        <p className="text-lg font-medium text-gray-700 mb-2">
+          {uploadedFiles.length >= MAX_FILES
+            ? 'Maximum files reached'
+            : 'Drop PDF files here or click to browse'}
+        </p>
+        <p className="text-sm text-gray-500">
+          {uploadedFiles.length >= MAX_FILES
+            ? 'Remove files to upload more'
+            : `Upload up to ${remainingSlots} more PDF file(s) (max ${MAX_FILE_SIZE_MB}MB each)`}
+        </p>
+      </div>
 
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-            {files.map((fileObj, index) => (
-              <div key={fileObj.id} className="flex items-center justify-between p-3 bg-slate-800 border border-slate-700 rounded-lg group">
-                <div className="flex items-center space-x-3 overflow-hidden">
-                  <div className="flex-shrink-0 w-8 h-8 bg-red-500/10 rounded flex items-center justify-center text-red-500">
-                    <FileText size={18} />
-                  </div>
-                  <div className="flex flex-col min-w-0">
-                    <span className="text-sm font-medium text-slate-200 truncate pr-2" title={fileObj.file.name}>
-                      {index + 1}. {fileObj.file.name}
-                    </span>
-                    <span className="text-xs text-slate-500">
-                      {(fileObj.file.size / 1024 / 1024).toFixed(2)} MB
-                    </span>
+      {/* Uploaded Files List */}
+      {uploadedFiles.length > 0 && (
+        <div className="space-y-2">
+          <h3 className="text-sm font-medium text-gray-700">Uploaded Files</h3>
+          <div className="space-y-2">
+            {uploadedFiles.map((file, index) => (
+              <div
+                key={`${file.name}-${index}`}
+                className="flex items-center justify-between p-3 bg-white border border-gray-200 rounded-lg hover:border-gray-300 transition-colors"
+              >
+                <div className="flex items-center gap-3 flex-1 min-w-0">
+                  <FileText className="w-5 h-5 text-blue-600 flex-shrink-0" />
+                  <div className="flex-1 min-w-0">
+                    <p className="text-sm font-medium text-gray-900 truncate">
+                      {file.name}
+                    </p>
+                    <p className="text-xs text-gray-500">
+                      {(file.size / (1024 * 1024)).toFixed(2)} MB
+                    </p>
                   </div>
                 </div>
-                {!disabled && (
-                  <button
-                    onClick={() => removeFile(fileObj.id)}
-                    className="p-1.5 text-slate-400 hover:text-red-400 hover:bg-slate-700 rounded-full transition-colors"
-                  >
-                    <X size={16} />
-                  </button>
-                )}
+                <button
+                  onClick={() => onRemoveFile(index)}
+                  disabled={isProcessing}
+                  className="p-1 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                  aria-label={`Remove ${file.name}`}
+                >
+                  <X className="w-5 h-5" />
+                </button>
               </div>
             ))}
           </div>
-        </div>
-      )}
-      
-      {files.length === 0 && !validationError && (
-        <div role="alert" className="flex items-center p-4 bg-blue-900/20 border border-blue-500/20 rounded-lg text-blue-200">
-          <AlertCircle className="w-5 h-5 mr-3 flex-shrink-0" />
-          <p className="text-sm">Please upload at least one PDF to begin.</p>
         </div>
       )}
     </div>

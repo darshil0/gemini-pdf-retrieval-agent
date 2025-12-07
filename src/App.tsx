@@ -1,23 +1,40 @@
-import React, { useState, useEffect, useRef } from 'react';
-import { Search, Loader2, Sparkles, BookOpen, Trash2, X, FileText, RotateCw, RotateCcw, ChevronLeft, ChevronRight, History, Download } from 'lucide-react';
-import { FileUpload } from './components/FileUpload';
-import { SearchResultCard } from './components/SearchResultCard';
-import { searchInDocuments } from './services/geminiService';
-import { UploadedFile, AppStatus, SearchResponse } from './types';
-import { Document, Page, pdfjs } from 'react-pdf';
+import React, { useState, useEffect, useRef } from "react";
+import {
+  Search,
+  Loader2,
+  Sparkles,
+  BookOpen,
+  Trash2,
+  X,
+  FileText,
+  RotateCw,
+  RotateCcw,
+  ChevronLeft,
+  ChevronRight,
+  History,
+  Download,
+} from "lucide-react";
+import { FileUpload } from "./components/FileUpload";
+import { SearchResultCard } from "./components/SearchResultCard";
+import { searchInDocuments } from "./services/geminiService";
+import { UploadedFile, AppStatus, SearchResponse } from "./types";
+import { Document, Page, pdfjs } from "react-pdf";
 
-import pdfWorker from 'pdfjs-dist/build/pdf.worker.min.mjs?url';
+import pdfWorker from "pdfjs-dist/build/pdf.worker.min.mjs?url";
 
 // Configure worker for react-pdf
 pdfjs.GlobalWorkerOptions.workerSrc = pdfWorker;
 
 export default function App() {
   const [files, setFiles] = useState<UploadedFile[]>([]);
-  const [keyword, setKeyword] = useState('');
+  const [keyword, setKeyword] = useState("");
   const [status, setStatus] = useState<AppStatus>(AppStatus.IDLE);
   const [data, setData] = useState<SearchResponse | null>(null);
   const [error, setError] = useState<string | null>(null);
-  const [viewingResult, setViewingResult] = useState<{ file: UploadedFile, page: number } | null>(null);
+  const [viewingResult, setViewingResult] = useState<{
+    file: UploadedFile;
+    page: number;
+  } | null>(null);
   const [recentSearches, setRecentSearches] = useState<string[]>([]);
 
   // PDF Viewer State
@@ -33,7 +50,7 @@ export default function App() {
   // Cleanup object URLs ONLY when component unmounts to avoid memory leaks
   useEffect(() => {
     return () => {
-      filesRef.current.forEach(file => {
+      filesRef.current.forEach((file) => {
         if (file.previewUrl) {
           URL.revokeObjectURL(file.previewUrl);
         }
@@ -43,13 +60,13 @@ export default function App() {
 
   // Load recent searches from local storage on mount
   useEffect(() => {
-    const saved = localStorage.getItem('docuSearch_recent');
+    const saved = localStorage.getItem("docuSearch_recent");
     if (saved) {
       try {
         setRecentSearches(JSON.parse(saved));
       } catch {
         // Invalid JSON in localStorage, ignore and start fresh
-        localStorage.removeItem('docuSearch_recent');
+        localStorage.removeItem("docuSearch_recent");
       }
     }
   }, []);
@@ -67,26 +84,28 @@ export default function App() {
   // Add keyboard accessibility for the modal
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') {
+      if (e.key === "Escape") {
         setViewingResult(null);
       }
     };
 
     if (viewingResult) {
-      document.addEventListener('keydown', handleKeyDown);
+      document.addEventListener("keydown", handleKeyDown);
     }
 
     return () => {
-      document.removeEventListener('keydown', handleKeyDown);
+      document.removeEventListener("keydown", handleKeyDown);
     };
   }, [viewingResult]);
 
   const updateRecentSearches = (term: string) => {
-    setRecentSearches(prev => {
+    setRecentSearches((prev) => {
       // Remove duplicates (case-insensitive check) and add to front
-      const filtered = prev.filter(t => t.toLowerCase() !== term.toLowerCase());
+      const filtered = prev.filter(
+        (t) => t.toLowerCase() !== term.toLowerCase(),
+      );
       const updated = [term, ...filtered].slice(0, 5); // Keep top 5
-      localStorage.setItem('docuSearch_recent', JSON.stringify(updated));
+      localStorage.setItem("docuSearch_recent", JSON.stringify(updated));
       return updated;
     });
   };
@@ -105,12 +124,15 @@ export default function App() {
     setData(null);
 
     try {
-      const fileObjects = files.map(f => f.file);
+      const fileObjects = files.map((f) => f.file);
       const response = await searchInDocuments(fileObjects, term);
       setData(response);
       setStatus(AppStatus.COMPLETE);
     } catch (err: unknown) {
-      const errorMessage = err instanceof Error ? err.message : "An error occurred while analyzing the documents.";
+      const errorMessage =
+        err instanceof Error
+          ? err.message
+          : "An error occurred while analyzing the documents.";
       setError(errorMessage);
       setStatus(AppStatus.ERROR);
     }
@@ -123,7 +145,7 @@ export default function App() {
 
   const handleReset = () => {
     // Revoke object URLs to prevent memory leaks
-    files.forEach(file => {
+    files.forEach((file) => {
       if (file.previewUrl) {
         URL.revokeObjectURL(file.previewUrl);
       }
@@ -131,7 +153,7 @@ export default function App() {
 
     setData(null);
     setStatus(AppStatus.IDLE);
-    setKeyword('');
+    setKeyword("");
     setViewingResult(null);
     setFiles([]);
   };
@@ -141,7 +163,7 @@ export default function App() {
   };
 
   const changePage = (offset: number) => {
-    setCurrentPage(prev => {
+    setCurrentPage((prev) => {
       const newPage = prev + offset;
       if (numPages && (newPage < 1 || newPage > numPages)) return prev;
       return newPage;
@@ -178,7 +200,6 @@ export default function App() {
       </header>
 
       <main className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-8">
-
         {/* Input Section */}
         <section className="space-y-6">
           <div className="bg-slate-800/50 rounded-2xl p-1 border border-slate-700">
@@ -186,13 +207,25 @@ export default function App() {
               {/* File Upload Column */}
               <div className="lg:col-span-5 space-y-4">
                 <h2 className="text-lg font-semibold text-white flex items-center">
-                  <span className="w-6 h-6 rounded-full bg-slate-700 flex items-center justify-center text-xs mr-2">1</span>
+                  <span className="w-6 h-6 rounded-full bg-slate-700 flex items-center justify-center text-xs mr-2">
+                    1
+                  </span>
                   Upload Documents
                 </h2>
                 <FileUpload
-                  files={files}
-                  setFiles={setFiles}
-                  disabled={status === AppStatus.ANALYZING}
+                  uploadedFiles={files.map(f => f.file)}
+                  onFilesSelected={(selectedFiles) => {
+                    const newFiles = selectedFiles.map(file => ({
+                      file,
+                      id: `${file.name}-${file.size}`,
+                      previewUrl: URL.createObjectURL(file)
+                    }));
+                    setFiles(prev => [...prev, ...newFiles]);
+                  }}
+                  onRemoveFile={(index) => {
+                    setFiles(prev => prev.filter((_, i) => i !== index));
+                  }}
+                  isProcessing={status === AppStatus.ANALYZING}
                 />
               </div>
 
@@ -202,13 +235,18 @@ export default function App() {
               {/* Search Column */}
               <div className="lg:col-span-6 space-y-4 flex flex-col">
                 <h2 className="text-lg font-semibold text-white flex items-center">
-                  <span className="w-6 h-6 rounded-full bg-slate-700 flex items-center justify-center text-xs mr-2">2</span>
+                  <span className="w-6 h-6 rounded-full bg-slate-700 flex items-center justify-center text-xs mr-2">
+                    2
+                  </span>
                   Define Search Criteria
                 </h2>
 
                 <div className="flex-1 flex flex-col justify-center space-y-6">
                   <div>
-                    <label htmlFor="keyword" className="block text-sm font-medium text-slate-400 mb-2">
+                    <label
+                      htmlFor="keyword"
+                      className="block text-sm font-medium text-slate-400 mb-2"
+                    >
                       Target Keyword or Phrase
                     </label>
                     <div className="relative">
@@ -227,11 +265,18 @@ export default function App() {
 
                   <button
                     onClick={handleSearch}
-                    disabled={status === AppStatus.ANALYZING || files.length === 0 || !keyword.trim()}
+                    disabled={
+                      status === AppStatus.ANALYZING ||
+                      files.length === 0 ||
+                      !keyword.trim()
+                    }
                     className={`w-full py-4 rounded-xl font-bold text-lg shadow-lg flex items-center justify-center space-x-2 transition-all transform active:scale-95
-                      ${status === AppStatus.ANALYZING || files.length === 0 || !keyword.trim()
-                        ? 'bg-slate-700 text-slate-500 cursor-not-allowed'
-                        : 'bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 text-white shadow-blue-900/20'
+                      ${
+                        status === AppStatus.ANALYZING ||
+                        files.length === 0 ||
+                        !keyword.trim()
+                          ? "bg-slate-700 text-slate-500 cursor-not-allowed"
+                          : "bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 text-white shadow-blue-900/20"
                       }`}
                   >
                     {status === AppStatus.ANALYZING ? (
@@ -259,8 +304,15 @@ export default function App() {
                           <li key={i}>
                             <button
                               onClick={() => executeSearch(term)}
-                              disabled={status === AppStatus.ANALYZING || files.length === 0}
-                              title={files.length === 0 ? "Upload files first" : "Run search"}
+                              disabled={
+                                status === AppStatus.ANALYZING ||
+                                files.length === 0
+                              }
+                              title={
+                                files.length === 0
+                                  ? "Upload files first"
+                                  : "Run search"
+                              }
                               className="px-3 py-1.5 rounded-lg bg-slate-800 border border-slate-700 hover:border-blue-500/50 hover:bg-slate-700 text-sm text-slate-300 transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center group"
                             >
                               <span>{term}</span>
@@ -271,7 +323,6 @@ export default function App() {
                       </ul>
                     </div>
                   )}
-
                 </div>
               </div>
             </div>
@@ -303,9 +354,7 @@ export default function App() {
                 <Sparkles className="w-4 h-4 mr-2" />
                 Analysis Summary
               </h4>
-              <p className="text-slate-300 leading-relaxed">
-                {data.summary}
-              </p>
+              <p className="text-slate-300 leading-relaxed">{data.summary}</p>
             </div>
 
             {/* Results Grid */}
@@ -320,7 +369,9 @@ export default function App() {
                       result={result}
                       fileName={file.file.name}
                       keyword={keyword}
-                      onView={() => setViewingResult({ file, page: result.pageNumber })}
+                      onView={() =>
+                        setViewingResult({ file, page: result.pageNumber })
+                      }
                     />
                   );
                 })}
@@ -328,7 +379,9 @@ export default function App() {
             ) : (
               <div className="text-center py-12 text-slate-500 bg-slate-800/30 rounded-xl border border-slate-700 border-dashed">
                 <Search className="w-12 h-12 mx-auto mb-4 opacity-50" />
-                <p className="text-lg">No exact matches found for &quot;{keyword}&quot;.</p>
+                <p className="text-lg">
+                  No exact matches found for &quot;{keyword}&quot;.
+                </p>
                 <p className="text-sm">Try broadening your search term.</p>
               </div>
             )}
@@ -338,12 +391,18 @@ export default function App() {
 
       {/* PDF Viewer Modal */}
       {viewingResult && (
-        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 sm:p-6" role="dialog" aria-modal="true">
+        <div
+          className="fixed inset-0 z-[100] flex items-center justify-center p-4 sm:p-6"
+          role="dialog"
+          aria-modal="true"
+        >
           {/* Backdrop */}
           <div
             className="absolute inset-0 bg-black/80 backdrop-blur-sm transition-opacity"
             onClick={() => setViewingResult(null)}
-            onKeyDown={(e) => (e.key === 'Enter' || e.key === ' ') && setViewingResult(null)}
+            onKeyDown={(e) =>
+              (e.key === "Enter" || e.key === " ") && setViewingResult(null)
+            }
             role="button"
             tabIndex={0}
             aria-label="Close Viewer"
@@ -358,9 +417,11 @@ export default function App() {
                   <FileText size={20} />
                 </div>
                 <div className="min-w-0">
-                  <h3 className="font-medium text-white truncate">{viewingResult.file.file.name}</h3>
+                  <h3 className="font-medium text-white truncate">
+                    {viewingResult.file.file.name}
+                  </h3>
                   <p className="text-sm text-slate-400">
-                    Page {currentPage} of {numPages || '--'}
+                    Page {currentPage} of {numPages || "--"}
                   </p>
                 </div>
               </div>
@@ -377,7 +438,7 @@ export default function App() {
                     <ChevronLeft size={18} />
                   </button>
                   <span className="px-2 text-xs font-mono text-slate-400 w-12 text-center">
-                    {currentPage} / {numPages || '-'}
+                    {currentPage} / {numPages || "-"}
                   </span>
                   <button
                     onClick={() => changePage(1)}
@@ -392,14 +453,16 @@ export default function App() {
                 {/* Rotation Controls */}
                 <div className="flex items-center space-x-1 bg-slate-900/50 rounded-lg p-1 border border-slate-700">
                   <button
-                    onClick={() => setRotation(prev => (prev - 90 + 360) % 360)}
+                    onClick={() =>
+                      setRotation((prev) => (prev - 90 + 360) % 360)
+                    }
                     className="p-1.5 hover:bg-slate-700 rounded-md text-slate-400 hover:text-white transition-colors"
                     title="Rotate Counter-Clockwise"
                   >
                     <RotateCcw size={18} />
                   </button>
                   <button
-                    onClick={() => setRotation(prev => (prev + 90) % 360)}
+                    onClick={() => setRotation((prev) => (prev + 90) % 360)}
                     className="p-1.5 hover:bg-slate-700 rounded-md text-slate-400 hover:text-white transition-colors"
                     title="Rotate Clockwise"
                   >
@@ -442,8 +505,12 @@ export default function App() {
                         <FileText className="w-8 h-8 text-slate-600" />
                       </div>
                     </div>
-                    <h4 className="text-xl font-semibold text-white mb-2">Loading Document</h4>
-                    <p className="text-slate-400">Rendering page {viewingResult.page}...</p>
+                    <h4 className="text-xl font-semibold text-white mb-2">
+                      Loading Document
+                    </h4>
+                    <p className="text-slate-400">
+                      Rendering page {viewingResult.page}...
+                    </p>
                   </div>
                 }
                 error={

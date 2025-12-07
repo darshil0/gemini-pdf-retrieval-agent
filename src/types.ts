@@ -18,8 +18,8 @@ export interface UploadedFile {
 }
 
 export enum AppStatus {
-  IDLE = 'IDLE',
-  ANALYZING = 'ANALYZING',
-  COMPLETE = 'COMPLETE',
-  ERROR = 'ERROR'
+  IDLE = "IDLE",
+  ANALYZING = "ANALYZING",
+  COMPLETE = "COMPLETE",
+  ERROR = "ERROR",
 }

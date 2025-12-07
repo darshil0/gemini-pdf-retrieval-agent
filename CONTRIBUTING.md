@@ -25,6 +25,7 @@ We are committed to providing a welcoming and inspiring community for everyone. 
 ### Our Standards
 
 **Positive behaviors include:**
+
 - Using welcoming and inclusive language
 - Being respectful of differing viewpoints
 - Gracefully accepting constructive criticism
@@ -32,6 +33,7 @@ We are committed to providing a welcoming and inspiring community for everyone. 
 - Showing empathy towards other community members
 
 **Unacceptable behaviors include:**
+
 - Harassment, trolling, or insulting comments
 - Personal or political attacks
 - Publishing others' private information
@@ -70,6 +72,7 @@ Before creating bug reports, please check existing issues to avoid duplicates.
 **Title**: PDF viewer crashes on files >150MB
 
 **Steps to Reproduce**:
+
 1. Upload PDF file larger than 150MB
 2. Wait for processing to complete
 3. Click on search result to open viewer
@@ -79,6 +82,7 @@ Before creating bug reports, please check existing issues to avoid duplicates.
 **Actual**: Browser tab crashes with "Out of memory" error
 
 **Environment**:
+
 - OS: Windows 11
 - Browser: Chrome 120.0.6099.109
 - RAM: 8GB
@@ -86,8 +90,10 @@ Before creating bug reports, please check existing issues to avoid duplicates.
 
 **Console Output**:
 ```
+
 Uncaught RangeError: Maximum call stack size exceeded
-    at PDFViewer.render (PDFViewer.tsx:45)
+at PDFViewer.render (PDFViewer.tsx:45)
+
 ```
 
 **Additional Context**:
@@ -123,10 +129,12 @@ Users often need to re-run previous searches but must retype them each time, whi
 Add a dropdown to the search box showing the last 10 searches. Users can click to re-run or use arrow keys to navigate history (like browser address bar).
 
 **Alternatives Considered**:
+
 1. Browser-based localStorage (privacy concerns)
 2. Saved searches (more complex UI)
 
 **Use Cases**:
+
 - Researcher comparing multiple queries
 - User fixing typo in previous search
 - Iterating on search refinements
@@ -246,7 +254,10 @@ function searchDocuments(query: any, docs: any): any {
  * @returns Array of search results ranked by relevance
  * @throws {InvalidQueryError} If query is too short
  */
-export function searchDocuments(query: string, docs: Document[]): SearchResult[] {
+export function searchDocuments(
+  query: string,
+  docs: Document[],
+): SearchResult[] {
   // Implementation
 }
 ```
@@ -263,13 +274,13 @@ interface SearchBoxProps {
 
 export function SearchBox({ onSearch, placeholder = 'Search...', disabled = false }: SearchBoxProps) {
   const [query, setQuery] = useState('');
-  
+
   const handleSubmit = useCallback(() => {
     if (query.trim().length >= 3) {
       onSearch(query);
     }
   }, [query, onSearch]);
-  
+
   return (
     <div className="search-box">
       <input
@@ -342,24 +353,24 @@ describe('SearchBox', () => {
   it('calls onSearch when button clicked', async () => {
     const onSearch = vi.fn();
     render(<SearchBox onSearch={onSearch} />);
-    
+
     const input = screen.getByRole('searchbox');
     const button = screen.getByRole('button', { name: /search/i });
-    
+
     await userEvent.type(input, 'test query');
     await userEvent.click(button);
-    
+
     expect(onSearch).toHaveBeenCalledWith('test query');
   });
-  
+
   it('disables search for short queries', async () => {
     render(<SearchBox onSearch={vi.fn()} />);
-    
+
     const input = screen.getByRole('searchbox');
     const button = screen.getByRole('button');
-    
+
     await userEvent.type(input, 'ab'); // Only 2 characters
-    
+
     expect(button).toBeDisabled();
   });
 });
@@ -477,6 +488,7 @@ BREAKING CHANGE: Search API now returns ranked results"
 ### Before Submitting
 
 1. **Update from main**
+
    ```bash
    git checkout main
    git pull upstream main
@@ -485,6 +497,7 @@ BREAKING CHANGE: Search API now returns ranked results"
    ```
 
 2. **Run all checks**
+
    ```bash
    npm run type-check
    npm run lint
@@ -505,6 +518,7 @@ BREAKING CHANGE: Search API now returns ranked results"
 ### Creating Pull Request
 
 1. **Push to your fork**
+
    ```bash
    git push origin your-branch-name
    ```
@@ -524,23 +538,28 @@ BREAKING CHANGE: Search API now returns ranked results"
 
 ```markdown
 ## Description
+
 Brief description of changes
 
 ## Related Issues
+
 Fixes #123
 
 ## Type of Change
+
 - [ ] Bug fix (non-breaking change)
 - [ ] New feature (non-breaking change)
 - [ ] Breaking change
 - [ ] Documentation update
 
 ## Testing
+
 - [ ] Unit tests added/updated
 - [ ] Integration tests added/updated
 - [ ] Manual testing completed
 
 ## Checklist
+
 - [ ] Code follows style guidelines
 - [ ] Self-reviewed code
 - [ ] Commented complex code
@@ -550,9 +569,11 @@ Fixes #123
 - [ ] Added tests for new features
 
 ## Screenshots (if applicable)
+
 [Add screenshots or videos]
 
 ## Additional Notes
+
 Any other context about the PR
 ```
 
@@ -572,6 +593,7 @@ Any other context about the PR
 New to the project? Start with these:
 
 ### Beginner Friendly
+
 - Add dark mode toggle
 - Improve error messages
 - Add keyboard shortcuts overlay
@@ -579,12 +601,14 @@ New to the project? Start with these:
 - Fix typos in documentation
 
 ### Intermediate
+
 - Implement search history
 - Add document tagging
 - Improve PDF viewer controls
 - Add export functionality
 
 ### Advanced
+
 - Optimize memory usage
 - Implement streaming processing
 - Add real-time collaboration
@@ -608,11 +632,13 @@ Stuck? Need guidance?
 ### Asking Questions
 
 **Good question format**:
+
 ```markdown
 **What I'm trying to do**:
 [Clear description]
 
 **What I've tried**:
+
 1. [Approach 1]
 2. [Approach 2]
 
@@ -620,6 +646,7 @@ Stuck? Need guidance?
 [Specific issue with code/logs]
 
 **Environment**:
+
 - OS: macOS 14
 - Node: v18.0.0
 - Branch: feature/search-history
@@ -637,6 +664,7 @@ Contributors are recognized in:
 - Annual contributor spotlight
 
 **Top contributors may receive**:
+
 - Collaborator access
 - Priority support
 - Early access to features

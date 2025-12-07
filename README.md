@@ -24,12 +24,14 @@
 ## ✨ Features
 
 ### 🔐 File Upload System
+
 - **Strict 10-File Limit** - System enforces a maximum of 10 PDF files.
 - **File Type Validation** - Magic number verification ensures that only valid PDF files are uploaded.
 - **Size Validation** - Maximum 200MB per file.
 - **Drag & Drop** - Intuitive file upload interface.
 
 ### 🔍 Advanced Search
+
 - **Natural Language Search** - AI-powered query understanding.
 - **Fuzzy Matching** - Handles typos and spelling variations.
 - **Synonym Recognition** - Recognizes synonyms and semantic matches.
@@ -38,11 +40,13 @@
 - **Relevance Ranking** - Results are ranked by relevance.
 
 ### 🛡️ Security Features
+
 - **Input Sanitization** - XSS prevention for all user inputs.
 - **File Validation** - Deep inspection of file content.
 - **Rate Limiting** - Prevents API abuse (10 requests/minute).
 
 ### 🧪 Testing & Quality
+
 - **100% Test Coverage** - All components and services are tested.
 - **Integration Tests** - End-to-end workflow validation.
 - **Security Tests** - Validation and sanitization testing.
@@ -88,6 +92,7 @@ npm run dev
 ## 📦 Installation
 
 ### Prerequisites
+
 - Node.js v18+
 - npm v9+
 - Google Gemini API Key ([Get one here](https://makersuite.google.com/app/apikey))
@@ -95,6 +100,7 @@ npm run dev
 ### Step-by-Step Setup
 
 1. **Clone and Install**
+
 ```bash
 git clone https://github.com/darshil0/gemini-pdf-retrieval-agent.git
 cd gemini-pdf-retrieval-agent
@@ -102,6 +108,7 @@ npm install
 ```
 
 2. **Configure Environment**
+
 ```bash
 # Create .env file
 cp .env.example .env
@@ -111,6 +118,7 @@ VITE_GEMINI_API_KEY=your_actual_api_key_here
 ```
 
 3. **Verify Installation**
+
 ```bash
 npm run type-check  # TypeScript validation
 npm run lint        # Code quality
@@ -118,6 +126,7 @@ npm test           # All tests
 ```
 
 4. **Start Application**
+
 ```bash
 npm run dev         # Development mode
 # or
@@ -156,7 +165,10 @@ interface FileUploadProps {
 
 ```typescript
 // Search for a keyword in a set of documents
-async function searchInDocuments(files: File[], keyword: string): Promise<SearchResponse>
+async function searchInDocuments(
+  files: File[],
+  keyword: string,
+): Promise<SearchResponse>;
 ```
 
 ---

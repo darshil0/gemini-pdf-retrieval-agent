@@ -1,6 +1,6 @@
-import React from 'react';
-import { FileText, Bookmark, Eye } from 'lucide-react';
-import { SearchResult } from '../types';
+import React from "react";
+import { FileText, Bookmark, Eye } from "lucide-react";
+import { SearchResult } from "../types";
 
 interface SearchResultCardProps {
   result: SearchResult;
@@ -9,7 +9,12 @@ interface SearchResultCardProps {
   onView: () => void;
 }
 
-export const SearchResultCard: React.FC<SearchResultCardProps> = ({ result, fileName, keyword, onView }) => {
+export const SearchResultCard: React.FC<SearchResultCardProps> = ({
+  result,
+  fileName,
+  keyword,
+  onView,
+}) => {
   // Determine what to highlight: prefer the exact term found by AI, fallback to search keyword
   const termToHighlight = result.matchedTerm || keyword;
 
@@ -20,8 +25,8 @@ export const SearchResultCard: React.FC<SearchResultCardProps> = ({ result, file
     }
 
     // Escape special characters to ensure they are treated as literals in RegExp
-    const escapedHighlight = highlight.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
-    const regex = new RegExp(`(${escapedHighlight})`, 'gi');
+    const escapedHighlight = highlight.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+    const regex = new RegExp(`(${escapedHighlight})`, "gi");
 
     // Split includes the captured groups (the matches)
     const parts = text.split(regex);
@@ -30,12 +35,15 @@ export const SearchResultCard: React.FC<SearchResultCardProps> = ({ result, file
       <span>
         {parts.map((part, i) =>
           part.toLowerCase() === highlight.toLowerCase() ? (
-            <span key={i} className="bg-yellow-500/30 text-yellow-200 border-b border-yellow-500 px-1 rounded-sm font-medium">
+            <span
+              key={i}
+              className="bg-yellow-500/30 text-yellow-200 border-b border-yellow-500 px-1 rounded-sm font-medium"
+            >
               {part}
             </span>
           ) : (
             <span key={i}>{part}</span>
-          )
+          ),
         )}
       </span>
     );
@@ -46,8 +54,13 @@ export const SearchResultCard: React.FC<SearchResultCardProps> = ({ result, file
       <div className="flex justify-between items-start mb-3">
         <div className="flex items-center space-x-2 text-blue-400">
           <FileText size={16} />
-          <span className="text-xs font-semibold uppercase tracking-wider">Doc #{result.docIndex + 1}</span>
-          <span className="text-sm text-slate-300 font-medium truncate max-w-[200px]" title={fileName}>
+          <span className="text-xs font-semibold uppercase tracking-wider">
+            Doc #{result.docIndex + 1}
+          </span>
+          <span
+            className="text-sm text-slate-300 font-medium truncate max-w-[200px]"
+            title={fileName}
+          >
             {fileName}
           </span>
         </div>
@@ -64,7 +77,10 @@ export const SearchResultCard: React.FC<SearchResultCardProps> = ({ result, file
       </div>
 
       <div className="flex items-center justify-between pt-2 border-t border-slate-700/50 mt-auto">
-        <span className="text-xs text-slate-500 italic truncate pr-2" title={result.relevanceExplanation}>
+        <span
+          className="text-xs text-slate-500 italic truncate pr-2"
+          title={result.relevanceExplanation}
+        >
           {result.relevanceExplanation}
         </span>
         <button

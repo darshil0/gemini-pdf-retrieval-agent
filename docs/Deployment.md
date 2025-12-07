@@ -5,6 +5,7 @@ Complete guide for deploying the Gemini PDF Retrieval Agent to production.
 ---
 
 ## Table of Contents
+
 - [Quick Start](#quick-start)
 - [Installation](#installation)
 - [Configuration](#configuration)
@@ -47,12 +48,14 @@ Access at `http://localhost:5173`
 ### System Requirements
 
 **Minimum**:
+
 - Node.js v18.0.0
 - npm v9.0.0
 - 4GB RAM
 - 1GB disk space
 
 **Recommended**:
+
 - Node.js v20.0.0+
 - npm v10.0.0+
 - 8GB RAM
@@ -63,17 +66,20 @@ Access at `http://localhost:5173`
 #### 1. Install Node.js
 
 **macOS** (via Homebrew):
+
 ```bash
 brew install node@20
 ```
 
 **Ubuntu/Debian**:
+
 ```bash
 curl -fsSL https://deb.nodesource.com/setup_20.x | sudo -E bash -
 sudo apt-get install -y nodejs
 ```
 
 **Windows**:
+
 - Download from [nodejs.org](https://nodejs.org/)
 - Run installer
 - Verify: `node --version`
@@ -118,6 +124,7 @@ cp .env.example .env
 ```
 
 Edit `.env`:
+
 ```env
 # Required: Gemini API Key
 VITE_GEMINI_API_KEY=your_api_key_here
@@ -148,6 +155,7 @@ VITE_RATE_LIMIT_WINDOW=60000  # 1 minute
 ### Configuration Files
 
 #### package.json
+
 ```json
 {
   "name": "gemini-pdf-retrieval-agent",
@@ -166,6 +174,7 @@ VITE_RATE_LIMIT_WINDOW=60000  # 1 minute
 ```
 
 #### tsconfig.json
+
 ```json
 {
   "compilerOptions": {
@@ -186,28 +195,29 @@ VITE_RATE_LIMIT_WINDOW=60000  # 1 minute
 ```
 
 #### vite.config.ts
+
 ```typescript
-import { defineConfig } from 'vite';
-import react from '@vitejs/plugin-react';
+import { defineConfig } from "vite";
+import react from "@vitejs/plugin-react";
 
 export default defineConfig({
   plugins: [react()],
   server: {
     port: 5173,
-    host: true
+    host: true,
   },
   build: {
-    outDir: 'dist',
+    outDir: "dist",
     sourcemap: true,
     rollupOptions: {
       output: {
         manualChunks: {
-          'react-vendor': ['react', 'react-dom'],
-          'pdf-vendor': ['react-pdf', 'pdfjs-dist']
-        }
-      }
-    }
-  }
+          "react-vendor": ["react", "react-dom"],
+          "pdf-vendor": ["react-pdf", "pdfjs-dist"],
+        },
+      },
+    },
+  },
 });
 ```
 
@@ -370,11 +380,13 @@ npm test -- --run
 #### 1. Vercel (Recommended)
 
 **Install Vercel CLI**:
+
 ```bash
 npm i -g vercel
 ```
 
 **Deploy**:
+
 ```bash
 # First time
 vercel
@@ -384,6 +396,7 @@ vercel --prod
 ```
 
 **Configure** `vercel.json`:
+
 ```json
 {
   "buildCommand": "npm run build",
@@ -397,11 +410,13 @@ vercel --prod
 #### 2. Netlify
 
 **Install Netlify CLI**:
+
 ```bash
 npm i -g netlify-cli
 ```
 
 **Deploy**:
+
 ```bash
 # Build
 npm run build
@@ -411,6 +426,7 @@ netlify deploy --prod --dir=dist
 ```
 
 **Configure** `netlify.toml`:
+
 ```toml
 [build]
   command = "npm run build"
@@ -425,11 +441,13 @@ netlify deploy --prod --dir=dist
 #### 3. GitHub Pages
 
 **Install gh-pages**:
+
 ```bash
 npm install --save-dev gh-pages
 ```
 
 **Add to package.json**:
+
 ```json
 {
   "scripts": {
@@ -441,6 +459,7 @@ npm install --save-dev gh-pages
 ```
 
 **Deploy**:
+
 ```bash
 npm run deploy
 ```
@@ -448,6 +467,7 @@ npm run deploy
 #### 4. Docker
 
 **Dockerfile**:
+
 ```dockerfile
 # Build stage
 FROM node:20-alpine AS builder
@@ -466,6 +486,7 @@ CMD ["nginx", "-g", "daemon off;"]
 ```
 
 **Build and run**:
+
 ```bash
 # Build image
 docker build -t docusearch .
@@ -490,21 +511,25 @@ aws cloudfront create-invalidation --distribution-id YOUR_ID --paths "/*"
 ### Environment Variables in Production
 
 **Vercel**:
+
 ```bash
 vercel env add VITE_GEMINI_API_KEY production
 ```
 
 **Netlify**:
+
 - Go to Site Settings → Environment Variables
 - Add `VITE_GEMINI_API_KEY`
 
 **GitHub Pages**:
+
 - Add to repository secrets
 - Use in GitHub Actions workflow
 
 ### Security Headers
 
 **Nginx** (`nginx.conf`):
+
 ```nginx
 add_header Content-Security-Policy "default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval'; style-src 'self' 'unsafe-inline';";
 add_header X-Frame-Options "DENY";
@@ -513,6 +538,7 @@ add_header Referrer-Policy "strict-origin-when-cross-origin";
 ```
 
 **Vercel** (`vercel.json`):
+
 ```json
 {
   "headers": [
@@ -540,6 +566,7 @@ add_header Referrer-Policy "strict-origin-when-cross-origin";
 ### Error Tracking
 
 **Sentry Integration**:
+
 ```bash
 npm install @sentry/react
 ```
@@ -558,27 +585,34 @@ Sentry.init({
 ### Analytics
 
 **Google Analytics**:
+
 ```html
 <!-- index.html -->
-<script async src="https://www.googletagmanager.com/gtag/js?id=GA_MEASUREMENT_ID"></script>
+<script
+  async
+  src="https://www.googletagmanager.com/gtag/js?id=GA_MEASUREMENT_ID"
+></script>
 <script>
   window.dataLayer = window.dataLayer || [];
-  function gtag(){dataLayer.push(arguments);}
-  gtag('js', new Date());
-  gtag('config', 'GA_MEASUREMENT_ID');
+  function gtag() {
+    dataLayer.push(arguments);
+  }
+  gtag("js", new Date());
+  gtag("config", "GA_MEASUREMENT_ID");
 </script>
 ```
 
 ### Performance Monitoring
 
 **Web Vitals**:
+
 ```bash
 npm install web-vitals
 ```
 
 ```typescript
 // src/main.tsx
-import { getCLS, getFID, getFCP, getLCP, getTTFB } from 'web-vitals';
+import { getCLS, getFID, getFCP, getLCP, getTTFB } from "web-vitals";
 
 getCLS(console.log);
 getFID(console.log);
@@ -598,6 +632,7 @@ getTTFB(console.log);
 **Problem**: TypeScript errors during build
 
 **Solution**:
+
 ```bash
 # Check for type errors
 npm run type-check
@@ -616,6 +651,7 @@ npm run build
 **Problem**: API key not found in production
 
 **Solution**:
+
 1. Verify variables prefixed with `VITE_`
 2. Check deployment platform settings
 3. Rebuild after changing variables
@@ -626,6 +662,7 @@ npm run build
 **Problem**: Slow initial load
 
 **Solution**:
+
 ```bash
 # Analyze bundle
 npm run build -- --analyze
@@ -640,6 +677,7 @@ const PDFViewer = lazy(() => import('./PDFViewer'));
 **Problem**: API requests blocked by CORS
 
 **Solution**:
+
 1. Verify API key is correct
 2. Check API endpoint URLs
 3. Review CSP headers
@@ -650,13 +688,13 @@ const PDFViewer = lazy(() => import('./PDFViewer'));
 export default defineConfig({
   server: {
     proxy: {
-      '/api': {
-        target: 'https://generativelanguage.googleapis.com',
+      "/api": {
+        target: "https://generativelanguage.googleapis.com",
         changeOrigin: true,
-        rewrite: (path) => path.replace(/^\/api/, '')
-      }
-    }
-  }
+        rewrite: (path) => path.replace(/^\/api/, ""),
+      },
+    },
+  },
 });
 ```
 
@@ -698,6 +736,7 @@ git push
 ## Checklist
 
 ### Pre-Deployment
+
 - [ ] All tests passing
 - [ ] TypeScript compiles without errors
 - [ ] ESLint clean
@@ -710,6 +749,7 @@ git push
 - [ ] Preview tested
 
 ### Deployment
+
 - [ ] Deploy to staging
 - [ ] Run smoke tests on staging
 - [ ] Verify functionality
@@ -720,6 +760,7 @@ git push
 - [ ] Update status page
 
 ### Post-Deployment
+
 - [ ] Monitor for 24 hours
 - [ ] Check analytics
 - [ ] Review error logs
@@ -734,15 +775,18 @@ git push
 ### Getting Help
 
 **Documentation**:
+
 - [README.md](README.md)
 - [TESTING_GUIDE.md](docs/TESTING_GUIDE.md)
 - [SECURITY.md](docs/SECURITY.md)
 
 **Community**:
+
 - [GitHub Issues](https://github.com/darshil0/gemini-pdf-retrieval-agent/issues)
 - [Discussions](https://github.com/darshil0/gemini-pdf-retrieval-agent/discussions)
 
 **Contact**:
+
 - Email: support@example.com
 - Response time: 24-48 hours
 
@@ -778,14 +822,14 @@ npm run deploy           # Deploy to GitHub Pages
 
 ### Environment Variables Reference
 
-| Variable | Required | Default | Description |
-|----------|----------|---------|-------------|
-| `VITE_GEMINI_API_KEY` | Yes | - | Google Gemini API key |
-| `VITE_GEMINI_MODEL` | No | `gemini-2.0-flash-exp` | AI model to use |
-| `VITE_API_TIMEOUT` | No | `30000` | API timeout (ms) |
-| `VITE_MAX_FILE_SIZE` | No | `209715200` | Max file size (bytes) |
-| `VITE_MAX_FILES` | No | `10` | Maximum files allowed |
-| `VITE_ENABLE_DEBUG` | No | `false` | Enable debug logging |
+| Variable              | Required | Default                | Description           |
+| --------------------- | -------- | ---------------------- | --------------------- |
+| `VITE_GEMINI_API_KEY` | Yes      | -                      | Google Gemini API key |
+| `VITE_GEMINI_MODEL`   | No       | `gemini-2.0-flash-exp` | AI model to use       |
+| `VITE_API_TIMEOUT`    | No       | `30000`                | API timeout (ms)      |
+| `VITE_MAX_FILE_SIZE`  | No       | `209715200`            | Max file size (bytes) |
+| `VITE_MAX_FILES`      | No       | `10`                   | Maximum files allowed |
+| `VITE_ENABLE_DEBUG`   | No       | `false`                | Enable debug logging  |
 
 ---
 
