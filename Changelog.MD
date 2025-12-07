@@ -5,59 +5,35 @@ All notable changes to DocuSearch Agent will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
----
-
-## [2.0.0] - 2025-12-06
-
-### Added
-- Created `agent_architecture` directory.
-- Restored `KeywordSearchService` and `SecurityService`.
-
-### Changed
-- Moved `agentPrompts.ts` to `agent_architecture/prompts.ts`.
-- Updated version to `2.0.0`.
-- Re-organized and updated `README.md`.
-
-### Fixed
-- Corrected broken imports in test files.
-- Fixed all failing tests.
-- Refactored oversized test file into smaller, more focused files.
-
----
+## [Unreleased]
 
 ## [1.2.2] - 2025-12-05
 
-### 🎯 Agent Architecture Formalization
-
-#### Added
+### Added
 - **Agent Architecture Documentation** - Formalized system, tool, and protocol definitions in `agent_architecture/` directory
 - **Architecture Validation Tests** - New test suite (`Architecture.test.ts`) to verify compliance with agent patterns
 - **System Definition** - Documented agent name, role, capabilities, and constraints
 - **Tool Definitions** - Formal specifications for `upload_document`, `search_documents`, and `extract_context` tools
 - **Protocol Flow Documentation** - Clear definition of upload, search, and view phases
 
-#### Changed
+### Changed
 - **Service Layer** - Refactored to strictly follow agent architecture patterns
 - **Error Handling** - Enhanced to align with agent protocol specifications
 - **Code Organization** - Improved separation of concerns following agent design principles
 
-#### Documentation
+### Documentation
 - Created comprehensive `ARCHITECTURE.md` with agent patterns
 - Updated README with agent architecture overview
 - Added inline documentation for tool implementations
 
-#### Internal
+### Internal
 - Extracted prompts to dedicated files for maintainability
 - Standardized tool parameter validation
 - Improved protocol flow enforcement
 
----
-
 ## [1.2.1] - 2025-12-05
 
-### 🎨 Code Quality & Accessibility Release
-
-#### Added
+### Added
 - **ESLint Integration** - Comprehensive linting rules for code quality
   - TypeScript-specific rules
   - React best practices
@@ -80,7 +56,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Screen reader compatibility tests
   - WCAG 2.1 Level AA compliance tests
 
-#### Changed
+### Changed
 - **Code Quality**
   - Fixed all TypeScript errors (100% type safe)
   - Resolved all ESLint warnings (0 issues)
@@ -96,7 +72,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Added missing test cases
   - Improved test coverage to 100%
 
-#### Fixed
+### Fixed
 - **Accessibility Issues**
   - Missing ARIA labels on interactive elements
   - Incorrect tab order in complex forms
@@ -114,19 +90,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Missing error boundaries
   - Unhandled promise rejections
 
-#### Internal
+### Internal
 - Configured ESLint with recommended rules
 - Set up TypeScript strict mode
 - Added pre-commit hooks for quality checks
 - Updated CI/CD pipeline with new checks
 
----
-
 ## [1.2.0] - 2025-12-04
 
-### 🔍 Fuzzy Search & Enhanced PDF Viewer
-
-#### Added
+### Added
 - **Fuzzy Search**
   - Implemented Fuse.js integration for fuzzy matching
   - Handles typos and spelling variations
@@ -153,7 +125,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Memoized expensive calculations
   - Optimized re-renders
 
-#### Changed
+### Changed
 - **PDF Rendering Library**
   - Migrated from pdf.js directly to react-pdf
   - Improved browser compatibility
@@ -170,7 +142,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Improved error messages
   - More intuitive controls
 
-#### Fixed
+### Fixed
 - **PDF Viewer Issues**
   - Memory leaks on large files
   - Rendering artifacts
@@ -186,19 +158,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Improved time to interactive
   - Fixed memory leaks in component unmounting
 
-#### Internal
+### Internal
 - Refactored search service architecture
 - Improved type definitions
 - Enhanced test coverage (45 → 51 tests)
 - Updated dependencies
 
----
+## [1.1.0] - 2025-12-04
 
-## [1.1.0] - 2025-11-28
-
-### 📚 Multi-Document Support
-
-#### Added
+### Added
 - **Multi-Document Upload**
   - Support for up to 10 simultaneous documents
   - Batch upload processing
@@ -220,7 +188,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Quick navigation between documents
   - Result count per document
 
-#### Changed
+### Changed
 - **Search Results**
   - Redesigned to show document context
   - Added document badges
@@ -235,7 +203,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Parallel document processing
   - Improved error handling for failed uploads
 
-#### Fixed
+### Fixed
 - **Upload Issues**
   - Race conditions in multi-upload
   - Progress tracking inconsistencies
@@ -245,13 +213,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Missing results from some documents
   - Slow performance with 10+ documents
 
----
+## [1.0.0] - 2025-12-04
 
-## [1.0.0] - 2025-11-15
-
-### 🎉 Initial Release
-
-#### Features
+### Added
 - **PDF Upload**
   - Drag-and-drop interface
   - Click-to-upload support
@@ -278,7 +242,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Loading states
   - Error messages
 
-#### Technical
+### Technical
 - **Framework**: React 18.3 + TypeScript 5.5
 - **Build Tool**: Vite 5.4
 - **Styling**: Tailwind CSS 3.4
@@ -286,7 +250,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **PDF Rendering**: PDF.js 4.0
 - **Testing**: Vitest 2.1 + React Testing Library
 
-#### Documentation
+### Documentation
 - README with quick start
 - Basic API documentation
 - Installation guide
