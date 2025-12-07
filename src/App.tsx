@@ -171,7 +171,7 @@ export default function App() {
               </button>
             )}
             <div className="px-3 py-1 rounded-full bg-slate-800 border border-slate-700 text-xs font-mono text-slate-400">
-              Gemini 2.5 Flash • v2.0.0 (Complete)
+              Gemini 2.5 Flash • v1.2.2
             </div>
           </div>
         </div>

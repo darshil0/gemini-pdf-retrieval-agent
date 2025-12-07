@@ -1,15 +1,16 @@
-# DocuSearch Agent v2.0.0
+# DocuSearch Agent v1.2.2
 
 [![Build Status](https://img.shields.io/badge/build-passing-brightgreen)](https://github.com/darshil0/gemini-pdf-retrieval-agent)
 [![Test Coverage](https://img.shields.io/badge/coverage-100%25-brightgreen)](https://github.com/darshil0/gemini-pdf-retrieval-agent)
 [![Security](https://img.shields.io/badge/security-A+-brightgreen)](https://github.com/darshil0/gemini-pdf-retrieval-agent)
 [![License](https://img.shields.io/badge/license-MIT-blue)](LICENSE)
 
-**Enterprise-grade PDF document retrieval with Google Gemini**
+**Enterprise-grade PDF document retrieval with Google Gemini 2.5**
 
 ## 📋 Table of Contents
 
 - [Features](#-features)
+- [Agent Architecture](#-agent-architecture)
 - [Installation](#-installation)
 - [Usage](#-usage)
 - [API Reference](#-api-reference)
@@ -29,9 +30,12 @@
 - **Drag & Drop** - Intuitive file upload interface.
 
 ### 🔍 Advanced Search
-- **Exact Keyword Matching** - Find exact text matches across all documents.
-- **Case Sensitivity** - Toggle case-sensitive search.
-- **Whole Word Matching** - Option to match complete words only.
+- **Natural Language Search** - AI-powered query understanding.
+- **Fuzzy Matching** - Handles typos and spelling variations.
+- **Synonym Recognition** - Recognizes synonyms and semantic matches.
+- **Page-level Citations** - Direct links to the page where the information was found.
+- **Context Snippets** - Relevant snippets of text around the keyword.
+- **Relevance Ranking** - Results are ranked by relevance.
 
 ### 🛡️ Security Features
 - **Input Sanitization** - XSS prevention for all user inputs.
@@ -42,6 +46,19 @@
 - **100% Test Coverage** - All components and services are tested.
 - **Integration Tests** - End-to-end workflow validation.
 - **Security Tests** - Validation and sanitization testing.
+- **Architecture Validation** - Tests to ensure compliance with agent patterns.
+
+---
+
+## 🤖 Agent Architecture
+
+This project implements a 3-step agent architecture:
+
+1.  **System Prompt (Persona):** Defines the agent's persona as an expert Document Retrieval and Analysis Agent.
+2.  **Tool Prompts (Instructions):** Provides specific instructions for the search tool, including requirements for scanning documents and returning structured JSON.
+3.  **Protocols (Constraints & Logic):** Enforces constraints on the agent's behavior, such as fuzzy matching, synonym recognition, and a strict output format.
+
+This architecture ensures that the agent's behavior is consistent, predictable, and robust.
 
 ---
 
@@ -119,8 +136,7 @@ npm run preview    # Preview production
    - Or click to browse and select files.
 
 2. **Search**
-   - Enter the exact text you want to find.
-   - Toggle case-sensitive and whole-word matching as needed.
+   - Enter a natural language query about the documents.
 
 ---
 
@@ -136,37 +152,11 @@ interface FileUploadProps {
 }
 ```
 
-### KeywordSearchService
+### geminiService
 
 ```typescript
-// Search for exact keywords
-const matches = KeywordSearchService.searchKeyword(
-  'keyword',
-  documents,
-  {
-    caseSensitive: false,
-    wholeWord: false,
-  }
-);
-
-// Get statistics
-const stats = KeywordSearchService.getMatchStatistics(matches);
-```
-
-### SecurityService
-
-```typescript
-// Validate file
-const isValid = await SecurityService.validateFileType(file);
-
-// Sanitize input
-const clean = SecurityService.sanitizeInput(userInput);
-
-// Validate search query
-const result = SecurityService.validateSearchQuery(query);
-
-// Check rate limit
-const allowed = SecurityService.checkRateLimit('user-id', 10, 60000);
+// Search for a keyword in a set of documents
+async function searchInDocuments(files: File[], keyword: string): Promise<SearchResponse>
 ```
 
 ---
