@@ -3,6 +3,7 @@
 Complete testing documentation for DocuSearch Agent v2.0.0
 
 ## Table of Contents
+
 - [Overview](#overview)
 - [Test Structure](#test-structure)
 - [Running Tests](#running-tests)
@@ -23,6 +24,7 @@ DocuSearch Agent maintains 100% test coverage across all critical components:
 - **Accessibility Tests**: WCAG 2.1 compliance
 
 ### Test Stats
+
 ```
 Total Tests: 58
 Passing: 58 (100%)
@@ -118,59 +120,62 @@ npm test -- --inspect-brk
 Test individual components and functions in isolation.
 
 #### FileUpload Component
+
 ```typescript
-describe('FileUpload Component', () => {
-  it('enforces 10-file limit', async () => {
+describe("FileUpload Component", () => {
+  it("enforces 10-file limit", async () => {
     // Test that exactly 10 files are allowed
   });
 
-  it('validates file types', async () => {
+  it("validates file types", async () => {
     // Test PDF validation
   });
 
-  it('validates file sizes', async () => {
+  it("validates file sizes", async () => {
     // Test 200MB limit
   });
 
-  it('prevents duplicates', async () => {
+  it("prevents duplicates", async () => {
     // Test duplicate detection
   });
 });
 ```
 
 #### KeywordSearch Service
+
 ```typescript
-describe('KeywordSearchService', () => {
-  it('finds exact matches', () => {
+describe("KeywordSearchService", () => {
+  it("finds exact matches", () => {
     // Test exact keyword matching
   });
 
-  it('tracks location accurately', () => {
+  it("tracks location accurately", () => {
     // Test page/line/column tracking
   });
 
-  it('provides context', () => {
+  it("provides context", () => {
     // Test surrounding text extraction
   });
 
-  it('handles case sensitivity', () => {
+  it("handles case sensitivity", () => {
     // Test case options
   });
 });
 ```
 
 #### Security Service
+
 ```typescript
-describe('SecurityService', () => {
-  it('sanitizes input', () => {
+describe("SecurityService", () => {
+  it("sanitizes input", () => {
     // Test XSS prevention
   });
 
-  it('validates files', async () => {
+  it("validates files", async () => {
     // Test file validation
   });
 
-  it('enforces rate limits', () => {
+  it("enforces rate limits", () => {
     // Test rate limiting
   });
 });
@@ -181,8 +186,8 @@ describe('SecurityService', () => {
 Test complete workflows and component interactions.
 
 ```typescript
-describe('Upload Workflow', () => {
-  it('completes full upload process', async () => {
+describe("Upload Workflow", () => {
+  it("completes full upload process", async () => {
     // 1. Select files
     // 2. Validate files
     // 3. Upload files
@@ -191,8 +196,8 @@ describe('Upload Workflow', () => {
   });
 });
 
-describe('Search Workflow', () => {
-  it('executes search and displays results', async () => {
+describe("Search Workflow", () => {
+  it("executes search and displays results", async () => {
     // 1. Upload documents
     // 2. Enter search query
     // 3. Execute search
@@ -207,26 +212,26 @@ describe('Search Workflow', () => {
 Test security measures and vulnerability prevention.
 
 ```typescript
-describe('XSS Prevention', () => {
-  it('sanitizes script tags', () => {
+describe("XSS Prevention", () => {
+  it("sanitizes script tags", () => {
     const input = '<script>alert("xss")</script>';
     const clean = SecurityService.sanitizeInput(input);
-    expect(clean).not.toContain('<script>');
+    expect(clean).not.toContain("<script>");
   });
 
-  it('escapes HTML entities', () => {
-    const input = '<img src=x onerror=alert(1)>';
+  it("escapes HTML entities", () => {
+    const input = "<img src=x onerror=alert(1)>";
     const clean = SecurityService.sanitizeInput(input);
-    expect(clean).not.toContain('onerror');
+    expect(clean).not.toContain("onerror");
   });
 });
 
-describe('File Validation', () => {
-  it('checks magic numbers', async () => {
+describe("File Validation", () => {
+  it("checks magic numbers", async () => {
     // Verify actual file content, not just extension
   });
 
-  it('rejects malicious files', async () => {
+  it("rejects malicious files", async () => {
     // Test various malicious file types
   });
 });
@@ -237,28 +242,28 @@ describe('File Validation', () => {
 Test WCAG 2.1 Level AA compliance.
 
 ```typescript
-describe('Keyboard Navigation', () => {
-  it('allows full keyboard navigation', () => {
+describe("Keyboard Navigation", () => {
+  it("allows full keyboard navigation", () => {
     // Test tab order
     // Test Enter/Space activation
     // Test Escape to close
   });
 });
 
-describe('Screen Reader', () => {
-  it('has proper ARIA labels', () => {
+describe("Screen Reader", () => {
+  it("has proper ARIA labels", () => {
     // Test aria-label attributes
     // Test aria-describedby
     // Test role attributes
   });
 });
 
-describe('WCAG Compliance', () => {
-  it('meets color contrast requirements', () => {
+describe("WCAG Compliance", () => {
+  it("meets color contrast requirements", () => {
     // Test contrast ratios
   });
 
-  it('has descriptive link text', () => {
+  it("has descriptive link text", () => {
     // Test link descriptions
   });
 });
@@ -300,10 +305,10 @@ describe('ComponentName', () => {
 
   it('should handle user interaction', async () => {
     render(<ComponentName {...mockProps} />);
-    
+
     const button = screen.getByRole('button');
     fireEvent.click(button);
-    
+
     await waitFor(() => {
       expect(mockProps.prop2).toHaveBeenCalled();
     });
@@ -318,34 +323,37 @@ describe('ComponentName', () => {
 ### Best Practices
 
 1. **Test Behavior, Not Implementation**
+
 ```typescript
 // ❌ Bad - Testing implementation details
 expect(component.state.count).toBe(5);
 
 // ✅ Good - Testing behavior
-expect(screen.getByText('Count: 5')).toBeInTheDocument();
+expect(screen.getByText("Count: 5")).toBeInTheDocument();
 ```
 
 2. **Use Descriptive Test Names**
+
 ```typescript
 // ❌ Bad
-it('test 1', () => {});
+it("test 1", () => {});
 
 // ✅ Good
-it('enforces 10-file limit and shows error message', () => {});
+it("enforces 10-file limit and shows error message", () => {});
 ```
 
 3. **Arrange, Act, Assert Pattern**
+
 ```typescript
 it('handles file upload', async () => {
   // Arrange
   const file = createMockFile();
   render(<FileUpload {...props} />);
-  
+
   // Act
   const input = screen.getByLabelText('Upload');
   fireEvent.change(input, { target: { files: [file] } });
-  
+
   // Assert
   await waitFor(() => {
     expect(screen.getByText(file.name)).toBeInTheDocument();
@@ -354,21 +362,23 @@ it('handles file upload', async () => {
 ```
 
 4. **Test Edge Cases**
+
 ```typescript
-describe('Edge Cases', () => {
-  it('handles empty input', () => {});
-  it('handles extremely large files', () => {});
-  it('handles special characters', () => {});
-  it('handles concurrent operations', () => {});
+describe("Edge Cases", () => {
+  it("handles empty input", () => {});
+  it("handles extremely large files", () => {});
+  it("handles special characters", () => {});
+  it("handles concurrent operations", () => {});
 });
 ```
 
 5. **Mock External Dependencies**
+
 ```typescript
-vi.mock('../services/geminiService', () => ({
+vi.mock("../services/geminiService", () => ({
   GeminiService: {
-    search: vi.fn().mockResolvedValue([])
-  }
+    search: vi.fn().mockResolvedValue([]),
+  },
 }));
 ```
 
@@ -392,20 +402,21 @@ npm run test:coverage -- --reporter=text
 ### Coverage Thresholds
 
 Configured in `vitest.config.ts`:
+
 ```typescript
 export default defineConfig({
   test: {
     coverage: {
-      provider: 'v8',
-      reporter: ['text', 'html', 'lcov'],
+      provider: "v8",
+      reporter: ["text", "html", "lcov"],
       thresholds: {
         lines: 90,
         functions: 90,
         branches: 90,
-        statements: 90
-      }
-    }
-  }
+        statements: 90,
+      },
+    },
+  },
 });
 ```
 
@@ -438,27 +449,27 @@ on: [push, pull_request]
 jobs:
   test:
     runs-on: ubuntu-latest
-    
+
     steps:
       - uses: actions/checkout@v3
-      
+
       - name: Setup Node
         uses: actions/setup-node@v3
         with:
-          node-version: '18'
-      
+          node-version: "18"
+
       - name: Install dependencies
         run: npm ci
-      
+
       - name: Run linter
         run: npm run lint
-      
+
       - name: Type check
         run: npm run type-check
-      
+
       - name: Run tests
         run: npm test -- --coverage --ci
-      
+
       - name: Upload coverage
         uses: codecov/codecov-action@v3
         with:
@@ -468,6 +479,7 @@ jobs:
 ### Pre-commit Hooks
 
 Configure in `.husky/pre-commit`:
+
 ```bash
 #!/bin/sh
 . "$(dirname "$0")/_/husky.sh"
@@ -484,6 +496,7 @@ npm test -- --run
 ### Scenario 1: File Upload Limit
 
 **Test**: Upload exactly 10 files
+
 ```typescript
 ✅ System accepts all 10 files
 ✅ Counter shows "10/10"
@@ -492,6 +505,7 @@ npm test -- --run
 ```
 
 **Test**: Attempt 11th file
+
 ```typescript
 ✅ Upload rejected
 ✅ Error: "Cannot upload more than 10 files"
@@ -502,6 +516,7 @@ npm test -- --run
 ### Scenario 2: Keyword Search
 
 **Test**: Search for "revenue" in financial report
+
 ```typescript
 ✅ Finds 15 exact matches
 ✅ Shows page numbers: 1, 5, 7, 12, 14
@@ -511,6 +526,7 @@ npm test -- --run
 ```
 
 **Test**: Navigate between matches
+
 ```typescript
 ✅ "Next" button advances to next match
 ✅ "Previous" button goes to previous match
@@ -521,6 +537,7 @@ npm test -- --run
 ### Scenario 3: Security Validation
 
 **Test**: XSS attempt in search
+
 ```typescript
 Input: <script>alert('xss')</script>
 ✅ Input sanitized
@@ -530,6 +547,7 @@ Input: <script>alert('xss')</script>
 ```
 
 **Test**: File validation bypass attempt
+
 ```typescript
 File: malicious.pdf (actually .exe)
 ✅ Magic number check fails
@@ -545,22 +563,28 @@ File: malicious.pdf (actually .exe)
 ### Common Issues
 
 **Issue**: Tests timeout
+
 ```typescript
 // Increase timeout
-it('slow test', async () => {
+it("slow test", async () => {
   // ...
 }, 10000); // 10 second timeout
 ```
 
 **Issue**: Flaky tests
+
 ```typescript
 // Use waitFor for async operations
-await waitFor(() => {
-  expect(element).toBeInTheDocument();
-}, { timeout: 5000 });
+await waitFor(
+  () => {
+    expect(element).toBeInTheDocument();
+  },
+  { timeout: 5000 },
+);
 ```
 
 **Issue**: Mock not working
+
 ```typescript
 // Reset mocks between tests
 beforeEach(() => {
@@ -569,6 +593,7 @@ beforeEach(() => {
 ```
 
 **Issue**: Coverage not updating
+
 ```bash
 # Clear coverage cache
 rm -rf coverage/
@@ -582,19 +607,19 @@ npm run test:coverage
 ### Load Testing
 
 ```typescript
-describe('Performance', () => {
-  it('handles 10 large PDFs efficiently', async () => {
+describe("Performance", () => {
+  it("handles 10 large PDFs efficiently", async () => {
     const startTime = performance.now();
-    
+
     // Upload and process 10 PDFs
-    
+
     const endTime = performance.now();
     const duration = endTime - startTime;
-    
+
     expect(duration).toBeLessThan(30000); // 30 seconds
   });
 
-  it('searches large documents quickly', async () => {
+  it("searches large documents quickly", async () => {
     // Test search performance
     expect(searchTime).toBeLessThan(5000); // 5 seconds
   });

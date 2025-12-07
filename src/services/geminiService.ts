@@ -1,104 +1,85 @@
-import { GoogleGenAI, Type } from "@google/genai";
-import { SearchResponse } from "../types";
-import { buildSearchPrompt } from "../../agent_architecture/prompts";
+import { GoogleGenerativeAI, GenerationConfig } from "@google/genai";
+import { SearchResponse } from '../types';
+import { buildSearchPrompt } from '../../agent_architecture/prompts';
 
-// Helper to convert File to Base64
-const fileToGenerativePart = async (file: File) => {
-  const base64EncodedDataPromise = new Promise<string>((resolve) => {
-    const reader = new FileReader();
-    reader.onloadend = () => {
-      if (typeof reader.result === 'string') {
-        resolve(reader.result.split(',')[1]);
-      }
-    };
-    reader.readAsDataURL(file);
-  });
+const API_KEY = import.meta.env.VITE_API_KEY;
 
-  return {
-    inlineData: {
-      data: await base64EncodedDataPromise,
-      mimeType: file.type || 'application/pdf',
-    },
-  };
+if (!API_KEY) {
+  throw new Error("VITE_API_KEY is not defined in the environment.");
+}
+
+const genAI = new GoogleGenerativeAI(API_KEY);
+
+const generationConfig: GenerationConfig = {
+    responseMimeType: "application/json",
 };
 
-export const searchInDocuments = async (
-  files: File[],
-  keyword: string
-): Promise<SearchResponse> => {
-  if (!import.meta.env.VITE_API_KEY) {
-    throw new Error("API Key is missing. Please check your environment configuration.");
-  }
-
-  const ai = new GoogleGenAI({ apiKey: import.meta.env.VITE_API_KEY });
-
-  // Prepare file parts
-  const fileParts = await Promise.all(files.map(fileToGenerativePart));
-
-  // Construct the prompt using the formalized agent architecture
-  const prompt = buildSearchPrompt(files.length, keyword);
-
-  // Define schema for structured output
-  const responseSchema = {
-    type: Type.OBJECT,
-    properties: {
-      results: {
-        type: Type.ARRAY,
-        items: {
-          type: Type.OBJECT,
-          properties: {
-            docIndex: { type: Type.INTEGER, description: "Index of the document in the provided list" },
-            pageNumber: { type: Type.INTEGER, description: "The page number where the match was found" },
-            contextSnippet: { type: Type.STRING, description: "The text context surrounding the keyword" },
-            matchedTerm: { type: Type.STRING, description: "The exact substring found in the document corresponding to the match" },
-            relevanceExplanation: { type: Type.STRING, description: "Why this match was included" }
-          },
-          required: ["docIndex", "pageNumber", "contextSnippet", "matchedTerm", "relevanceExplanation"]
-        }
-      },
-      summary: {
-        type: Type.STRING,
-        description: "A summary of the search findings across all documents."
-      }
-    },
-    required: ["results", "summary"]
-  };
-
-  try {
-    const response = await ai.models.generateContent({
-      model: 'gemini-2.5-flash',
-      contents: {
-        role: 'user',
-        parts: [...fileParts, { text: prompt }]
-      },
-      config: {
-        responseMimeType: "application/json",
-        responseSchema: responseSchema,
-        temperature: 0.2, // Low temperature for factual retrieval
-      }
+async function fileToGenerativePart(file: File) {
+    const base64EncodedData = await new Promise<string>((resolve, reject) => {
+        const reader = new FileReader();
+        reader.onloadend = () => {
+            if (typeof reader.result === 'string') {
+                resolve(reader.result.split(',')[1]);
+            } else {
+                reject(new Error("Failed to read file as base64 string."));
+            }
+        };
+        reader.onerror = (error) => reject(error);
+        reader.readAsDataURL(file);
     });
 
-    let text = response.text;
-    if (!text) throw new Error("No response from Gemini");
+    return {
+        inlineData: {
+            data: base64EncodedData,
+            mimeType: file.type,
+        },
+    };
+}
 
-    // Robust JSON extraction
-    const codeBlockMatch = text.match(/```(?:json)?\s*([\s\S]*?)\s*```/);
-    if (codeBlockMatch) {
-      text = codeBlockMatch[1];
-    } else {
-      const firstBrace = text.indexOf('{');
-      const lastBrace = text.lastIndexOf('}');
-      if (firstBrace !== -1 && lastBrace !== -1) {
-        text = text.substring(firstBrace, lastBrace + 1);
-      }
+export async function searchInDocuments(files: File[], keyword: string): Promise<SearchResponse> {
+    const model = genAI.getGenerativeModel({
+        model: "gemini-1.5-flash",
+    });
+
+    const fileParts = await Promise.all(files.map(fileToGenerativePart));
+    const prompt = buildSearchPrompt(files.length, keyword);
+
+    try {
+        const result = await model.generateContent({
+            contents: [{ role: "user", parts: [...fileParts, { text: prompt }] }],
+            generationConfig: {
+                responseMimeType: "application/json",
+                responseSchema: {
+                    type: "object",
+                    properties: {
+                        summary: { type: "string" },
+                        results: {
+                            type: "array",
+                            items: {
+                                type: "object",
+                                properties: {
+                                    docIndex: { type: "number" },
+                                    pageNumber: { type: "number" },
+                                    contextSnippet: { type: "string" },
+                                    matchedTerm: { type: "string" },
+                                    relevanceExplanation: { type: "string" },
+                                },
+                                required: ["docIndex", "pageNumber", "contextSnippet", "matchedTerm", "relevanceExplanation"],
+                            },
+                        },
+                    },
+                    required: ["summary", "results"],
+                }
+            },
+        });
+
+        const parsedResponse = JSON.parse(result.response.text());
+        return parsedResponse;
+    } catch (error) {
+        console.error("Error during Gemini API call or parsing:", error);
+        if (error instanceof SyntaxError) {
+            throw new Error("Failed to parse the response from the AI. The response was not valid JSON.");
+        }
+        throw new Error("An error occurred while communicating with the Gemini API.");
     }
-
-    return JSON.parse(text) as SearchResponse;
-
-  } catch (error) {
-    if (error instanceof Error) {
-      throw new Error(`Gemini API Error: ${error.message}`);
-    }
-    throw new Error("An unexpected error occurred while searching documents");
-  }
-};
+}

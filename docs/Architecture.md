@@ -102,12 +102,14 @@ components/
 #### Component Responsibilities
 
 **SearchBox**
+
 - Input validation (min 3 characters)
 - Query submission
 - Character count display
 - Keyboard shortcuts (Enter)
 
 **FileUpload**
+
 - Drag-and-drop zone
 - Click-to-upload
 - File validation
@@ -115,6 +117,7 @@ components/
 - Error display
 
 **SearchResults**
+
 - Results list rendering
 - Pagination
 - Result item interaction
@@ -122,6 +125,7 @@ components/
 - Loading state
 
 **PDFViewer**
+
 - PDF document rendering
 - Page navigation
 - Zoom controls
@@ -157,28 +161,28 @@ class GeminiService {
   private apiKey: string;
   private model: string;
   private cache: Map<string, CachedResult>;
-  
+
   constructor(apiKey: string) {
     this.apiKey = apiKey;
-    this.model = 'gemini-2.5-flash';
+    this.model = "gemini-2.5-flash";
     this.cache = new Map();
   }
-  
+
   // Upload and process PDF
   async uploadDocument(file: File): Promise<Document> {
     // 1. Validate file
     this.validateFile(file);
-    
+
     // 2. Extract text using PDF.js
     const text = await this.extractText(file);
-    
+
     // 3. Send to Gemini for processing
     const processedDoc = await this.processWithAI(text);
-    
+
     // 4. Create document metadata
     return this.createDocument(file, processedDoc);
   }
-  
+
   // Execute natural language search
   async search(query: string, documents: Document[]): Promise<SearchResult[]> {
     // 1. Check cache
@@ -186,45 +190,48 @@ class GeminiService {
     if (this.cache.has(cacheKey)) {
       return this.cache.get(cacheKey);
     }
-    
+
     // 2. Build AI prompt
     const prompt = this.buildSearchPrompt(query, documents);
-    
+
     // 3. Send to Gemini API
     const response = await this.callGeminiAPI(prompt);
-    
+
     // 4. Parse and rank results
     const results = this.parseResults(response);
-    
+
     // 5. Cache results
     this.cache.set(cacheKey, results);
-    
+
     return results;
   }
-  
+
   // Private methods
   private async callGeminiAPI(prompt: string): Promise<GeminiResponse> {
-    const response = await fetch('https://generativelanguage.googleapis.com/v1/models/gemini-2.5-flash:generateContent', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'x-goog-api-key': this.apiKey,
+    const response = await fetch(
+      "https://generativelanguage.googleapis.com/v1/models/gemini-2.5-flash:generateContent",
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "x-goog-api-key": this.apiKey,
+        },
+        body: JSON.stringify({
+          contents: [{ parts: [{ text: prompt }] }],
+          generationConfig: {
+            temperature: 0.3,
+            topP: 0.8,
+            topK: 40,
+            maxOutputTokens: 2048,
+          },
+        }),
       },
-      body: JSON.stringify({
-        contents: [{ parts: [{ text: prompt }] }],
-        generationConfig: {
-          temperature: 0.3,
-          topP: 0.8,
-          topK: 40,
-          maxOutputTokens: 2048,
-        }
-      })
-    });
-    
+    );
+
     if (!response.ok) {
       throw new APIError(`API request failed: ${response.statusText}`);
     }
-    
+
     return response.json();
   }
 }
@@ -237,46 +244,46 @@ Handles document management and metadata.
 ```typescript
 class DocumentService {
   private documents: Map<string, Document> = new Map();
-  
+
   // Add document
   add(document: Document): void {
     this.documents.set(document.id, document);
-    this.notifyListeners('document:added', document);
+    this.notifyListeners("document:added", document);
   }
-  
+
   // Remove document
   remove(id: string): void {
     this.documents.delete(id);
-    this.notifyListeners('document:removed', id);
+    this.notifyListeners("document:removed", id);
   }
-  
+
   // Get all documents
   getAll(): Document[] {
     return Array.from(this.documents.values());
   }
-  
+
   // Validate file before processing
   validateFile(file: File): ValidationResult {
     const errors: string[] = [];
-    
+
     // Check type
-    if (file.type !== 'application/pdf') {
-      errors.push('File must be a PDF');
+    if (file.type !== "application/pdf") {
+      errors.push("File must be a PDF");
     }
-    
+
     // Check size
     if (file.size > 200 * 1024 * 1024) {
-      errors.push('File must be under 200MB');
+      errors.push("File must be under 200MB");
     }
-    
+
     // Check if not corrupted
     if (file.size === 0) {
-      errors.push('File appears to be empty');
+      errors.push("File appears to be empty");
     }
-    
+
     return {
       valid: errors.length === 0,
-      errors
+      errors,
     };
   }
 }
@@ -289,28 +296,28 @@ Implements fuzzy and semantic search.
 ```typescript
 class SearchService {
   private fuse: Fuse<Document>;
-  
+
   // Fuzzy search using Fuse.js
   fuzzySearch(query: string, documents: Document[]): FuzzyResult[] {
     const fuse = new Fuse(documents, {
-      keys: ['content', 'metadata.title'],
+      keys: ["content", "metadata.title"],
       threshold: 0.3, // 0 = exact, 1 = match anything
       distance: 100,
       ignoreLocation: true,
       findAllMatches: true,
     });
-    
+
     return fuse.search(query);
   }
-  
+
   // Highlight matching terms
   highlightText(text: string, terms: string[]): HighlightedText {
     const highlights: Highlight[] = [];
-    
-    terms.forEach(term => {
-      const regex = new RegExp(term, 'gi');
+
+    terms.forEach((term) => {
+      const regex = new RegExp(term, "gi");
       let match;
-      
+
       while ((match = regex.exec(text)) !== null) {
         highlights.push({
           start: match.index,
@@ -319,7 +326,7 @@ class SearchService {
         });
       }
     });
-    
+
     return {
       text,
       highlights: this.mergeOverlappingHighlights(highlights),
@@ -339,17 +346,17 @@ interface AppState {
   // Documents
   documents: Document[];
   uploadProgress: Map<string, number>;
-  
+
   // Search
   query: string;
   searchResults: SearchResult[];
   isSearching: boolean;
-  
+
   // UI
   selectedDocument: Document | null;
   viewerPage: number;
   viewerZoom: number;
-  
+
   // Actions
   addDocument: (doc: Document) => void;
   removeDocument: (id: string) => void;
@@ -362,24 +369,26 @@ const useStore = create<AppState>((set, get) => ({
   // Initial state
   documents: [],
   uploadProgress: new Map(),
-  query: '',
+  query: "",
   searchResults: [],
   isSearching: false,
   selectedDocument: null,
   viewerPage: 1,
   viewerZoom: 1.0,
-  
+
   // Actions
-  addDocument: (doc) => set((state) => ({
-    documents: [...state.documents, doc]
-  })),
-  
-  removeDocument: (id) => set((state) => ({
-    documents: state.documents.filter(d => d.id !== id)
-  })),
-  
+  addDocument: (doc) =>
+    set((state) => ({
+      documents: [...state.documents, doc],
+    })),
+
+  removeDocument: (id) =>
+    set((state) => ({
+      documents: state.documents.filter((d) => d.id !== id),
+    })),
+
   setQuery: (query) => set({ query }),
-  
+
   search: async (query) => {
     set({ isSearching: true, query });
     try {
@@ -391,11 +400,12 @@ const useStore = create<AppState>((set, get) => ({
       throw error;
     }
   },
-  
-  selectDocument: (doc) => set({ 
-    selectedDocument: doc,
-    viewerPage: 1,
-  }),
+
+  selectDocument: (doc) =>
+    set({
+      selectedDocument: doc,
+      viewerPage: 1,
+    }),
 }));
 ```
 
@@ -406,6 +416,7 @@ User Action → Component → Store Action → Service → API → Store Update 
 ```
 
 Example flow:
+
 1. User clicks "Search" button
 2. SearchBox calls `store.search(query)`
 3. Store sets `isSearching: true`
@@ -425,23 +436,23 @@ DocuSearch implements a formal agent architecture with defined systems, tools, a
 
 ```typescript
 const AGENT_SYSTEM = {
-  name: 'DocuSearch Agent',
-  version: '1.2.2',
-  role: 'Multi-document PDF retrieval specialist',
-  
+  name: "DocuSearch Agent",
+  version: "1.2.2",
+  role: "Multi-document PDF retrieval specialist",
+
   capabilities: [
-    'Natural language document search',
-    'Fuzzy matching with typo tolerance',
-    'Semantic understanding of queries',
-    'Multi-document search and ranking',
-    'Exact page-level citations',
+    "Natural language document search",
+    "Fuzzy matching with typo tolerance",
+    "Semantic understanding of queries",
+    "Multi-document search and ranking",
+    "Exact page-level citations",
   ],
-  
+
   constraints: [
-    'PDF files only (max 200MB)',
-    'Text-layer required (no OCR)',
-    'Maximum 10 documents simultaneously',
-    'English language optimized',
+    "PDF files only (max 200MB)",
+    "Text-layer required (no OCR)",
+    "Maximum 10 documents simultaneously",
+    "English language optimized",
   ],
 };
 ```
@@ -451,67 +462,67 @@ const AGENT_SYSTEM = {
 ```typescript
 const AGENT_TOOLS = {
   upload_document: {
-    name: 'upload_document',
-    description: 'Process and index a PDF document for search',
+    name: "upload_document",
+    description: "Process and index a PDF document for search",
     parameters: {
       file: {
-        type: 'File',
-        description: 'PDF file to process',
+        type: "File",
+        description: "PDF file to process",
         required: true,
-      }
+      },
     },
     returns: {
-      type: 'Document',
-      description: 'Processed document with metadata and index',
-    }
+      type: "Document",
+      description: "Processed document with metadata and index",
+    },
   },
-  
+
   search_documents: {
-    name: 'search_documents',
-    description: 'Search documents using natural language query',
+    name: "search_documents",
+    description: "Search documents using natural language query",
     parameters: {
       query: {
-        type: 'string',
-        description: 'Natural language search query',
+        type: "string",
+        description: "Natural language search query",
         required: true,
         minLength: 3,
       },
       documents: {
-        type: 'Document[]',
-        description: 'Documents to search',
+        type: "Document[]",
+        description: "Documents to search",
         required: true,
-      }
+      },
     },
     returns: {
-      type: 'SearchResult[]',
-      description: 'Ranked search results with page citations',
-    }
+      type: "SearchResult[]",
+      description: "Ranked search results with page citations",
+    },
   },
-  
+
   extract_context: {
-    name: 'extract_context',
-    description: 'Get surrounding context for a search result',
+    name: "extract_context",
+    description: "Get surrounding context for a search result",
     parameters: {
       document: {
-        type: 'Document',
-        description: 'Source document',
+        type: "Document",
+        description: "Source document",
         required: true,
       },
       page: {
-        type: 'number',
-        description: 'Page number',
+        type: "number",
+        description: "Page number",
         required: true,
       },
       range: {
-        type: 'number',
-        description: 'Number of surrounding sentences',
+        type: "number",
+        description: "Number of surrounding sentences",
         default: 3,
-      }
+      },
     },
     returns: {
-      type: 'string',
-      description: 'Contextual text snippet',
-    }
+      type: "string",
+      description: "Contextual text snippet",
+    },
   },
 };
 ```
@@ -523,11 +534,11 @@ const AGENT_TOOLS = {
    User → Tool(upload_document) → AI Processing → Document Index → Success
 
 2. SEARCH PHASE
-   User → Tool(search_documents) → AI Query Analysis → 
+   User → Tool(search_documents) → AI Query Analysis →
    → Semantic Matching → Result Ranking → Formatted Results
 
 3. VIEW PHASE
-   User → Tool(extract_context) → Context Retrieval → 
+   User → Tool(extract_context) → Context Retrieval →
    → PDF Rendering → Highlighted Display
 ```
 
@@ -541,23 +552,23 @@ class AgentCompliantGeminiService {
     if (!AGENT_TOOLS[toolName]) {
       throw new Error(`Unknown tool: ${toolName}`);
     }
-    
+
     // Validate parameters
     this.validateParams(AGENT_TOOLS[toolName].parameters, params);
-    
+
     // Execute tool
     switch (toolName) {
-      case 'upload_document':
+      case "upload_document":
         return this.uploadDocument(params.file);
-      case 'search_documents':
+      case "search_documents":
         return this.search(params.query, params.documents);
-      case 'extract_context':
+      case "extract_context":
         return this.extractContext(params.document, params.page, params.range);
       default:
         throw new Error(`Tool not implemented: ${toolName}`);
     }
   }
-  
+
   private validateParams(schema: any, params: any): void {
     // Parameter validation logic
   }
@@ -575,7 +586,7 @@ class AgentCompliantGeminiService {
 const apiKey = import.meta.env.VITE_GEMINI_API_KEY;
 
 // ❌ Wrong: Hardcoded
-const apiKey = 'AIzaSyB...'; // Never do this!
+const apiKey = "AIzaSyB..."; // Never do this!
 ```
 
 ### Input Validation
@@ -585,30 +596,32 @@ class InputValidator {
   static sanitizeQuery(query: string): string {
     // Remove potential injection attempts
     return query
-      .replace(/<script>/gi, '')
-      .replace(/javascript:/gi, '')
+      .replace(/<script>/gi, "")
+      .replace(/javascript:/gi, "")
       .trim();
   }
-  
+
   static validateFileType(file: File): boolean {
     // Check MIME type
-    if (file.type !== 'application/pdf') {
+    if (file.type !== "application/pdf") {
       return false;
     }
-    
+
     // Check magic bytes (PDF header)
     return this.checkMagicBytes(file);
   }
-  
+
   private static async checkMagicBytes(file: File): Promise<boolean> {
     const buffer = await file.slice(0, 4).arrayBuffer();
     const bytes = new Uint8Array(buffer);
-    
+
     // PDF files start with %PDF
-    return bytes[0] === 0x25 && 
-           bytes[1] === 0x50 && 
-           bytes[2] === 0x44 && 
-           bytes[3] === 0x46;
+    return (
+      bytes[0] === 0x25 &&
+      bytes[1] === 0x50 &&
+      bytes[2] === 0x44 &&
+      bytes[3] === 0x46
+    );
   }
 }
 ```
@@ -623,7 +636,7 @@ import DOMPurify from 'dompurify';
 
 function DisplayResult({ result }: { result: SearchResult }) {
   const safeHTML = DOMPurify.sanitize(result.snippet);
-  
+
   return (
     <div dangerouslySetInnerHTML={{ __html: safeHTML }} />
   );
@@ -722,10 +735,11 @@ const MemoizedResultItem = memo(ResultItem, (prev, next) => {
 ```typescript
 // Debounce search input
 const debouncedSearch = useMemo(
-  () => debounce((query: string) => {
-    store.search(query);
-  }, 300),
-  []
+  () =>
+    debounce((query: string) => {
+      store.search(query);
+    }, 300),
+  [],
 );
 ```
 
@@ -736,31 +750,31 @@ class CacheService {
   private cache: Map<string, CachedItem> = new Map();
   private maxSize = 100;
   private ttl = 5 * 60 * 1000; // 5 minutes
-  
+
   set(key: string, value: any): void {
     // Evict old entries if cache full
     if (this.cache.size >= this.maxSize) {
       const oldestKey = this.cache.keys().next().value;
       this.cache.delete(oldestKey);
     }
-    
+
     this.cache.set(key, {
       value,
       timestamp: Date.now(),
     });
   }
-  
+
   get(key: string): any | null {
     const item = this.cache.get(key);
-    
+
     if (!item) return null;
-    
+
     // Check if expired
     if (Date.now() - item.timestamp > this.ttl) {
       this.cache.delete(key);
       return null;
     }
-    
+
     return item.value;
   }
 }
@@ -793,7 +807,7 @@ describe('SearchService', () => {
     it('finds matches with typos', () => {
       const service = new SearchService();
       const results = service.fuzzySearch('behavoir', documents);
-      
+
       expect(results).toContainMatch('behavior');
     });
   });
@@ -803,15 +817,15 @@ describe('SearchService', () => {
 describe('Search Flow', () => {
   it('completes full search', async () => {
     const { getByRole, findByText } = render(<App />);
-    
+
     // Upload document
     const file = createMockPDF();
     await uploadFile(file);
-    
+
     // Search
     await userEvent.type(getByRole('searchbox'), 'test query');
     await userEvent.click(getByRole('button', { name: /search/i }));
-    
+
     // Verify results
     expect(await findByText(/results found/i)).toBeInTheDocument();
   });
@@ -848,34 +862,34 @@ dist/ (Production Build)
 // vite.config.ts
 export default defineConfig({
   plugins: [react()],
-  
+
   build: {
     // Target modern browsers
-    target: 'es2020',
-    
+    target: "es2020",
+
     // Chunk splitting
     rollupOptions: {
       output: {
         manualChunks: {
-          'react-vendor': ['react', 'react-dom'],
-          'pdf-vendor': ['react-pdf', 'pdfjs-dist'],
-          'ui-vendor': ['@headlessui/react', 'lucide-react'],
+          "react-vendor": ["react", "react-dom"],
+          "pdf-vendor": ["react-pdf", "pdfjs-dist"],
+          "ui-vendor": ["@headlessui/react", "lucide-react"],
         },
       },
     },
-    
+
     // Compression
-    minify: 'terser',
+    minify: "terser",
     terserOptions: {
       compress: {
         drop_console: true, // Remove console.logs
       },
     },
   },
-  
+
   // Optimize deps
   optimizeDeps: {
-    include: ['react', 'react-dom', 'zustand'],
+    include: ["react", "react-dom", "zustand"],
   },
 });
 ```

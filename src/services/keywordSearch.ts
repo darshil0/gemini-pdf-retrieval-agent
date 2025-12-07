@@ -36,17 +36,21 @@ export const KeywordSearchService = {
   searchKeyword(
     keyword: string,
     documents: Document[],
-    options: SearchOptions = {}
+    options: SearchOptions = {},
   ): KeywordMatch[] {
     if (!keyword) {
-      throw new Error('Keyword cannot be empty');
+      throw new Error("Keyword cannot be empty");
     }
 
-    const { caseSensitive = false, wholeWord = false, maxContextLength = 50 } = options;
+    const {
+      caseSensitive = false,
+      wholeWord = false,
+      maxContextLength = 50,
+    } = options;
     const matches: KeywordMatch[] = [];
     const regex = new RegExp(
       wholeWord ? `\\b${keyword}\\b` : keyword,
-      caseSensitive ? 'g' : 'gi'
+      caseSensitive ? "g" : "gi",
     );
 
     documents.forEach((doc) => {
@@ -59,11 +63,11 @@ export const KeywordSearchService = {
             const columnEnd = columnStart + matchedText.length;
             const contextBefore = line.substring(
               Math.max(0, columnStart - maxContextLength),
-              columnStart
+              columnStart,
             );
             const contextAfter = line.substring(
               columnEnd,
-              Math.min(line.length, columnEnd + maxContextLength)
+              Math.min(line.length, columnEnd + maxContextLength),
             );
 
             matches.push({
@@ -93,9 +97,10 @@ export const KeywordSearchService = {
   },
 
   getMatchStatistics(matches: KeywordMatch[]): MatchStatistics {
-    const documentsWithMatches = new Set(matches.map((m) => m.documentName)).size;
+    const documentsWithMatches = new Set(matches.map((m) => m.documentName))
+      .size;
     const pagesWithMatches = new Set(
-      matches.map((m) => `${m.documentName}-${m.pageNumber}`)
+      matches.map((m) => `${m.documentName}-${m.pageNumber}`),
     ).size;
 
     return {

@@ -1,6 +1,6 @@
 /**
  * Agent Architecture Definitions
- * 
+ *
  * This file implements the 3-step agent architecture:
  * 1. System Prompt (Persona)
  * 2. Tool Prompts (Instructions)
@@ -40,8 +40,11 @@ PROTOCOL & CONSTRAINTS:
    - If no matches are found, return an empty array for 'results' and a summary stating that.
 `;
 
-export const buildSearchPrompt = (fileCount: number, keyword: string): string => {
-    return `
+export const buildSearchPrompt = (
+  fileCount: number,
+  keyword: string,
+): string => {
+  return `
     ${SYSTEM_PERSONA}
     I have provided ${fileCount} PDF document(s).
     

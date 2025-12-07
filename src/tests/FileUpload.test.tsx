@@ -1,70 +1,95 @@
 // src/__tests__/FileUpload.test.tsx
-import { describe, it, expect, vi } from 'vitest';
-import { render, screen, fireEvent, waitFor } from '@testing-library/react';
-import { FileUpload } from '../components/FileUpload';
+import { describe, it, expect, vi } from "vitest";
+import { render, screen, fireEvent, waitFor } from "@testing-library/react";
+import { FileUpload } from "../components/FileUpload";
 
-describe('FileUpload Component', () => {
-  const mockSetFiles = vi.fn();
+describe("FileUpload Component", () => {
+  const mockOnFilesSelected = vi.fn();
+  const mockOnRemoveFile = vi.fn();
 
   beforeEach(() => {
     vi.clearAllMocks();
   });
 
-  it('enforces 10-file limit', async () => {
-    render(<FileUpload files={[]} setFiles={mockSetFiles} />);
-
-    // Create 11 files
-    const files = Array.from({ length: 11 }, (_, i) =>
-      new File(['content'], `test${i}.pdf`, { type: 'application/pdf' })
+  it("enforces 10-file limit", async () => {
+    render(
+      <FileUpload
+        uploadedFiles={[]}
+        onFilesSelected={mockOnFilesSelected}
+        onRemoveFile={mockOnRemoveFile}
+      />
     );
 
-    const input = screen.getByTestId('file-upload');
+    // Create 11 files
+    const files = Array.from(
+      { length: 11 },
+      (_, i) =>
+        new File(["content"], `test${i}.pdf`, { type: "application/pdf" })
+    );
+
+    const input = screen.getByLabelText("Upload PDF files");
     fireEvent.change(input, { target: { files } });
 
     await waitFor(() => {
-      expect(mockSetFiles).toHaveBeenCalled();
+      expect(screen.getByText(/Cannot upload more than 10 files/i)).toBeInTheDocument();
     });
   });
 
-  it('displays remaining slots', () => {
-    const uploadedFiles = Array.from({ length: 7 }, (_, i) => ({
-      file: new File(['content'], `test${i}.pdf`, { type: 'application/pdf' }),
-      id: `id-${i}`,
-      previewUrl: '',
-    }));
+  it("displays remaining slots", () => {
+    const uploadedFiles = Array.from(
+      { length: 7 },
+      (_, i) =>
+        new File(["content"], `test${i}.pdf`, { type: "application/pdf" })
+    );
 
-    render(<FileUpload files={uploadedFiles} setFiles={mockSetFiles} />);
+    render(
+      <FileUpload
+        uploadedFiles={uploadedFiles}
+        onFilesSelected={mockOnFilesSelected}
+        onRemoveFile={mockOnRemoveFile}
+      />
+    );
 
-    expect(screen.getByText('Drop PDFs here or click to upload')).toBeInTheDocument();
+    expect(screen.getByText("3 slot(s) remaining")).toBeInTheDocument();
   });
 
-  it('validates file types', async () => {
-    render(<FileUpload files={[]} setFiles={mockSetFiles} />);
+  it("validates file types", async () => {
+    render(
+      <FileUpload
+        uploadedFiles={[]}
+        onFilesSelected={mockOnFilesSelected}
+        onRemoveFile={mockOnRemoveFile}
+      />
+    );
 
-    const invalidFile = new File(['content'], 'test.txt', { type: 'text/plain' });
-    const input = screen.getByTestId('file-upload');
+    const invalidFile = new File(["content"], "test.txt", {
+      type: "text/plain",
+    });
+    const input = screen.getByLabelText("Upload PDF files");
 
     fireEvent.change(input, { target: { files: [invalidFile] } });
 
     await waitFor(() => {
-      expect(screen.getByText(/Invalid file type/i)).toBeInTheDocument();
+      expect(screen.getByText(/Only PDF files are allowed/i)).toBeInTheDocument();
     });
   });
 
-  it('allows removing files', () => {
+  it("allows removing files", () => {
     const files = [
-      {
-        file: new File(['content'], 'test.pdf', { type: 'application/pdf' }),
-        id: 'test-id',
-        previewUrl: '',
-      },
+      new File(["content"], "test.pdf", { type: "application/pdf" }),
     ];
 
-    render(<FileUpload files={files} setFiles={mockSetFiles} />);
+    render(
+      <FileUpload
+        uploadedFiles={files}
+        onFilesSelected={mockOnFilesSelected}
+        onRemoveFile={mockOnRemoveFile}
+      />
+    );
 
-    const removeButton = screen.getByRole('button');
+    const removeButton = screen.getByLabelText("Remove test.pdf");
     fireEvent.click(removeButton);
 
-    expect(mockSetFiles).toHaveBeenCalled();
+    expect(mockOnRemoveFile).toHaveBeenCalledWith(0);
   });
 });
