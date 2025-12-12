@@ -19,18 +19,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **Tests**: Fixed all unit tests (Services, Components, FileUpload) and removed obsolete Architecture tests
 - **QA**: Achieved 0 TypeScript errors and 0 lint warnings across the codebase
 
-## [1.2.2] - 2025-12-07
 
-### Fixed
-
-- Security vulnerabilities - Patched moderate severity vulnerabilities in dependencies
-- Linting errors - Resolved all linting errors and warnings, improving code quality and consistency
-- File structure - Consolidated the file structure by removing duplicate components and services directories
-
-### Changed
-
-- Code formatting - Formatted the entire codebase using Prettier for a consistent style
-- Dependencies - Reverted vite to version 5 to avoid breaking changes
 
 ## [1.2.2] - 2025-12-05
 
