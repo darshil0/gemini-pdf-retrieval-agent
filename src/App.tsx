@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from "react";
+import React, { useState, useEffect, useRef, useCallback } from "react";
 import {
   Search,
   Loader2,
@@ -20,10 +20,8 @@ import { searchInDocuments } from "./services/geminiService";
 import { UploadedFile, AppStatus, SearchResponse } from "./types";
 import { Document, Page, pdfjs } from "react-pdf";
 
-import pdfWorker from "pdfjs-dist/build/pdf.worker.min.mjs?url";
-
-// Configure worker for react-pdf
-pdfjs.GlobalWorkerOptions.workerSrc = pdfWorker;
+// FIXED: Use CDN for PDF worker (more reliable in production)
+pdfjs.GlobalWorkerOptions.workerSrc = `https://cdnjs.cloudflare.com/ajax/libs/pdf.js/5.4.449/pdf.worker.min.js`;
 
 export default function App() {
   const [files, setFiles] = useState<UploadedFile[]>([]);
@@ -43,19 +41,26 @@ export default function App() {
   const [currentPage, setCurrentPage] = useState<number>(1);
   const [pdfScale, setPdfScale] = useState(1.0);
 
-  // Use a ref to keep track of files for cleanup on unmount
-  const filesRef = useRef(files);
+  // Refs for cleanup and stable callbacks
+  const filesRef = useRef<UploadedFile[]>(files);
+  const urlRefs = useRef<string[]>([]);
+
+  // Sync files ref
   filesRef.current = files;
 
-  // Cleanup object URLs ONLY when component unmounts to avoid memory leaks
+  // FIXED: Proper cleanup with revokeObjectURL tracking
   useEffect(() => {
     return () => {
-      filesRef.current.forEach((file) => {
-        if (file.previewUrl) {
-          URL.revokeObjectURL(file.previewUrl);
-        }
-      });
+      urlRefs.current.forEach((url) => URL.revokeObjectURL(url));
+      urlRefs.current = [];
     };
+  }, []);
+
+  // FIXED: Track created URLs for proper cleanup
+  const createPreviewUrl = useCallback((file: File): string => {
+    const url = URL.createObjectURL(file);
+    urlRefs.current.push(url);
+    return url;
   }, []);
 
   // Load recent searches from local storage on mount
@@ -63,62 +68,55 @@ export default function App() {
     const saved = localStorage.getItem("docuSearch_recent");
     if (saved) {
       try {
-        setRecentSearches(JSON.parse(saved));
+        const parsed = JSON.parse(saved) as string[];
+        setRecentSearches(Array.isArray(parsed) ? parsed : []);
       } catch {
-        // Invalid JSON in localStorage, ignore and start fresh
         localStorage.removeItem("docuSearch_recent");
       }
     }
   }, []);
 
-  // Initialize viewer state when opening a file
+  // FIXED: Initialize viewer state when opening a file
   useEffect(() => {
     if (viewingResult) {
       setCurrentPage(viewingResult.page);
       setRotation(0);
-      setNumPages(null); // Reset page count until loaded
+      setNumPages(null);
       setPdfScale(1.0);
     }
   }, [viewingResult]);
 
-  // Add keyboard accessibility for the modal
+  // FIXED: Proper keyboard event handling with cleanup
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
-      if (e.key === "Escape") {
+      if (e.key === "Escape" && viewingResult) {
+        e.preventDefault();
         setViewingResult(null);
       }
     };
 
     if (viewingResult) {
       document.addEventListener("keydown", handleKeyDown);
+      return () => document.removeEventListener("keydown", handleKeyDown);
     }
-
-    return () => {
-      document.removeEventListener("keydown", handleKeyDown);
-    };
   }, [viewingResult]);
 
-  const updateRecentSearches = (term: string) => {
+  const updateRecentSearches = useCallback((term: string) => {
+    if (!term.trim()) return;
+    
     setRecentSearches((prev) => {
-      // Remove duplicates (case-insensitive check) and add to front
-      const filtered = prev.filter(
-        (t) => t.toLowerCase() !== term.toLowerCase(),
-      );
-      const updated = [term, ...filtered].slice(0, 5); // Keep top 5
+      const filtered = prev.filter((t) => t.toLowerCase() !== term.toLowerCase());
+      const updated = [term, ...filtered].slice(0, 5);
       localStorage.setItem("docuSearch_recent", JSON.stringify(updated));
       return updated;
     });
-  };
+  }, []);
 
   const executeSearch = async (term: string) => {
     if (files.length === 0 || !term.trim()) return;
 
-    // Update input to reflect what is being searched
     setKeyword(term);
-
-    // Add to history
     updateRecentSearches(term);
-
     setStatus(AppStatus.ANALYZING);
     setError(null);
     setData(null);
@@ -129,46 +127,64 @@ export default function App() {
       setData(response);
       setStatus(AppStatus.COMPLETE);
     } catch (err: unknown) {
-      const errorMessage =
-        err instanceof Error
-          ? err.message
-          : "An error occurred while analyzing the documents.";
+      const errorMessage = err instanceof Error ? err.message : "Search failed.";
       setError(errorMessage);
       setStatus(AppStatus.ERROR);
     }
   };
 
-  const handleSearch = (e: React.FormEvent) => {
+  const handleSearch = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     executeSearch(keyword);
   };
 
-  const handleReset = () => {
-    // Revoke object URLs to prevent memory leaks
-    files.forEach((file) => {
-      if (file.previewUrl) {
-        URL.revokeObjectURL(file.previewUrl);
-      }
-    });
-
+  // FIXED: Proper reset with URL cleanup
+  const handleReset = useCallback(() => {
+    // Clean up all tracked URLs
+    urlRefs.current.forEach((url) => URL.revokeObjectURL(url));
+    urlRefs.current = [];
+    
     setData(null);
     setStatus(AppStatus.IDLE);
     setKeyword("");
     setViewingResult(null);
     setFiles([]);
-  };
+    setError(null);
+  }, []);
 
   const onDocumentLoadSuccess = ({ numPages }: { numPages: number }) => {
     setNumPages(numPages);
   };
 
-  const changePage = (offset: number) => {
+  const changePage = useCallback((offset: number) => {
     setCurrentPage((prev) => {
       const newPage = prev + offset;
-      if (numPages && (newPage < 1 || newPage > numPages)) return prev;
-      return newPage;
+      return numPages && (newPage >= 1 && newPage <= numPages) ? newPage : prev;
     });
-  };
+  }, [numPages]);
+
+  // FIXED: File upload handler with proper URL management
+  const handleFilesSelected = useCallback((selectedFiles: File[]) => {
+    const newFiles = selectedFiles.map((file) => ({
+      file,
+      id: `${file.name}-${file.size}-${Date.now()}`,
+      previewUrl: createPreviewUrl(file),
+    }));
+    setFiles((prev) => [...prev, ...newFiles]);
+  }, [createPreviewUrl]);
+
+  // FIXED: File removal with URL cleanup
+  const handleRemoveFile = useCallback((index: number) => {
+    const fileToRemove = files[index];
+    if (fileToRemove?.previewUrl) {
+      const urlIndex = urlRefs.current.indexOf(fileToRemove.previewUrl);
+      if (urlIndex > -1) {
+        URL.revokeObjectURL(fileToRemove.previewUrl);
+        urlRefs.current.splice(urlIndex, 1);
+      }
+    }
+    setFiles((prev) => prev.filter((_, i) => i !== index));
+  }, [files]);
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-900 via-slate-900 to-slate-800 text-slate-200">
@@ -187,6 +203,7 @@ export default function App() {
               <button
                 onClick={handleReset}
                 className="text-sm text-slate-400 hover:text-white flex items-center space-x-2 transition-colors"
+                aria-label="Clear all results and files"
               >
                 <Trash2 size={16} />
                 <span>Clear Results</span>
@@ -203,7 +220,7 @@ export default function App() {
         {/* Input Section */}
         <section className="space-y-6">
           <div className="bg-slate-800/50 rounded-2xl p-1 border border-slate-700">
-            <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 p-6">
+            <form onSubmit={handleSearch} className="grid grid-cols-1 lg:grid-cols-12 gap-6 p-6">
               {/* File Upload Column */}
               <div className="lg:col-span-5 space-y-4">
                 <h2 className="text-lg font-semibold text-white flex items-center">
@@ -213,18 +230,9 @@ export default function App() {
                   Upload Documents
                 </h2>
                 <FileUpload
-                  uploadedFiles={files.map(f => f.file)}
-                  onFilesSelected={(selectedFiles) => {
-                    const newFiles = selectedFiles.map(file => ({
-                      file,
-                      id: `${file.name}-${file.size}`,
-                      previewUrl: URL.createObjectURL(file)
-                    }));
-                    setFiles(prev => [...prev, ...newFiles]);
-                  }}
-                  onRemoveFile={(index) => {
-                    setFiles(prev => prev.filter((_, i) => i !== index));
-                  }}
+                  uploadedFiles={files.map((f) => f.file)}
+                  onFilesSelected={handleFilesSelected}
+                  onRemoveFile={handleRemoveFile}
                   isProcessing={status === AppStatus.ANALYZING}
                 />
               </div>
@@ -251,20 +259,24 @@ export default function App() {
                     </label>
                     <div className="relative">
                       <input
-                        type="text"
                         id="keyword"
+                        type="search"
                         value={keyword}
                         onChange={(e) => setKeyword(e.target.value)}
                         placeholder="e.g., 'Financial Q3 results', 'Safety Protocols', 'Project Alpha'"
                         className="w-full bg-slate-900 border border-slate-700 rounded-xl py-4 pl-4 pr-12 text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
                         disabled={status === AppStatus.ANALYZING}
+                        aria-describedby="search-help"
                       />
                       <Search className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-500 w-5 h-5" />
                     </div>
+                    <p id="search-help" className="mt-1 text-xs text-slate-500">
+                      Press Enter to search or click "Find Occurrences"
+                    </p>
                   </div>
 
                   <button
-                    onClick={handleSearch}
+                    type="submit"
                     disabled={
                       status === AppStatus.ANALYZING ||
                       files.length === 0 ||
@@ -272,8 +284,8 @@ export default function App() {
                     }
                     className={`w-full py-4 rounded-xl font-bold text-lg shadow-lg flex items-center justify-center space-x-2 transition-all transform active:scale-95
                       ${status === AppStatus.ANALYZING ||
-                        files.length === 0 ||
-                        !keyword.trim()
+                      files.length === 0 ||
+                      !keyword.trim()
                         ? "bg-slate-700 text-slate-500 cursor-not-allowed"
                         : "bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 text-white shadow-blue-900/20"
                       }`}
@@ -298,21 +310,18 @@ export default function App() {
                         <History className="w-3 h-3 mr-1.5" />
                         Recent Searches
                       </div>
-                      <ul className="flex flex-wrap gap-2">
+                      <ul className="flex flex-wrap gap-2" role="list">
                         {recentSearches.map((term, i) => (
-                          <li key={i}>
+                          <li key={i} role="listitem">
                             <button
+                              type="button"
                               onClick={() => executeSearch(term)}
                               disabled={
                                 status === AppStatus.ANALYZING ||
                                 files.length === 0
                               }
-                              title={
-                                files.length === 0
-                                  ? "Upload files first"
-                                  : "Run search"
-                              }
                               className="px-3 py-1.5 rounded-lg bg-slate-800 border border-slate-700 hover:border-blue-500/50 hover:bg-slate-700 text-sm text-slate-300 transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center group"
+                              aria-label={`Search for "${term}"`}
                             >
                               <span>{term}</span>
                               <Search className="w-3 h-3 ml-2 opacity-0 group-hover:opacity-100 transition-opacity text-blue-400" />
@@ -324,14 +333,18 @@ export default function App() {
                   )}
                 </div>
               </div>
-            </div>
+            </form>
           </div>
         </section>
 
         {/* Error Display */}
         {error && (
-          <div className="bg-red-500/10 border border-red-500/20 rounded-xl p-4 text-red-400 text-center animate-fade-in">
-            <p className="font-medium">Error Encountered</p>
+          <div 
+            className="bg-red-500/10 border border-red-500/20 rounded-xl p-6 text-red-400 text-center animate-fade-in"
+            role="alert"
+            aria-live="assertive"
+          >
+            <p className="font-medium mb-2">Error Encountered</p>
             <p className="text-sm opacity-80">{error}</p>
           </div>
         )}
@@ -358,13 +371,13 @@ export default function App() {
 
             {/* Results Grid */}
             {data.results.length > 0 ? (
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6" role="list">
                 {data.results.map((result, idx) => {
                   const file = files[result.docIndex];
                   if (!file) return null;
                   return (
                     <SearchResultCard
-                      key={idx}
+                      key={`${file.id}-${result.pageNumber}-${idx}`}
                       result={result}
                       fileName={file.file.name}
                       keyword={keyword}
@@ -376,7 +389,7 @@ export default function App() {
                 })}
               </div>
             ) : (
-              <div className="text-center py-12 text-slate-500 bg-slate-800/30 rounded-xl border border-slate-700 border-dashed">
+              <div className="text-center py-12 text-slate-500 bg-slate-800/30 rounded-xl border border-slate-700 border-dashed" role="status">
                 <Search className="w-12 h-12 mx-auto mb-4 opacity-50" />
                 <p className="text-lg">
                   No exact matches found for &quot;{keyword}&quot;.
@@ -388,27 +401,23 @@ export default function App() {
         )}
       </main>
 
-      {/* PDF Viewer Modal */}
+      {/* PDF Viewer Modal - FIXED: Better accessibility and cleanup */}
       {viewingResult && (
         <div
           className="fixed inset-0 z-[100] flex items-center justify-center p-4 sm:p-6"
           role="dialog"
           aria-modal="true"
+          aria-labelledby="pdf-viewer-title"
         >
           {/* Backdrop */}
           <div
             className="absolute inset-0 bg-black/80 backdrop-blur-sm transition-opacity"
             onClick={() => setViewingResult(null)}
-            onKeyDown={(e) =>
-              (e.key === "Enter" || e.key === " ") && setViewingResult(null)
-            }
-            role="button"
-            tabIndex={0}
-            aria-label="Close Viewer"
-          ></div>
+            aria-label="Close viewer"
+          />
 
           {/* Modal Content */}
-          <div className="relative w-full h-full max-w-6xl bg-slate-900 rounded-2xl shadow-2xl flex flex-col border border-slate-700 overflow-hidden animate-fade-in-up">
+          <div className="relative w-full h-full max-w-6xl max-h-[95vh] bg-slate-900 rounded-2xl shadow-2xl flex flex-col border border-slate-700 overflow-hidden animate-fade-in-up">
             {/* Header */}
             <div className="flex items-center justify-between px-6 py-4 border-b border-slate-700 bg-slate-800/90 z-10">
               <div className="flex items-center space-x-3 overflow-hidden">
@@ -416,108 +425,98 @@ export default function App() {
                   <FileText size={20} />
                 </div>
                 <div className="min-w-0">
-                  <h3 className="font-medium text-white truncate">
+                  <h3 id="pdf-viewer-title" className="font-medium text-white truncate">
                     {viewingResult.file.file.name}
                   </h3>
-                  <p className="text-sm text-slate-400">
+                  <p className="text-sm text-slate-400" aria-live="polite">
                     Page {currentPage} of {numPages || "--"}
                   </p>
                 </div>
               </div>
 
               <div className="flex items-center space-x-4">
-                {/* Page Navigation Controls */}
-                <div className="flex items-center space-x-1 bg-slate-900/50 rounded-lg p-1 border border-slate-700 mr-2">
+                {/* Page Navigation */}
+                <div className="flex items-center space-x-1 bg-slate-900/50 rounded-lg p-1 border border-slate-700">
                   <button
                     onClick={() => changePage(-1)}
                     disabled={currentPage <= 1}
-                    className="p-1.5 hover:bg-slate-700 rounded-md text-slate-400 hover:text-white transition-colors disabled:opacity-30 disabled:hover:bg-transparent"
-                    title="Previous Page"
+                    className="p-1.5 hover:bg-slate-700 rounded-md text-slate-400 hover:text-white transition-colors disabled:opacity-30"
+                    aria-label="Previous page"
                   >
                     <ChevronLeft size={18} />
                   </button>
-                  <span className="px-2 text-xs font-mono text-slate-400 w-12 text-center">
+                  <span className="px-2 text-xs font-mono text-slate-400 w-12 text-center" aria-live="polite">
                     {currentPage} / {numPages || "-"}
                   </span>
                   <button
                     onClick={() => changePage(1)}
-                    disabled={numPages ? currentPage >= numPages : true}
-                    className="p-1.5 hover:bg-slate-700 rounded-md text-slate-400 hover:text-white transition-colors disabled:opacity-30 disabled:hover:bg-transparent"
-                    title="Next Page"
+                    disabled={!numPages || currentPage >= numPages}
+                    className="p-1.5 hover:bg-slate-700 rounded-md text-slate-400 hover:text-white transition-colors disabled:opacity-30"
+                    aria-label="Next page"
                   >
                     <ChevronRight size={18} />
                   </button>
                 </div>
 
-                {/* Rotation Controls */}
+                {/* Rotation */}
                 <div className="flex items-center space-x-1 bg-slate-900/50 rounded-lg p-1 border border-slate-700">
                   <button
-                    onClick={() =>
-                      setRotation((prev) => (prev - 90 + 360) % 360)
-                    }
+                    onClick={() => setRotation((prev) => (prev - 90 + 360) % 360)}
                     className="p-1.5 hover:bg-slate-700 rounded-md text-slate-400 hover:text-white transition-colors"
-                    title="Rotate Counter-Clockwise"
+                    aria-label="Rotate counter-clockwise"
                   >
                     <RotateCcw size={18} />
                   </button>
                   <button
                     onClick={() => setRotation((prev) => (prev + 90) % 360)}
                     className="p-1.5 hover:bg-slate-700 rounded-md text-slate-400 hover:text-white transition-colors"
-                    title="Rotate Clockwise"
+                    aria-label="Rotate clockwise"
                   >
                     <RotateCw size={18} />
                   </button>
                 </div>
 
-                {/* Download Button */}
                 <a
                   href={viewingResult.file.previewUrl}
                   download={viewingResult.file.file.name}
                   className="p-2 hover:bg-slate-700 rounded-lg text-slate-400 hover:text-white transition-colors flex items-center justify-center border border-transparent hover:border-slate-600"
-                  title="Download Document"
+                  aria-label={`Download ${viewingResult.file.file.name}`}
                 >
                   <Download size={20} />
                 </a>
 
-                <div className="w-px h-6 bg-slate-700 mx-2"></div>
-
                 <button
                   onClick={() => setViewingResult(null)}
-                  className="flex-shrink-0 p-2 hover:bg-slate-700 rounded-full text-slate-400 hover:text-white transition-colors focus:outline-none"
-                  aria-label="Close Viewer"
+                  className="p-2 hover:bg-slate-700 rounded-full text-slate-400 hover:text-white transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  aria-label="Close viewer"
                 >
                   <X size={24} />
                 </button>
               </div>
             </div>
 
-            {/* PDF Canvas Viewer */}
-            <div className="flex-1 bg-slate-800 relative overflow-auto flex justify-center p-8">
+            {/* PDF Viewer */}
+            <div className="flex-1 bg-slate-800 relative overflow-auto flex justify-center p-8 min-h-[400px]">
               <Document
                 file={viewingResult.file.file}
                 onLoadSuccess={onDocumentLoadSuccess}
                 loading={
-                  <div className="flex flex-col items-center justify-center h-full min-h-[400px] w-full animate-fade-in">
+                  <div className="flex flex-col items-center justify-center h-full w-full animate-fade-in" role="status">
                     <div className="relative mb-6">
                       <div className="w-20 h-20 border-4 border-slate-700 border-t-blue-500 rounded-full animate-spin"></div>
                       <div className="absolute inset-0 flex items-center justify-center">
                         <FileText className="w-8 h-8 text-slate-600" />
                       </div>
                     </div>
-                    <h4 className="text-xl font-semibold text-white mb-2">
-                      Loading Document
-                    </h4>
-                    <p className="text-slate-400">
-                      Rendering page {viewingResult.page}...
-                    </p>
+                    <h4 className="text-xl font-semibold text-white mb-2">Loading Document</h4>
+                    <p className="text-slate-400">Rendering page {currentPage}...</p>
                   </div>
                 }
                 error={
-                  <div className="flex items-center justify-center h-full text-red-400">
+                  <div className="flex items-center justify-center h-full text-red-400" role="alert">
                     <p>Failed to load PDF document.</p>
                   </div>
                 }
-                className="shadow-2xl"
               >
                 <Page
                   pageNumber={currentPage}
@@ -525,8 +524,6 @@ export default function App() {
                   renderTextLayer={false}
                   renderAnnotationLayer={false}
                   scale={pdfScale}
-                  height={window.innerHeight * 0.75}
-                  className="border border-slate-600 shadow-xl"
                 />
               </Document>
             </div>
