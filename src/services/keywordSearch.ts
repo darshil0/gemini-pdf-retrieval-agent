@@ -7,7 +7,7 @@ interface Document {
   }[];
 }
 
-interface KeywordMatch {
+export interface KeywordMatch {
   keyword: string;
   documentName: string;
   pageNumber: number;

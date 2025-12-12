@@ -4,7 +4,7 @@
  * Tests for business logic and service functions
  */
 
-import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
+import { describe, it, expect, vi, beforeEach } from 'vitest';
 
 // Mock types
 interface SearchResult {
@@ -13,13 +13,6 @@ interface SearchResult {
   content: string;
   relevanceScore: number;
   context: string;
-}
-
-interface Document {
-  id: string;
-  name: string;
-  content: string;
-  pageCount: number;
 }
 
 describe('Service Layer Tests', () => {
@@ -48,9 +41,9 @@ describe('Service Layer Tests', () => {
         });
 
         const result = await searchInDocuments([], 'test query');
-        
+
         expect(result.results).toHaveLength(1);
-        expect(result.results[0].documentName).toBe('test.pdf');
+        expect(result.results[0]!.documentName).toBe('test.pdf');
         expect(result.totalResults).toBe(1);
       });
 
@@ -62,13 +55,13 @@ describe('Service Layer Tests', () => {
         });
 
         const result = await searchInDocuments([], 'nonexistent');
-        
+
         expect(result.results).toHaveLength(0);
         expect(result.totalResults).toBe(0);
       });
 
       it('should validate query length', async () => {
-        const searchInDocuments = async (files: File[], query: string) => {
+        const searchInDocuments = async (_files: File[], query: string) => {
           if (query.length < 3) {
             throw new Error('Query must be at least 3 characters');
           }
@@ -87,7 +80,7 @@ describe('Service Layer Tests', () => {
 
         const maliciousQuery = '<script>alert("xss")</script>test';
         const sanitized = sanitizeQuery(maliciousQuery);
-        
+
         expect(sanitized).toBe('test');
         expect(sanitized).not.toContain('<script>');
       });
@@ -132,10 +125,10 @@ describe('Service Layer Tests', () => {
         };
 
         const sorted = sortByRelevance(mockResults);
-        
-        expect(sorted[0].relevanceScore).toBe(0.9);
-        expect(sorted[1].relevanceScore).toBe(0.8);
-        expect(sorted[2].relevanceScore).toBe(0.7);
+
+        expect(sorted[0]!.relevanceScore).toBe(0.9);
+        expect(sorted[1]!.relevanceScore).toBe(0.8);
+        expect(sorted[2]!.relevanceScore).toBe(0.7);
       });
     });
 
@@ -159,10 +152,10 @@ describe('Service Layer Tests', () => {
           return file.size <= MAX_FILE_SIZE;
         };
 
-        const smallFile = new File(['test'], 'small.pdf', { 
-          type: 'application/pdf' 
+        const smallFile = new File(['test'], 'small.pdf', {
+          type: 'application/pdf'
         });
-        
+
         expect(validateFileSize(smallFile)).toBe(true);
       });
 
@@ -189,8 +182,8 @@ describe('Service Layer Tests', () => {
           };
         };
 
-        const file = new File(['content'], 'test.pdf', { 
-          type: 'application/pdf' 
+        const file = new File(['content'], 'test.pdf', {
+          type: 'application/pdf'
         });
 
         const metadata = await extractMetadata(file);
@@ -203,7 +196,7 @@ describe('Service Layer Tests', () => {
         const validatePDF = async (file: File): Promise<boolean> => {
           const buffer = await file.arrayBuffer();
           const bytes = new Uint8Array(buffer);
-          
+
           // Check PDF magic number: %PDF-
           return (
             bytes[0] === 0x25 &&
@@ -276,7 +269,7 @@ describe('Service Layer Tests', () => {
           const validRequests = requests.filter(
             time => now - time < TIME_WINDOW
           );
-          
+
           if (validRequests.length >= RATE_LIMIT) {
             return false;
           }
@@ -490,7 +483,7 @@ describe('Service Layer Tests', () => {
       const results = await Promise.all(queries.map(q => search(q)));
 
       expect(results).toHaveLength(3);
-      expect(results[0][0].content).toBe('query1');
+      expect(results[0]![0]!.content).toBe('query1');
     });
 
     it('should cache search results', async () => {

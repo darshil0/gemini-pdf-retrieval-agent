@@ -1,4 +1,4 @@
-import { GoogleGenerativeAI, GenerationConfig } from "@google/genai";
+import { GoogleGenerativeAI, SchemaType } from "@google/generative-ai";
 import { SearchResponse } from '../types';
 import { buildSearchPrompt } from '../agent_architecture/prompts';
 
@@ -10,16 +10,17 @@ if (!API_KEY) {
 
 const genAI = new GoogleGenerativeAI(API_KEY);
 
-const generationConfig: GenerationConfig = {
-    responseMimeType: "application/json",
-};
-
 async function fileToGenerativePart(file: File) {
     const base64EncodedData = await new Promise<string>((resolve, reject) => {
         const reader = new FileReader();
         reader.onloadend = () => {
             if (typeof reader.result === 'string') {
-                resolve(reader.result.split(',')[1]);
+                const splitResult = reader.result.split(',')[1];
+                if (splitResult) {
+                    resolve(splitResult);
+                } else {
+                    reject(new Error("Failed to parse base64 string."));
+                }
             } else {
                 reject(new Error("Failed to read file as base64 string."));
             }
@@ -50,19 +51,19 @@ export async function searchInDocuments(files: File[], keyword: string): Promise
             generationConfig: {
                 responseMimeType: "application/json",
                 responseSchema: {
-                    type: "object",
+                    type: SchemaType.OBJECT,
                     properties: {
-                        summary: { type: "string" },
+                        summary: { type: SchemaType.STRING },
                         results: {
-                            type: "array",
+                            type: SchemaType.ARRAY,
                             items: {
-                                type: "object",
+                                type: SchemaType.OBJECT,
                                 properties: {
-                                    docIndex: { type: "number" },
-                                    pageNumber: { type: "number" },
-                                    contextSnippet: { type: "string" },
-                                    matchedTerm: { type: "string" },
-                                    relevanceExplanation: { type: "string" },
+                                    docIndex: { type: SchemaType.NUMBER },
+                                    pageNumber: { type: SchemaType.NUMBER },
+                                    contextSnippet: { type: SchemaType.STRING },
+                                    matchedTerm: { type: SchemaType.STRING },
+                                    relevanceExplanation: { type: SchemaType.STRING },
                                 },
                                 required: ["docIndex", "pageNumber", "contextSnippet", "matchedTerm", "relevanceExplanation"],
                             },

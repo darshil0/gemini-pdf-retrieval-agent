@@ -4,7 +4,7 @@
  * Comprehensive test suite for all React components
  */
 
-import { describe, it, expect, vi, beforeEach } from 'vitest';
+import { describe, it, expect, vi } from 'vitest';
 import { render, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 
@@ -62,7 +62,7 @@ const FileUpload = ({ files, setFiles, disabled, maxFiles = 10 }: FileUploadProp
 
 const SearchBox = ({ onSearch, disabled, placeholder = "Search..." }: SearchBoxProps) => {
   const [query, setQuery] = React.useState('');
-  
+
   return (
     <div data-testid="search-box">
       <input
@@ -115,12 +115,12 @@ import React from 'react';
 describe('Component Tests', () => {
   describe('FileUpload Component', () => {
     it('should render file upload input', () => {
-      render(<FileUpload files={[]} setFiles={() => {}} />);
+      render(<FileUpload files={[]} setFiles={() => { }} />);
       expect(screen.getByTestId('file-input')).toBeInTheDocument();
     });
 
     it('should accept PDF files only', () => {
-      render(<FileUpload files={[]} setFiles={() => {}} />);
+      render(<FileUpload files={[]} setFiles={() => { }} />);
       const input = screen.getByTestId('file-input') as HTMLInputElement;
       expect(input.accept).toBe('.pdf');
     });
@@ -130,7 +130,7 @@ describe('Component Tests', () => {
         { name: 'doc1.pdf', size: 1000 },
         { name: 'doc2.pdf', size: 2000 }
       ];
-      render(<FileUpload files={files} setFiles={() => {}} />);
+      render(<FileUpload files={files} setFiles={() => { }} />);
       expect(screen.getByTestId('file-count')).toHaveTextContent('2/10');
     });
 
@@ -140,13 +140,13 @@ describe('Component Tests', () => {
         size: 1000
       }));
       const setFiles = vi.fn();
-      
+
       render(<FileUpload files={files} setFiles={setFiles} maxFiles={10} />);
       expect(screen.getByTestId('file-count')).toHaveTextContent('9/10');
     });
 
     it('should be disableable', () => {
-      render(<FileUpload files={[]} setFiles={() => {}} disabled />);
+      render(<FileUpload files={[]} setFiles={() => { }} disabled />);
       const input = screen.getByTestId('file-input') as HTMLInputElement;
       expect(input).toBeDisabled();
     });
@@ -156,7 +156,7 @@ describe('Component Tests', () => {
         { name: 'document1.pdf', size: 1000 },
         { name: 'document2.pdf', size: 2000 }
       ];
-      render(<FileUpload files={files} setFiles={() => {}} />);
+      render(<FileUpload files={files} setFiles={() => { }} />);
       expect(screen.getByText('document1.pdf')).toBeInTheDocument();
       expect(screen.getByText('document2.pdf')).toBeInTheDocument();
     });
@@ -164,63 +164,63 @@ describe('Component Tests', () => {
 
   describe('SearchBox Component', () => {
     it('should render search input', () => {
-      render(<SearchBox onSearch={() => {}} />);
+      render(<SearchBox onSearch={() => { }} />);
       expect(screen.getByRole('searchbox')).toBeInTheDocument();
     });
 
     it('should call onSearch when button clicked', async () => {
       const onSearch = vi.fn();
       const user = userEvent.setup();
-      
+
       render(<SearchBox onSearch={onSearch} />);
-      
+
       const input = screen.getByRole('searchbox');
       const button = screen.getByTestId('search-button');
-      
+
       await user.type(input, 'test query');
       await user.click(button);
-      
+
       expect(onSearch).toHaveBeenCalledWith('test query');
     });
 
     it('should disable search for short queries', async () => {
       const user = userEvent.setup();
-      render(<SearchBox onSearch={() => {}} />);
-      
+      render(<SearchBox onSearch={() => { }} />);
+
       const input = screen.getByRole('searchbox');
       const button = screen.getByTestId('search-button');
-      
+
       await user.type(input, 'ab');
       expect(button).toBeDisabled();
-      
+
       await user.type(input, 'c');
       expect(button).not.toBeDisabled();
     });
 
     it('should use custom placeholder', () => {
-      render(<SearchBox onSearch={() => {}} placeholder="Search documents..." />);
+      render(<SearchBox onSearch={() => { }} placeholder="Search documents..." />);
       expect(screen.getByPlaceholderText('Search documents...')).toBeInTheDocument();
     });
 
     it('should be disableable', () => {
-      render(<SearchBox onSearch={() => {}} disabled />);
+      render(<SearchBox onSearch={() => { }} disabled />);
       expect(screen.getByRole('searchbox')).toBeDisabled();
       expect(screen.getByTestId('search-button')).toBeDisabled();
     });
 
     it('should have accessible label', () => {
-      render(<SearchBox onSearch={() => {}} />);
+      render(<SearchBox onSearch={() => { }} />);
       const input = screen.getByRole('searchbox');
       expect(input).toHaveAccessibleName('Search documents');
     });
 
     it('should clear input after search', async () => {
       const user = userEvent.setup();
-      render(<SearchBox onSearch={() => {}} />);
-      
+      render(<SearchBox onSearch={() => { }} />);
+
       const input = screen.getByRole('searchbox') as HTMLInputElement;
       await user.type(input, 'test');
-      
+
       expect(input.value).toBe('test');
     });
   });
@@ -267,12 +267,12 @@ describe('Component Tests', () => {
     it('should call onResultClick when result clicked', async () => {
       const onResultClick = vi.fn();
       const user = userEvent.setup();
-      
+
       render(<SearchResults results={mockResults} onResultClick={onResultClick} />);
-      
+
       const firstResult = screen.getByTestId('result-0');
       await user.click(firstResult);
-      
+
       expect(onResultClick).toHaveBeenCalledWith(mockResults[0]);
     });
 
@@ -317,11 +317,11 @@ describe('Component Tests', () => {
       // Type search query
       const input = screen.getByRole('searchbox');
       await user.type(input, 'test query');
-      
+
       // Click search
       const button = screen.getByTestId('search-button');
       await user.click(button);
-      
+
       expect(searchQuery).toBe('test query');
 
       // Update with results
@@ -340,10 +340,10 @@ describe('Component Tests', () => {
     it('should prevent search with no documents uploaded', () => {
       const onSearch = vi.fn();
       const files: Array<{ name: string; size: number }> = [];
-      
+
       render(
         <>
-          <FileUpload files={files} setFiles={() => {}} />
+          <FileUpload files={files} setFiles={() => { }} />
           <SearchBox onSearch={onSearch} disabled={files.length === 0} />
         </>
       );
@@ -354,13 +354,12 @@ describe('Component Tests', () => {
 
   describe('Accessibility Tests', () => {
     it('should have proper ARIA labels', () => {
-      render(<SearchBox onSearch={() => {}} />);
+      render(<SearchBox onSearch={() => { }} />);
       const input = screen.getByRole('searchbox');
       expect(input).toHaveAttribute('aria-label');
     });
 
     it('should support keyboard navigation', async () => {
-      const user = userEvent.setup();
       const mockResults = [
         {
           documentName: 'doc1.pdf',
@@ -371,14 +370,14 @@ describe('Component Tests', () => {
       ];
 
       render(<SearchResults results={mockResults} />);
-      
+
       const result = screen.getByTestId('result-0');
       result.focus();
       expect(result).toHaveFocus();
     });
 
     it('should indicate disabled state', () => {
-      render(<SearchBox onSearch={() => {}} disabled />);
+      render(<SearchBox onSearch={() => { }} disabled />);
       expect(screen.getByRole('searchbox')).toBeDisabled();
     });
   });
@@ -387,15 +386,15 @@ describe('Component Tests', () => {
     it('should handle search errors gracefully', async () => {
       const onSearch = vi.fn().mockRejectedValue(new Error('Search failed'));
       const user = userEvent.setup();
-      
+
       render(<SearchBox onSearch={onSearch} />);
-      
+
       const input = screen.getByRole('searchbox');
       await user.type(input, 'test');
-      
+
       const button = screen.getByTestId('search-button');
       await user.click(button);
-      
+
       // Should not crash
       expect(screen.getByRole('searchbox')).toBeInTheDocument();
     });
@@ -403,7 +402,7 @@ describe('Component Tests', () => {
     it('should validate file types', () => {
       const setFiles = vi.fn();
       render(<FileUpload files={[]} setFiles={setFiles} />);
-      
+
       const input = screen.getByTestId('file-input') as HTMLInputElement;
       expect(input.accept).toBe('.pdf');
     });
@@ -425,14 +424,14 @@ describe('Component Tests', () => {
     it('should handle rapid file uploads', () => {
       const files: Array<{ name: string; size: number }> = [];
       const setFiles = vi.fn();
-      
+
       render(<FileUpload files={files} setFiles={setFiles} />);
-      
+
       // Should not crash with rapid state updates
       for (let i = 0; i < 10; i++) {
         setFiles([...files, { name: `doc${i}.pdf`, size: 1000 }]);
       }
-      
+
       expect(setFiles).toHaveBeenCalledTimes(10);
     });
   });

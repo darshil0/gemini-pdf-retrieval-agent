@@ -61,7 +61,7 @@ global.File = class MockFile {
   size: number;
   type: string;
   lastModified: number;
-  
+
   constructor(
     bits: BlobPart[],
     name: string,
@@ -97,12 +97,12 @@ global.File = class MockFile {
 // Custom matchers
 expect.extend({
   toBeValidPDF(file: File) {
-    const pass = file.type === 'application/pdf' && 
-                 file.name.toLowerCase().endsWith('.pdf');
-    
+    const pass = file.type === 'application/pdf' &&
+      file.name.toLowerCase().endsWith('.pdf');
+
     return {
       pass,
-      message: () => 
+      message: () =>
         pass
           ? `Expected ${file.name} not to be a valid PDF`
           : `Expected ${file.name} to be a valid PDF`
@@ -111,7 +111,7 @@ expect.extend({
 
   toBeWithinSizeLimit(file: File, maxSize: number) {
     const pass = file.size <= maxSize;
-    
+
     return {
       pass,
       message: () =>
@@ -138,7 +138,7 @@ beforeAll(() => {
     if (
       typeof args[0] === 'string' &&
       (args[0].includes('Not implemented: HTMLFormElement.prototype.submit') ||
-       args[0].includes('Warning: ReactDOM.render'))
+        args[0].includes('Warning: ReactDOM.render'))
     ) {
       return;
     }
@@ -203,4 +203,4 @@ declare global {
   var afterAll: (fn: () => void) => void;
 }
 
-export {};
+export { };
