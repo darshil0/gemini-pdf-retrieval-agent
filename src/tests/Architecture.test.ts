@@ -5,7 +5,7 @@ import {
   SEARCH_PROTOCOL,
 } from "../agent_architecture/prompts";
 
-describe("Agent Architecture (v1.2.2)", () => {
+describe("Agent Architecture (v1.2.3)", () => {
   it("should strictly include the SYSTEM definition in the prompt", () => {
     const prompt = buildSearchPrompt(1, "test");
     // console.log('DEBUG_PROMPT_SYSTEM:', JSON.stringify(prompt));
