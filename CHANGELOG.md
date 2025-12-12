@@ -19,7 +19,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **Tests**: Fixed all unit tests (Services, Components, FileUpload) and removed obsolete Architecture tests
 - **QA**: Achieved 0 TypeScript errors and 0 lint warnings across the codebase
 
-## [2.0.0] - 2025-12-07
+## [1.2.2] - 2025-12-07
 
 ### Fixed
 
