@@ -15,6 +15,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **UI/UX**: Fixed dark mode styling inconsistencies in FileUpload component
 - **Styling**: Replaced unstable CDN Tailwind with local PostCSS build pipeline
 - **Types**: Added missing Vite environment type definitions
+- **Dependencies**: Migrated from `@google/genai` (preview) to `@google/generative-ai` (stable)
+- **Tests**: Fixed all unit tests (Services, Components, FileUpload) and removed obsolete Architecture tests
+- **QA**: Achieved 0 TypeScript errors and 0 lint warnings across the codebase
 
 ## [2.0.0] - 2025-12-07
 
