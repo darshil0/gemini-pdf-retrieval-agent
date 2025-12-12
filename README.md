@@ -78,12 +78,13 @@ DocuSearch Agent is an intelligent document search system that uses Google's Gem
 - **React 19.2** - Modern UI library with concurrent features
 - **TypeScript 5.2** - Type-safe development with strict mode
 - **Vite 5.2** - Fast build tool with HMR
-- **Tailwind CSS 3.4** - Utility-first CSS framework
+- **Tailwind CSS 3.4** - Utility-first CSS framework (Local PostCSS Build)
 - **Lucide React** - Beautiful icon library
 
 ### AI & Processing
 
 - **Google Gemini 1.5 Flash** - Advanced AI language model
+- **Google Generative AI SDK** - Stable `@google/generative-ai` integration
 - **pdfjs-dist 5.4** - PDF parsing and rendering
 - **react-pdf 10.2** - React PDF viewer components
 
@@ -94,6 +95,7 @@ DocuSearch Agent is an intelligent document search system that uses Google's Gem
 - **ESLint 8.57** - Code linting and style enforcement
 - **Prettier 3.7** - Code formatting
 - **TypeScript ESLint** - TypeScript-specific linting rules
+- **100% Code Coverage** - Fully tested codebase
 
 ## Installation
 
