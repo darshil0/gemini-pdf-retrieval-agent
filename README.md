@@ -7,11 +7,11 @@
 [![React](https://img.shields.io/badge/React-19.2-blue)](https://react.dev/)
 [![License](https://img.shields.io/badge/license-MIT-blue)](LICENSE)
 
-> Enterprise-grade PDF document retrieval agent powered by Google Gemini 2.5 Flash
+> Enterprise-grade PDF document retrieval agent powered by Google Gemini 1.5 Flash
 
 ## Overview
 
-DocuSearch Agent is an intelligent document search system that uses Google's Gemini 2.5 Flash AI model to enable natural language querying across multiple PDF documents. Built with modern web technologies and enterprise-grade security practices, it provides instant, accurate results with page-level citations.
+DocuSearch Agent is an intelligent document search system that uses Google's Gemini 1.5 Flash AI model to enable natural language querying across multiple PDF documents. Built with modern web technologies and enterprise-grade security practices, it provides instant, accurate results with page-level citations.
 
 ## Table of Contents
 
@@ -83,7 +83,7 @@ DocuSearch Agent is an intelligent document search system that uses Google's Gem
 
 ### AI & Processing
 
-- **Google Gemini 2.5 Flash** - Advanced AI language model
+- **Google Gemini 1.5 Flash** - Advanced AI language model
 - **pdfjs-dist 5.4** - PDF parsing and rendering
 - **react-pdf 10.2** - React PDF viewer components
 

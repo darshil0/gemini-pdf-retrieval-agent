@@ -5,6 +5,17 @@ All notable changes to DocuSearch Agent will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.2.3] - 2025-12-12
+
+### Fixed
+
+- **Critical**: Restored working Gemini 1.5 Flash model reference (was incorrectly 2.5)
+- **Environment**: Fixed `VITE_GEMINI_API_KEY` variable name mismatch
+- **Build**: Corrected TypeScript compiled imports by moving `agent_architecture` to `src/`
+- **UI/UX**: Fixed dark mode styling inconsistencies in FileUpload component
+- **Styling**: Replaced unstable CDN Tailwind with local PostCSS build pipeline
+- **Types**: Added missing Vite environment type definitions
+
 ## [2.0.0] - 2025-12-07
 
 ### Fixed
