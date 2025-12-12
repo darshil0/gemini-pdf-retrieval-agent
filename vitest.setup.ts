@@ -4,7 +4,7 @@
  * Global test configuration and setup
  */
 
-import { expect, afterEach, vi } from 'vitest';
+import { expect, afterEach, vi, beforeAll, afterAll } from 'vitest';
 import { cleanup } from '@testing-library/react';
 import '@testing-library/jest-dom';
 
@@ -13,29 +13,37 @@ afterEach(() => {
   cleanup();
 });
 
-// Mock environment variables
-vi.mock('import.meta.env', () => ({
-  VITE_GEMINI_API_KEY: 'test-api-key',
-  VITE_MAX_FILE_SIZE: 209715200,
-  VITE_MAX_FILES: 10,
-  VITE_RATE_LIMIT: 10
-}));
+// FIXED: Mock environment with correct approach
+Object.defineProperty(import.meta, 'env', {
+  value: {
+    VITE_GEMINI_API_KEY: 'test-api-key',
+    VITE_MAX_FILE_SIZE: 209715200,
+    VITE_MAX_FILES: 10,
+    VITE_RATE_LIMIT: 10
+  },
+  writable: true
+});
 
-// Mock Google Gemini API
-vi.mock('@google/genai', () => ({
+// FIXED: Mock Google Generative AI (correct package name)
+vi.mock('@google/generative-ai', () => ({
   GoogleGenerativeAI: vi.fn().mockImplementation(() => ({
     getGenerativeModel: vi.fn().mockReturnValue({
       generateContent: vi.fn().mockResolvedValue({
         response: {
-          text: vi.fn().mockResolvedValue(JSON.stringify({
-            results: [],
-            totalResults: 0,
-            processingTime: 0
-          }))
+          text: () => JSON.stringify({
+            summary: 'Test summary',
+            results: []
+          })
         }
       })
     })
-  }))
+  })),
+  SchemaType: {
+    OBJECT: 'object',
+    ARRAY: 'array',
+    STRING: 'string',
+    NUMBER: 'number'
+  }
 }));
 
 // Mock PDF.js
@@ -198,9 +206,6 @@ declare global {
     content: string;
     pageCount: number;
   }>): any;
-
-  var beforeAll: (fn: () => void) => void;
-  var afterAll: (fn: () => void) => void;
 }
 
 export {};
