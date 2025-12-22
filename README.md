@@ -25,18 +25,20 @@ cp .env.example .env
 npm run dev
 ```
 
-## Key Issues Fixed (v1.2.3)
+## Key Issues Fixed (v1.3.0)
 
-### Critical Fixes
-1. ✅ **Gemini Model Reference** - Corrected to use `gemini-1.5-flash` (was incorrectly using 2.5)
-2. ✅ **Environment Variables** - Fixed `VITE_GEMINI_API_KEY` naming consistency
-3. ✅ **Test Mocks** - Corrected package name from `@google/genai` to `@google/generative-ai`
-4. ✅ **TypeScript Imports** - Fixed circular dependencies and import paths
+### Performance & Memory
 
-### Build & Configuration
-- ✅ Local Tailwind CSS build via PostCSS (not CDN)
-- ✅ Proper vite-env.d.ts type definitions
-- ✅ All tests passing with correct mocks
+1. ✅ **Streaming Document Processing** - Implemented streaming for large file uploads to reduce memory overhead.
+2. ✅ **Lazy Loading PDFs** - PDF pages are now lazy-loaded to optimize memory usage.
+
+### Search & UI/UX
+
+3. ✅ **Improved Search Accuracy** - Enhanced the search prompt with relevance scoring to provide more accurate results.
+4. ✅ **Text Selection in PDF Viewer** - Enabled the text layer in the PDF viewer to allow for text selection and copying.
+5. ✅ **Search History** - Added a search history feature to easily access previous searches.
+6. ✅ **Export Search Results** - Implemented a feature to export search results to a CSV file.
+7. ✅ **Dark Mode Support** - Added a dark mode toggle to the UI.
 
 ## Features
 
@@ -128,4 +130,4 @@ MIT License - see [LICENSE](LICENSE) file for details.
 
 ---
 
-**Built with ❤️ by Darshil** • v1.2.3
+**Built with ❤️ by Darshil** • v1.3.0

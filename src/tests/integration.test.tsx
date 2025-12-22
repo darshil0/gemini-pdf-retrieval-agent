@@ -65,7 +65,9 @@ describe("Integration Tests", () => {
     fireEvent.change(input, { target: { files } });
 
     await waitFor(() => {
-      expect(screen.getByText(/Cannot upload more than 10 files/i)).toBeInTheDocument();
+      expect(
+        screen.getByText(/Cannot upload more than 10 files/i),
+      ).toBeInTheDocument();
     });
   });
 });

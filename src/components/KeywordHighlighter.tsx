@@ -1,7 +1,7 @@
 // src/components/KeywordHighlighter.tsx
-import React, { useState, useEffect } from 'react';
-import { Search, ChevronLeft, ChevronRight, X } from 'lucide-react';
-import { KeywordMatch } from '../services/keywordSearch';
+import React, { useState, useEffect } from "react";
+import { Search, ChevronLeft, ChevronRight, X } from "lucide-react";
+import { KeywordMatch } from "../services/keywordSearch";
 
 interface KeywordHighlighterProps {
   matches: KeywordMatch[];
@@ -16,21 +16,24 @@ export const KeywordHighlighter: React.FC<KeywordHighlighterProps> = ({
   currentMatchIndex,
   onNavigate,
   onClose,
-  onJumpToMatch
+  onJumpToMatch,
 }) => {
-  const [filterDocument, setFilterDocument] = useState<string>('all');
-  const [filteredMatches, setFilteredMatches] = useState<KeywordMatch[]>(matches);
+  const [filterDocument, setFilterDocument] = useState<string>("all");
+  const [filteredMatches, setFilteredMatches] =
+    useState<KeywordMatch[]>(matches);
 
   useEffect(() => {
-    if (filterDocument === 'all') {
+    if (filterDocument === "all") {
       setFilteredMatches(matches);
     } else {
-      setFilteredMatches(matches.filter(m => m.documentName === filterDocument));
+      setFilteredMatches(
+        matches.filter((m) => m.documentName === filterDocument),
+      );
     }
   }, [filterDocument, matches]);
 
   const uniqueDocuments = Array.from(
-    new Set(matches.map(m => m.documentName))
+    new Set(matches.map((m) => m.documentName)),
   ).sort();
 
   const currentMatch = filteredMatches[currentMatchIndex];
@@ -68,10 +71,13 @@ export const KeywordHighlighter: React.FC<KeywordHighlighterProps> = ({
       <div className="p-4 bg-gray-50 border-b border-gray-200">
         <div className="text-sm text-gray-700 space-y-1">
           <p>
-            <span className="font-semibold">{matches.length}</span> match(es) found
+            <span className="font-semibold">{matches.length}</span> match(es)
+            found
           </p>
           <p>
-            Across <span className="font-semibold">{uniqueDocuments.length}</span> document(s)
+            Across{" "}
+            <span className="font-semibold">{uniqueDocuments.length}</span>{" "}
+            document(s)
           </p>
         </div>
       </div>
@@ -79,17 +85,23 @@ export const KeywordHighlighter: React.FC<KeywordHighlighterProps> = ({
       {/* Filter */}
       {uniqueDocuments.length > 1 && (
         <div className="p-4 border-b border-gray-200">
-          <label className="block text-sm font-medium text-gray-700 mb-2">
+          <label
+            htmlFor="document-filter"
+            className="block text-sm font-medium text-gray-700 mb-2"
+          >
             Filter by Document
           </label>
           <select
+            id="document-filter"
             value={filterDocument}
             onChange={(e) => setFilterDocument(e.target.value)}
             className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
           >
             <option value="all">All Documents ({matches.length})</option>
-            {uniqueDocuments.map(doc => {
-              const count = matches.filter(m => m.documentName === doc).length;
+            {uniqueDocuments.map((doc) => {
+              const count = matches.filter(
+                (m) => m.documentName === doc,
+              ).length;
               return (
                 <option key={doc} value={doc}>
                   {doc} ({count})
@@ -132,25 +144,34 @@ export const KeywordHighlighter: React.FC<KeywordHighlighterProps> = ({
             {currentMatch && (
               <div className="space-y-3">
                 <div className="text-xs text-gray-500 space-y-1">
-                  <p className="font-medium truncate" title={currentMatch.documentName}>
+                  <p
+                    className="font-medium truncate"
+                    title={currentMatch.documentName}
+                  >
                     📄 {currentMatch.documentName}
                   </p>
                   <p>
-                    📍 Page {currentMatch.pageNumber}, Line {currentMatch.lineNumber}
+                    📍 Page {currentMatch.pageNumber}, Line{" "}
+                    {currentMatch.lineNumber}
                   </p>
                   <p>
-                    📏 Column {currentMatch.columnStart} - {currentMatch.columnEnd}
+                    📏 Column {currentMatch.columnStart} -{" "}
+                    {currentMatch.columnEnd}
                   </p>
                 </div>
 
                 {/* Context Preview */}
                 <div className="p-3 bg-gray-50 rounded border border-gray-200 text-sm">
                   <div className="font-mono text-xs leading-relaxed">
-                    <span className="text-gray-500">{currentMatch.contextBefore}</span>
+                    <span className="text-gray-500">
+                      {currentMatch.contextBefore}
+                    </span>
                     <mark className="bg-yellow-200 px-1 rounded">
                       {currentMatch.matchedText}
                     </mark>
-                    <span className="text-gray-500">{currentMatch.contextAfter}</span>
+                    <span className="text-gray-500">
+                      {currentMatch.contextAfter}
+                    </span>
                   </div>
                 </div>
 
@@ -175,7 +196,9 @@ export const KeywordHighlighter: React.FC<KeywordHighlighterProps> = ({
                   onJumpToMatch(match);
                 }}
                 className={`w-full p-3 text-left border-b border-gray-100 hover:bg-gray-50 transition-colors ${
-                  index === currentMatchIndex ? 'bg-blue-50 border-l-4 border-l-blue-600' : ''
+                  index === currentMatchIndex
+                    ? "bg-blue-50 border-l-4 border-l-blue-600"
+                    : ""
                 }`}
               >
                 <div className="text-xs space-y-1">
@@ -187,7 +210,9 @@ export const KeywordHighlighter: React.FC<KeywordHighlighterProps> = ({
                   </p>
                   <p className="font-mono text-gray-500 truncate">
                     ...{match.contextBefore}
-                    <span className="font-bold text-blue-600">{match.matchedText}</span>
+                    <span className="font-bold text-blue-600">
+                      {match.matchedText}
+                    </span>
                     {match.contextAfter}...
                   </p>
                 </div>

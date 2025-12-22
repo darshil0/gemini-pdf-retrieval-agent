@@ -1,11 +1,11 @@
 // src/components/FileUpload.tsx
-import React, { useCallback, useState } from 'react';
-import { Upload, X, FileText, AlertCircle } from 'lucide-react';
+import React, { useCallback, useState } from "react";
+import { Upload, X, FileText, AlertCircle } from "lucide-react";
 
 const MAX_FILES = 10;
 const MAX_FILE_SIZE_MB = 200;
 const MAX_FILE_SIZE_BYTES = MAX_FILE_SIZE_MB * 1024 * 1024;
-const ALLOWED_MIME_TYPES = ['application/pdf'];
+const ALLOWED_MIME_TYPES = ["application/pdf"];
 
 interface FileUploadProps {
   onFilesSelected: (files: File[]) => void;
@@ -23,76 +23,88 @@ export const FileUpload: React.FC<FileUploadProps> = ({
   onFilesSelected,
   uploadedFiles,
   onRemoveFile,
-  isProcessing = false
+  isProcessing = false,
 }) => {
   const [dragActive, setDragActive] = useState(false);
   const [errors, setErrors] = useState<FileValidationError[]>([]);
 
-  const validateFiles = (files: File[]): { valid: File[]; errors: FileValidationError[] } => {
-    const validFiles: File[] = [];
-    const validationErrors: FileValidationError[] = [];
+  const validateFiles = useCallback(
+    (files: File[]): { valid: File[]; errors: FileValidationError[] } => {
+      const validFiles: File[] = [];
+      const validationErrors: FileValidationError[] = [];
 
-    files.forEach(file => {
-      // Check file type
-      if (!ALLOWED_MIME_TYPES.includes(file.type)) {
-        validationErrors.push({
-          file: file.name,
-          error: 'Only PDF files are allowed'
-        });
+      files.forEach((file) => {
+        // Check file type
+        if (!ALLOWED_MIME_TYPES.includes(file.type)) {
+          validationErrors.push({
+            file: file.name,
+            error: "Only PDF files are allowed",
+          });
+          return;
+        }
+
+        // Check file size
+        if (file.size > MAX_FILE_SIZE_BYTES) {
+          validationErrors.push({
+            file: file.name,
+            error: `File size exceeds ${MAX_FILE_SIZE_MB}MB limit`,
+          });
+          return;
+        }
+
+        // Check for duplicates
+        if (
+          uploadedFiles.some(
+            (f) => f.name === file.name && f.size === file.size,
+          )
+        ) {
+          validationErrors.push({
+            file: file.name,
+            error: "File already uploaded",
+          });
+          return;
+        }
+
+        validFiles.push(file);
+      });
+
+      return { valid: validFiles, errors: validationErrors };
+    },
+    [uploadedFiles],
+  );
+
+  const handleFiles = useCallback(
+    (files: FileList | null) => {
+      if (!files || files.length === 0) return;
+
+      const fileArray = Array.from(files);
+      const totalFiles = uploadedFiles.length + fileArray.length;
+
+      // Check 10-file limit
+      if (totalFiles > MAX_FILES) {
+        setErrors([
+          {
+            file: "System",
+            error: `Cannot upload more than ${MAX_FILES} files. Currently have ${uploadedFiles.length} file(s). Attempting to add ${fileArray.length} more.`,
+          },
+        ]);
         return;
       }
 
-      // Check file size
-      if (file.size > MAX_FILE_SIZE_BYTES) {
-        validationErrors.push({
-          file: file.name,
-          error: `File size exceeds ${MAX_FILE_SIZE_MB}MB limit`
-        });
-        return;
+      const { valid, errors: validationErrors } = validateFiles(fileArray);
+
+      if (validationErrors.length > 0) {
+        setErrors(validationErrors);
+      } else {
+        setErrors([]);
       }
 
-      // Check for duplicates
-      if (uploadedFiles.some(f => f.name === file.name && f.size === file.size)) {
-        validationErrors.push({
-          file: file.name,
-          error: 'File already uploaded'
-        });
-        return;
+      if (valid.length > 0) {
+        onFilesSelected(valid);
       }
-
-      validFiles.push(file);
-    });
-
-    return { valid: validFiles, errors: validationErrors };
-  };
-
-  const handleFiles = useCallback((files: FileList | null) => {
-    if (!files || files.length === 0) return;
-
-    const fileArray = Array.from(files);
-    const totalFiles = uploadedFiles.length + fileArray.length;
-
-    // Check 10-file limit
-    if (totalFiles > MAX_FILES) {
-      setErrors([{
-        file: 'System',
-        error: `Cannot upload more than ${MAX_FILES} files. Currently have ${uploadedFiles.length} file(s). Attempting to add ${fileArray.length} more.`
-      }]);
-      return;
-    }
-
-    const { valid, errors: validationErrors } = validateFiles(fileArray);
-
-    if (validationErrors.length > 0) {
-      setErrors(validationErrors);
-    } else {
-      setErrors([]);
-    }
-
-    if (valid.length > 0) {
-      onFilesSelected(valid);
-    }
-  }, [uploadedFiles, onFilesSelected]);
+    },
+    [uploadedFiles, onFilesSelected, validateFiles],
+  );
 
   const handleDrag = useCallback((e: React.DragEvent) => {
     e.preventDefault();
@@ -104,17 +116,23 @@ export const FileUpload: React.FC<FileUploadProps> = ({
     }
   }, []);
 
-  const handleDrop = useCallback((e: React.DragEvent) => {
-    e.preventDefault();
-    e.stopPropagation();
-    setDragActive(false);
-    handleFiles(e.dataTransfer.files);
-  }, [handleFiles]);
+  const handleDrop = useCallback(
+    (e: React.DragEvent) => {
+      e.preventDefault();
+      e.stopPropagation();
+      setDragActive(false);
+      handleFiles(e.dataTransfer.files);
+    },
+    [handleFiles],
+  );
 
-  const handleChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
-    e.preventDefault();
-    handleFiles(e.target.files);
-  }, [handleFiles]);
+  const handleChange = useCallback(
+    (e: React.ChangeEvent<HTMLInputElement>) => {
+      e.preventDefault();
+      handleFiles(e.target.files);
+    },
+    [handleFiles],
+  );
 
   const remainingSlots = MAX_FILES - uploadedFiles.length;
 
@@ -136,7 +154,10 @@ export const FileUpload: React.FC<FileUploadProps> = ({
       {errors.length > 0 && (
         <div className="space-y-2">
           {errors.map((error, index) => (
-            <div key={index} className="flex items-start gap-2 p-3 bg-red-900/20 border border-red-800 rounded-lg">
+            <div
+              key={index}
+              className="flex items-start gap-2 p-3 bg-red-900/20 border border-red-800 rounded-lg"
+            >
               <AlertCircle className="w-5 h-5 text-red-400 flex-shrink-0 mt-0.5" />
               <div className="flex-1">
                 <p className="text-sm font-medium text-red-200">{error.file}</p>
@@ -156,10 +177,11 @@ export const FileUpload: React.FC<FileUploadProps> = ({
 
       {/* Upload Area */}
       <div
-        className={`relative border-2 border-dashed rounded-lg p-8 text-center transition-colors ${dragActive
-            ? 'border-blue-500 bg-blue-500/10'
-            : 'border-slate-700 hover:border-slate-600'
-          } ${isProcessing || uploadedFiles.length >= MAX_FILES ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer'}`}
+        className={`relative border-2 border-dashed rounded-lg p-8 text-center transition-colors ${
+          dragActive
+            ? "border-blue-500 bg-blue-500/10"
+            : "border-slate-700 hover:border-slate-600"
+        } ${isProcessing || uploadedFiles.length >= MAX_FILES ? "opacity-50 cursor-not-allowed" : "cursor-pointer"}`}
         onDragEnter={handleDrag}
         onDragLeave={handleDrag}
         onDragOver={handleDrag}
@@ -177,12 +199,12 @@ export const FileUpload: React.FC<FileUploadProps> = ({
         <Upload className="w-12 h-12 mx-auto mb-4 text-slate-400" />
         <p className="text-lg font-medium text-slate-200 mb-2">
           {uploadedFiles.length >= MAX_FILES
-            ? 'Maximum files reached'
-            : 'Drop PDF files here or click to browse'}
+            ? "Maximum files reached"
+            : "Drop PDF files here or click to browse"}
         </p>
         <p className="text-sm text-slate-500">
           {uploadedFiles.length >= MAX_FILES
-            ? 'Remove files to upload more'
+            ? "Remove files to upload more"
             : `Upload up to ${remainingSlots} more PDF file(s) (max ${MAX_FILE_SIZE_MB}MB each)`}
         </p>
       </div>
