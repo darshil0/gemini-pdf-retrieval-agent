@@ -1,4 +1,4 @@
-import { describe, it, expect, vi, beforeEach } from 'vitest';
+import { describe, it, expect, vi, beforeEach } from "vitest";
 import { render, screen, fireEvent, waitFor } from "@testing-library/react";
 import { FileUpload } from "../components/FileUpload";
 
@@ -16,21 +16,23 @@ describe("FileUpload Component", () => {
         uploadedFiles={[]}
         onFilesSelected={mockOnFilesSelected}
         onRemoveFile={mockOnRemoveFile}
-      />
+      />,
     );
 
     // Create 11 files
     const files = Array.from(
       { length: 11 },
       (_, i) =>
-        new File(["content"], `test${i}.pdf`, { type: "application/pdf" })
+        new File(["content"], `test${i}.pdf`, { type: "application/pdf" }),
     );
 
     const input = screen.getByLabelText("Upload PDF files");
     fireEvent.change(input, { target: { files } });
 
     await waitFor(() => {
-      expect(screen.getByText(/Cannot upload more than 10 files/i)).toBeInTheDocument();
+      expect(
+        screen.getByText(/Cannot upload more than 10 files/i),
+      ).toBeInTheDocument();
     });
   });
 
@@ -38,7 +40,7 @@ describe("FileUpload Component", () => {
     const uploadedFiles = Array.from(
       { length: 7 },
       (_, i) =>
-        new File(["content"], `test${i}.pdf`, { type: "application/pdf" })
+        new File(["content"], `test${i}.pdf`, { type: "application/pdf" }),
     );
 
     render(
@@ -46,7 +48,7 @@ describe("FileUpload Component", () => {
         uploadedFiles={uploadedFiles}
         onFilesSelected={mockOnFilesSelected}
         onRemoveFile={mockOnRemoveFile}
-      />
+      />,
     );
 
     expect(screen.getByText("3 slot(s) remaining")).toBeInTheDocument();
@@ -58,7 +60,7 @@ describe("FileUpload Component", () => {
         uploadedFiles={[]}
         onFilesSelected={mockOnFilesSelected}
         onRemoveFile={mockOnRemoveFile}
-      />
+      />,
     );
 
     const invalidFile = new File(["content"], "test.txt", {
@@ -69,7 +71,9 @@ describe("FileUpload Component", () => {
     fireEvent.change(input, { target: { files: [invalidFile] } });
 
     await waitFor(() => {
-      expect(screen.getByText(/Only PDF files are allowed/i)).toBeInTheDocument();
+      expect(
+        screen.getByText(/Only PDF files are allowed/i),
+      ).toBeInTheDocument();
     });
   });
 
@@ -83,7 +87,7 @@ describe("FileUpload Component", () => {
         uploadedFiles={files}
         onFilesSelected={mockOnFilesSelected}
         onRemoveFile={mockOnRemoveFile}
-      />
+      />,
     );
 
     const removeButton = screen.getByLabelText("Remove test.pdf");

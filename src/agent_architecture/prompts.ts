@@ -22,10 +22,12 @@ REQUIREMENTS:
 export const SEARCH_PROTOCOL = `
 PROTOCOL & CONSTRAINTS:
 
-1. FUZZY MATCHING:
+1. FUZZY MATCHING & RELEVANCE SCORING:
    - You MUST include matches for slight misspellings or typos.
    - You MUST include Plural/Singular variations.
    - You MUST include very close synonyms or semantic matches (e.g., "Revenue" -> "Sales").
+   - For each match, you MUST provide a 'relevanceScore' from 0.0 to 1.0, where 1.0 is a perfect match.
+   - You MUST NOT include any results with a relevance score below 0.75.
 
 2. OUTPUT FORMAT:
    - For each match, you MUST provide:
@@ -34,6 +36,7 @@ PROTOCOL & CONSTRAINTS:
      - 'contextSnippet': Text excerpt (20-40 words) surrounding the match.
      - 'matchedTerm': The EXACT word/phrase found in the text.
      - 'relevanceExplanation': Brief note on why it matched (e.g., "Exact", "Fuzzy", "Synonym").
+     - 'relevanceScore': A number between 0.75 and 1.0.
    - Include a 'summary' string overview.
 
 3. ERROR HANDLING:

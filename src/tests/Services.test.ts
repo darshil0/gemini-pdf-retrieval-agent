@@ -1,10 +1,10 @@
 /**
  * Service Layer Tests
- * 
+ *
  * Tests for business logic and service functions
  */
 
-import { describe, it, expect, vi, beforeEach } from 'vitest';
+import { describe, it, expect, vi, beforeEach } from "vitest";
 
 // Mock types
 interface SearchResult {
@@ -15,113 +15,115 @@ interface SearchResult {
   context: string;
 }
 
-describe('Service Layer Tests', () => {
-  describe('geminiService', () => {
+describe("Service Layer Tests", () => {
+  describe("geminiService", () => {
     beforeEach(() => {
       vi.clearAllMocks();
     });
 
-    describe('searchInDocuments', () => {
-      it('should return search results', async () => {
+    describe("searchInDocuments", () => {
+      it("should return search results", async () => {
         const mockResults: SearchResult[] = [
           {
-            documentName: 'test.pdf',
+            documentName: "test.pdf",
             pageNumber: 1,
-            content: 'test content',
+            content: "test content",
             relevanceScore: 0.95,
-            context: 'surrounding context'
-          }
+            context: "surrounding context",
+          },
         ];
 
         // Mock implementation
         const searchInDocuments = vi.fn().mockResolvedValue({
           results: mockResults,
           totalResults: 1,
-          processingTime: 500
+          processingTime: 500,
         });
 
-        const result = await searchInDocuments([], 'test query');
+        const result = await searchInDocuments([], "test query");
 
         expect(result.results).toHaveLength(1);
-        expect(result.results[0]!.documentName).toBe('test.pdf');
+        expect(result.results[0]!.documentName).toBe("test.pdf");
         expect(result.totalResults).toBe(1);
       });
 
-      it('should handle empty results', async () => {
+      it("should handle empty results", async () => {
         const searchInDocuments = vi.fn().mockResolvedValue({
           results: [],
           totalResults: 0,
-          processingTime: 300
+          processingTime: 300,
         });
 
-        const result = await searchInDocuments([], 'nonexistent');
+        const result = await searchInDocuments([], "nonexistent");
 
         expect(result.results).toHaveLength(0);
         expect(result.totalResults).toBe(0);
       });
 
-      it('should validate query length', async () => {
+      it("should validate query length", async () => {
         const searchInDocuments = async (_files: File[], query: string) => {
           if (query.length < 3) {
-            throw new Error('Query must be at least 3 characters');
+            throw new Error("Query must be at least 3 characters");
           }
           return { results: [], totalResults: 0, processingTime: 0 };
         };
 
-        await expect(searchInDocuments([], 'ab')).rejects.toThrow(
-          'Query must be at least 3 characters'
+        await expect(searchInDocuments([], "ab")).rejects.toThrow(
+          "Query must be at least 3 characters",
         );
       });
 
-      it('should sanitize query input', async () => {
+      it("should sanitize query input", async () => {
         const sanitizeQuery = (query: string): string => {
-          return query.replace(/<script[^>]*>.*?<\/script>/gi, '');
+          return query.replace(/<script[^>]*>.*?<\/script>/gi, "");
         };
 
         const maliciousQuery = '<script>alert("xss")</script>test';
         const sanitized = sanitizeQuery(maliciousQuery);
 
-        expect(sanitized).toBe('test');
-        expect(sanitized).not.toContain('<script>');
+        expect(sanitized).toBe("test");
+        expect(sanitized).not.toContain("<script>");
       });
 
-      it('should handle API errors', async () => {
-        const searchInDocuments = vi.fn().mockRejectedValue(
-          new Error('API request failed')
-        );
+      it("should handle API errors", async () => {
+        const searchInDocuments = vi
+          .fn()
+          .mockRejectedValue(new Error("API request failed"));
 
-        await expect(searchInDocuments([], 'test')).rejects.toThrow(
-          'API request failed'
+        await expect(searchInDocuments([], "test")).rejects.toThrow(
+          "API request failed",
         );
       });
 
-      it('should rank results by relevance', async () => {
+      it("should rank results by relevance", async () => {
         const mockResults: SearchResult[] = [
           {
-            documentName: 'doc1.pdf',
+            documentName: "doc1.pdf",
             pageNumber: 1,
-            content: 'content',
+            content: "content",
             relevanceScore: 0.7,
-            context: 'context'
+            context: "context",
           },
           {
-            documentName: 'doc2.pdf',
+            documentName: "doc2.pdf",
             pageNumber: 2,
-            content: 'content',
+            content: "content",
             relevanceScore: 0.9,
-            context: 'context'
+            context: "context",
           },
           {
-            documentName: 'doc3.pdf',
+            documentName: "doc3.pdf",
             pageNumber: 3,
-            content: 'content',
+            content: "content",
             relevanceScore: 0.8,
-            context: 'context'
-          }
+            context: "context",
+          },
         ];
 
         const sortByRelevance = (results: SearchResult[]) => {
-          return [...results].sort((a, b) => b.relevanceScore - a.relevanceScore);
+          return [...results].sort(
+            (a, b) => b.relevanceScore - a.relevanceScore,
+          );
         };
 
         const sorted = sortByRelevance(mockResults);
@@ -132,34 +134,34 @@ describe('Service Layer Tests', () => {
       });
     });
 
-    describe('uploadDocument', () => {
-      it('should validate file type', async () => {
+    describe("uploadDocument", () => {
+      it("should validate file type", async () => {
         const validateFileType = (file: File): boolean => {
-          return file.type === 'application/pdf';
+          return file.type === "application/pdf";
         };
 
-        const pdfFile = new File([''], 'test.pdf', { type: 'application/pdf' });
-        const txtFile = new File([''], 'test.txt', { type: 'text/plain' });
+        const pdfFile = new File([""], "test.pdf", { type: "application/pdf" });
+        const txtFile = new File([""], "test.txt", { type: "text/plain" });
 
         expect(validateFileType(pdfFile)).toBe(true);
         expect(validateFileType(txtFile)).toBe(false);
       });
 
-      it('should validate file size', async () => {
+      it("should validate file size", async () => {
         const MAX_FILE_SIZE = 200 * 1024 * 1024; // 200MB
 
         const validateFileSize = (file: File): boolean => {
           return file.size <= MAX_FILE_SIZE;
         };
 
-        const smallFile = new File(['test'], 'small.pdf', {
-          type: 'application/pdf'
+        const smallFile = new File(["test"], "small.pdf", {
+          type: "application/pdf",
         });
 
         expect(validateFileSize(smallFile)).toBe(true);
       });
 
-      it('should enforce document limit', async () => {
+      it("should enforce document limit", async () => {
         const MAX_DOCUMENTS = 10;
 
         const canAddDocument = (currentCount: number): boolean => {
@@ -172,27 +174,27 @@ describe('Service Layer Tests', () => {
         expect(canAddDocument(15)).toBe(false);
       });
 
-      it('should extract PDF metadata', async () => {
+      it("should extract PDF metadata", async () => {
         const extractMetadata = async (file: File) => {
           return {
             name: file.name,
             size: file.size,
             type: file.type,
-            lastModified: file.lastModified
+            lastModified: file.lastModified,
           };
         };
 
-        const file = new File(['content'], 'test.pdf', {
-          type: 'application/pdf'
+        const file = new File(["content"], "test.pdf", {
+          type: "application/pdf",
         });
 
         const metadata = await extractMetadata(file);
 
-        expect(metadata.name).toBe('test.pdf');
-        expect(metadata.type).toBe('application/pdf');
+        expect(metadata.name).toBe("test.pdf");
+        expect(metadata.type).toBe("application/pdf");
       });
 
-      it('should handle corrupted PDFs', async () => {
+      it("should handle corrupted PDFs", async () => {
         const validatePDF = async (file: File): Promise<boolean> => {
           const buffer = await file.arrayBuffer();
           const bytes = new Uint8Array(buffer);
@@ -208,14 +210,14 @@ describe('Service Layer Tests', () => {
 
         const validPDF = new File(
           [new Uint8Array([0x25, 0x50, 0x44, 0x46])],
-          'valid.pdf',
-          { type: 'application/pdf' }
+          "valid.pdf",
+          { type: "application/pdf" },
         );
 
         const invalidPDF = new File(
           [new Uint8Array([0x00, 0x00, 0x00, 0x00])],
-          'invalid.pdf',
-          { type: 'application/pdf' }
+          "invalid.pdf",
+          { type: "application/pdf" },
         );
 
         expect(await validatePDF(validPDF)).toBe(true);
@@ -223,8 +225,8 @@ describe('Service Layer Tests', () => {
       });
     });
 
-    describe('Rate Limiting', () => {
-      it('should enforce rate limits', async () => {
+    describe("Rate Limiting", () => {
+      it("should enforce rate limits", async () => {
         const RATE_LIMIT = 10;
         const TIME_WINDOW = 60000; // 1 minute
 
@@ -234,7 +236,7 @@ describe('Service Layer Tests', () => {
           canMakeRequest(): boolean {
             const now = Date.now();
             this.requests = this.requests.filter(
-              time => now - time < TIME_WINDOW
+              (time) => now - time < TIME_WINDOW,
             );
 
             if (this.requests.length >= RATE_LIMIT) {
@@ -257,7 +259,7 @@ describe('Service Layer Tests', () => {
         expect(limiter.canMakeRequest()).toBe(false);
       });
 
-      it('should reset rate limit after time window', async () => {
+      it("should reset rate limit after time window", async () => {
         vi.useFakeTimers();
 
         const requests: number[] = [];
@@ -267,7 +269,7 @@ describe('Service Layer Tests', () => {
         const canMakeRequest = (): boolean => {
           const now = Date.now();
           const validRequests = requests.filter(
-            time => now - time < TIME_WINDOW
+            (time) => now - time < TIME_WINDOW,
           );
 
           if (validRequests.length >= RATE_LIMIT) {
@@ -297,79 +299,79 @@ describe('Service Layer Tests', () => {
     });
   });
 
-  describe('Validation Service', () => {
-    describe('Input Sanitization', () => {
-      it('should remove XSS attempts', () => {
+  describe("Validation Service", () => {
+    describe("Input Sanitization", () => {
+      it("should remove XSS attempts", () => {
         const sanitizeInput = (input: string): string => {
           return input
-            .replace(/<script[^>]*>.*?<\/script>/gi, '')
-            .replace(/javascript:/gi, '')
-            .replace(/on\w+\s*=/gi, '');
+            .replace(/<script[^>]*>.*?<\/script>/gi, "")
+            .replace(/javascript:/gi, "")
+            .replace(/on\w+\s*=/gi, "");
         };
 
         const xssAttempts = [
           '<script>alert("xss")</script>',
           'javascript:alert("xss")',
           '<img onerror="alert(1)" src="x">',
-          '<div onclick="alert(1)">Click</div>'
+          '<div onclick="alert(1)">Click</div>',
         ];
 
-        xssAttempts.forEach(attempt => {
+        xssAttempts.forEach((attempt) => {
           const sanitized = sanitizeInput(attempt);
-          expect(sanitized).not.toContain('script');
-          expect(sanitized).not.toContain('javascript:');
-          expect(sanitized).not.toContain('onerror');
-          expect(sanitized).not.toContain('onclick');
+          expect(sanitized).not.toContain("script");
+          expect(sanitized).not.toContain("javascript:");
+          expect(sanitized).not.toContain("onerror");
+          expect(sanitized).not.toContain("onclick");
         });
       });
 
-      it('should trim whitespace', () => {
+      it("should trim whitespace", () => {
         const sanitizeQuery = (query: string): string => {
           return query.trim();
         };
 
-        expect(sanitizeQuery('  test  ')).toBe('test');
-        expect(sanitizeQuery('\n\ttest\n\t')).toBe('test');
+        expect(sanitizeQuery("  test  ")).toBe("test");
+        expect(sanitizeQuery("\n\ttest\n\t")).toBe("test");
       });
 
-      it('should limit query length', () => {
+      it("should limit query length", () => {
         const MAX_LENGTH = 500;
 
         const validateLength = (query: string): boolean => {
           return query.length >= 3 && query.length <= MAX_LENGTH;
         };
 
-        expect(validateLength('ab')).toBe(false);
-        expect(validateLength('abc')).toBe(true);
-        expect(validateLength('a'.repeat(500))).toBe(true);
-        expect(validateLength('a'.repeat(501))).toBe(false);
+        expect(validateLength("ab")).toBe(false);
+        expect(validateLength("abc")).toBe(true);
+        expect(validateLength("a".repeat(500))).toBe(true);
+        expect(validateLength("a".repeat(501))).toBe(false);
       });
     });
 
-    describe('File Validation', () => {
-      it('should validate MIME type', () => {
+    describe("File Validation", () => {
+      it("should validate MIME type", () => {
         const isValidPDF = (file: File): boolean => {
-          return file.type === 'application/pdf';
+          return file.type === "application/pdf";
         };
 
-        const pdf = new File([''], 'doc.pdf', { type: 'application/pdf' });
-        const doc = new File([''], 'doc.doc', { type: 'application/msword' });
+        const pdf = new File([""], "doc.pdf", { type: "application/pdf" });
+        const doc = new File([""], "doc.doc", { type: "application/msword" });
 
         expect(isValidPDF(pdf)).toBe(true);
         expect(isValidPDF(doc)).toBe(false);
       });
 
-      it('should check file extension', () => {
+      it("should check file extension", () => {
         const hasValidExtension = (filename: string): boolean => {
-          return filename.toLowerCase().endsWith('.pdf');
+          return filename.toLowerCase().endsWith(".pdf");
         };
 
-        expect(hasValidExtension('document.pdf')).toBe(true);
-        expect(hasValidExtension('document.PDF')).toBe(true);
-        expect(hasValidExtension('document.txt')).toBe(false);
+        expect(hasValidExtension("document.pdf")).toBe(true);
+        expect(hasValidExtension("document.PDF")).toBe(true);
+        expect(hasValidExtension("document.txt")).toBe(false);
       });
 
-      it('should validate file size', () => {
+      it("should validate file size", () => {
         const MAX_SIZE = 200 * 1024 * 1024;
 
         const isValidSize = (size: number): boolean => {
@@ -384,8 +386,8 @@ describe('Service Layer Tests', () => {
     });
   });
 
-  describe('Error Handling', () => {
-    it('should create structured error responses', () => {
+  describe("Error Handling", () => {
+    it("should create structured error responses", () => {
       interface ErrorResponse {
         error: boolean;
         errorType: string;
@@ -396,60 +398,60 @@ describe('Service Layer Tests', () => {
       const createErrorResponse = (
         type: string,
         message: string,
-        canRetry: boolean
+        canRetry: boolean,
       ): ErrorResponse => {
         return {
           error: true,
           errorType: type,
           message,
-          canRetry
+          canRetry,
         };
       };
 
       const error = createErrorResponse(
-        'ValidationError',
-        'Invalid input',
-        false
+        "ValidationError",
+        "Invalid input",
+        false,
       );
 
       expect(error.error).toBe(true);
-      expect(error.errorType).toBe('ValidationError');
+      expect(error.errorType).toBe("ValidationError");
       expect(error.canRetry).toBe(false);
     });
 
-    it('should implement retry logic', async () => {
+    it("should implement retry logic", async () => {
       let attempts = 0;
       const maxRetries = 3;
 
       const unstableFunction = async (): Promise<string> => {
         attempts++;
         if (attempts < 3) {
-          throw new Error('Temporary failure');
+          throw new Error("Temporary failure");
         }
-        return 'Success';
+        return "Success";
       };
 
       const withRetry = async <T>(
         fn: () => Promise<T>,
-        retries: number
+        retries: number,
       ): Promise<T> => {
         for (let i = 0; i < retries; i++) {
           try {
             return await fn();
           } catch (error) {
             if (i === retries - 1) throw error;
-            await new Promise(resolve => setTimeout(resolve, 100 * (i + 1)));
+            await new Promise((resolve) => setTimeout(resolve, 100 * (i + 1)));
           }
         }
-        throw new Error('Max retries exceeded');
+        throw new Error("Max retries exceeded");
       };
 
       const result = await withRetry(unstableFunction, maxRetries);
-      expect(result).toBe('Success');
+      expect(result).toBe("Success");
       expect(attempts).toBe(3);
     });
 
-    it('should implement exponential backoff', async () => {
+    it("should implement exponential backoff", async () => {
       const delays: number[] = [];
 
       const calculateBackoff = (attempt: number): number => {
@@ -464,29 +466,29 @@ describe('Service Layer Tests', () => {
     });
   });
 
-  describe('Performance', () => {
-    it('should handle concurrent searches', async () => {
+  describe("Performance", () => {
+    it("should handle concurrent searches", async () => {
       const search = async (query: string): Promise<SearchResult[]> => {
-        await new Promise(resolve => setTimeout(resolve, 100));
+        await new Promise((resolve) => setTimeout(resolve, 100));
         return [
           {
-            documentName: 'test.pdf',
+            documentName: "test.pdf",
             pageNumber: 1,
             content: query,
             relevanceScore: 0.9,
-            context: 'context'
-          }
+            context: "context",
+          },
         ];
       };
 
-      const queries = ['query1', 'query2', 'query3'];
-      const results = await Promise.all(queries.map(q => search(q)));
+      const queries = ["query1", "query2", "query3"];
+      const results = await Promise.all(queries.map((q) => search(q)));
 
       expect(results).toHaveLength(3);
-      expect(results[0]![0]!.content).toBe('query1');
+      expect(results[0]![0]!.content).toBe("query1");
     });
 
-    it('should cache search results', async () => {
+    it("should cache search results", async () => {
       const cache = new Map<string, SearchResult[]>();
 
       const cachedSearch = async (query: string): Promise<SearchResult[]> => {
@@ -496,20 +498,20 @@ describe('Service Layer Tests', () => {
 
         const results: SearchResult[] = [
           {
-            documentName: 'test.pdf',
+            documentName: "test.pdf",
             pageNumber: 1,
             content: query,
             relevanceScore: 0.9,
-            context: 'context'
-          }
+            context: "context",
+          },
         ];
 
         cache.set(query, results);
         return results;
       };
 
-      const result1 = await cachedSearch('test');
-      const result2 = await cachedSearch('test');
+      const result1 = await cachedSearch("test");
+      const result2 = await cachedSearch("test");
 
       expect(result1).toBe(result2); // Same reference = cached
     });

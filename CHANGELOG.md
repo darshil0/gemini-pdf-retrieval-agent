@@ -5,6 +5,23 @@ All notable changes to DocuSearch Agent will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.3.0] - 2025-12-13
+
+### Added
+
+- **Performance**: Implemented streaming for large file uploads to reduce memory overhead.
+- **Performance**: PDF pages are now lazy-loaded to optimize memory usage.
+- **Search**: Enhanced the search prompt with relevance scoring to provide more accurate results.
+- **UI/UX**: Enabled the text layer in the PDF viewer to allow for text selection and copying.
+- **UI/UX**: Added a search history feature to easily access previous searches.
+- **UI/UX**: Implemented a feature to export search results to a CSV file.
+- **UI/UX**: Added a dark mode toggle to the UI.
+
+### Fixed
+
+- **Critical**: Fixed a bug in the PDF viewer that prevented it from rendering correctly when lazy loading was enabled.
+- **Tests**: Polyfilled `DOMMatrix` and improved the `File` mock in the test environment to improve stability.
+
 ## [1.2.3] - 2025-12-12
 
 ### Fixed
@@ -18,8 +35,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **Dependencies**: Migrated from `@google/genai` (preview) to `@google/generative-ai` (stable)
 - **Tests**: Fixed all unit tests (Services, Components, FileUpload) and removed obsolete Architecture tests
 - **QA**: Achieved 0 TypeScript errors and 0 lint warnings across the codebase
-
-
 
 ## [1.2.2] - 2025-12-05
 

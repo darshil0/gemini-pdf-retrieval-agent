@@ -119,22 +119,24 @@ Before creating a bug report:
 ```markdown
 **Title**: Clear, descriptive title
 
-**Description**: 
+**Description**:
 Detailed description of the issue
 
 **Steps to Reproduce**:
+
 1. Go to '...'
 2. Click on '...'
 3. Scroll to '...'
 4. See error
 
-**Expected Behavior**: 
+**Expected Behavior**:
 What should happen
 
-**Actual Behavior**: 
+**Actual Behavior**:
 What actually happens
 
 **Environment**:
+
 - OS: [e.g., Windows 11, macOS 14, Ubuntu 22.04]
 - Browser: [e.g., Chrome 120, Firefox 121]
 - Node version: [e.g., v18.0.0]
@@ -160,16 +162,16 @@ Before suggesting a feature:
 ```markdown
 **Title**: Clear feature description
 
-**Problem Statement**: 
+**Problem Statement**:
 What problem does this solve?
 
-**Proposed Solution**: 
+**Proposed Solution**:
 How should it work?
 
-**Alternatives Considered**: 
+**Alternatives Considered**:
 Other approaches you've thought about
 
-**Use Cases**: 
+**Use Cases**:
 When would this be useful?
 
 **Implementation Notes** (optional):
@@ -192,7 +194,7 @@ interface SearchOptions {
 
 function searchDocuments(
   query: string,
-  options: SearchOptions
+  options: SearchOptions,
 ): Promise<SearchResult[]> {
   // Implementation
 }
@@ -214,11 +216,11 @@ interface ButtonProps {
   variant?: 'primary' | 'secondary';
 }
 
-export function Button({ 
-  label, 
-  onClick, 
+export function Button({
+  label,
+  onClick,
   disabled = false,
-  variant = 'primary' 
+  variant = 'primary'
 }: ButtonProps) {
   return (
     <button
@@ -296,18 +298,18 @@ src/
  */
 export async function searchDocuments(
   query: string,
-  documents: Document[]
+  documents: Document[],
 ): Promise<SearchResult[]> {
   if (!query || query.trim().length < 3) {
-    throw new ValidationError('Query must be at least 3 characters');
+    throw new ValidationError("Query must be at least 3 characters");
   }
 
   try {
     const results = await performSearch(query, documents);
     return results.sort((a, b) => b.relevance - a.relevance);
   } catch (error) {
-    console.error('Search failed:', error);
-    throw new Error('Failed to search documents');
+    console.error("Search failed:", error);
+    throw new Error("Failed to search documents");
   }
 }
 
@@ -342,29 +344,29 @@ describe('SearchBox', () => {
   it('should call onSearch when Enter is pressed', async () => {
     const onSearch = vi.fn();
     render(<SearchBox onSearch={onSearch} />);
-    
+
     const input = screen.getByRole('searchbox');
     await userEvent.type(input, 'test query{Enter}');
-    
+
     expect(onSearch).toHaveBeenCalledWith('test query');
   });
 
   it('should disable search for short queries', async () => {
     render(<SearchBox onSearch={vi.fn()} />);
-    
+
     const input = screen.getByRole('searchbox');
     const button = screen.getByRole('button', { name: /search/i });
-    
+
     await userEvent.type(input, 'ab');
     expect(button).toBeDisabled();
   });
 
   it('should show error for invalid input', async () => {
     render(<SearchBox onSearch={vi.fn()} />);
-    
+
     const input = screen.getByRole('searchbox');
     await userEvent.type(input, '<script>alert("xss")</script>');
-    
+
     await waitFor(() => {
       expect(screen.getByText(/invalid input/i)).toBeInTheDocument();
     });
@@ -477,27 +479,33 @@ git push origin your-branch-name
 
 ```markdown
 ## Description
+
 Brief description of changes
 
 ## Related Issues
+
 Fixes #123
 Relates to #456
 
 ## Type of Change
+
 - [ ] Bug fix (non-breaking)
 - [ ] New feature (non-breaking)
 - [ ] Breaking change
 - [ ] Documentation update
 
 ## Testing
+
 - [ ] Unit tests added/updated
 - [ ] Integration tests added/updated
 - [ ] Manual testing completed
 
 ## Screenshots (if applicable)
+
 Add screenshots or videos
 
 ## Checklist
+
 - [ ] Code follows style guidelines
 - [ ] Self-reviewed code
 - [ ] Commented complex code
@@ -507,6 +515,7 @@ Add screenshots or videos
 - [ ] Added tests for new features
 
 ## Additional Notes
+
 Any other context about the PR
 ```
 
