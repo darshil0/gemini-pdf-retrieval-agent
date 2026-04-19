@@ -1,6 +1,11 @@
+import { expect, afterEach, vi, beforeAll, afterAll } from "vitest";
+import { cleanup } from "@testing-library/react";
+import "@testing-library/jest-dom";
+
 // Polyfill for DOMMatrix
 if (typeof DOMMatrix === "undefined") {
-  global.DOMMatrix = class DOMMatrix {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  (global as any).DOMMatrix = class DOMMatrix {
     a: number;
     b: number;
     c: number;
@@ -18,12 +23,23 @@ if (typeof DOMMatrix === "undefined") {
 
       if (typeof init === "string") {
         const translateMatch = init.match(/translate\(([^,]+),([^)]+)\)/);
-        if (translateMatch) {
+        if (
+          translateMatch &&
+          translateMatch[1] !== undefined &&
+          translateMatch[2] !== undefined
+        ) {
           this.e = parseFloat(translateMatch[1]);
           this.f = parseFloat(translateMatch[2]);
         }
       } else if (Array.isArray(init)) {
-        [this.a, this.b, this.c, this.d, this.e, this.f] = init;
+        [this.a, this.b, this.c, this.d, this.e, this.f] = init as [
+          number,
+          number,
+          number,
+          number,
+          number,
+          number,
+        ];
       }
     }
 
@@ -43,16 +59,6 @@ if (typeof DOMMatrix === "undefined") {
   };
 }
 
-/**
- * Vitest Setup File
- *
- * Global test configuration and setup
- */
-
-import { expect, afterEach, vi } from "vitest";
-import { cleanup } from "@testing-library/react";
-import "@testing-library/jest-dom";
-
 // Cleanup after each test
 afterEach(() => {
   cleanup();
@@ -67,7 +73,7 @@ vi.mock("import.meta.env", () => ({
 }));
 
 // Mock Google Gemini API
-vi.mock("@google/genai", () => ({
+vi.mock("@google/generative-ai", () => ({
   GoogleGenerativeAI: vi.fn().mockImplementation(() => ({
     getGenerativeModel: vi.fn().mockReturnValue({
       generateContent: vi.fn().mockResolvedValue({
@@ -83,6 +89,12 @@ vi.mock("@google/genai", () => ({
       }),
     }),
   })),
+  SchemaType: {
+    OBJECT: "OBJECT",
+    STRING: "STRING",
+    NUMBER: "NUMBER",
+    ARRAY: "ARRAY",
+  },
 }));
 
 // Mock PDF.js
@@ -103,19 +115,28 @@ vi.mock("pdfjs-dist", () => ({
 }));
 
 // Mock IntersectionObserver
-class IntersectionObserver {
+class MockIntersectionObserver implements IntersectionObserver {
+  readonly root: Element | Document | null = null;
+  readonly rootMargin: string = "";
+  readonly thresholds: readonly number[] = [];
   observe() {}
   unobserve() {}
   disconnect() {}
+  takeRecords(): IntersectionObserverEntry[] {
+    return [];
+  }
 }
-window.IntersectionObserver = IntersectionObserver;
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+window.IntersectionObserver = MockIntersectionObserver as any;
 
 // Mock File API for tests
 const originalBlob = global.Blob;
 
 class MockBlob extends originalBlob {
+  _parts: BlobPart[];
   constructor(blobParts?: BlobPart[], options?: BlobPropertyBag) {
     super(blobParts || [], options);
+    this._parts = blobParts || [];
   }
 }
 
@@ -135,14 +156,13 @@ global.File = class MockFile extends MockBlob {
       reader.onload = () => {
         resolve(reader.result as ArrayBuffer);
       };
-      reader.readAsArrayBuffer(this);
+      reader.readAsArrayBuffer(this as unknown as Blob);
     });
   }
 
-  // We can't easily implement stream(), so we'll leave it as a method
-  // that returns a new ReadableStream. For most tests, this is fine.
-  stream(): ReadableStream<Uint8Array> {
-    const parts = (this as { _parts: BlobPart[] })._parts;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  stream(): any {
+    const parts = this._parts;
     let position = 0;
     return new ReadableStream({
       pull(controller) {
@@ -150,11 +170,18 @@ global.File = class MockFile extends MockBlob {
           controller.close();
           return;
         }
-        controller.enqueue(parts[position++]);
+        const part = parts[position++];
+        if (part instanceof Uint8Array) {
+          controller.enqueue(part);
+        } else if (typeof part === "string") {
+          controller.enqueue(new TextEncoder().encode(part));
+        }
+        // Handle other types if necessary
       },
     });
   }
-} as typeof File;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+} as any;
 
 // Custom matchers
 expect.extend({
@@ -196,7 +223,8 @@ declare module "vitest" {
 // Console error handler for tests
 const originalError = console.error;
 beforeAll(() => {
-  console.error = (...args: Parameters<typeof console.error>) => {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  console.error = (...args: any[]) => {
     // Suppress expected React warnings in tests
     if (
       typeof args[0] === "string" &&
@@ -214,7 +242,8 @@ afterAll(() => {
 });
 
 // Global test utilities
-global.createMockFile = (
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+(global as any).createMockFile = (
   name: string = "test.pdf",
   size: number = 1000,
   type: string = "application/pdf",
@@ -222,7 +251,8 @@ global.createMockFile = (
   return new File(["x".repeat(size)], name, { type });
 };
 
-global.createMockSearchResult = (overrides = {}) => ({
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+(global as any).createMockSearchResult = (overrides = {}) => ({
   documentName: "test.pdf",
   pageNumber: 1,
   content: "Test content",
@@ -231,7 +261,8 @@ global.createMockSearchResult = (overrides = {}) => ({
   ...overrides,
 });
 
-global.createMockDocument = (overrides = {}) => ({
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+(global as any).createMockDocument = (overrides = {}) => ({
   id: "doc-1",
   name: "test.pdf",
   content: "Document content",
@@ -272,9 +303,6 @@ declare global {
     content: string;
     pageCount: number;
   };
-
-  const beforeAll: (fn: () => void) => void;
-  const afterAll: (fn: () => void) => void;
 }
 
 export {};

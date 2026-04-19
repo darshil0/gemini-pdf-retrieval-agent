@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef, useCallback } from "react";
+import { useState, useEffect, useRef, useCallback } from "react";
 import {
   Search,
   Loader2,
@@ -42,7 +42,7 @@ export default function App() {
   const [rotation, setRotation] = useState(0);
   const [numPages, setNumPages] = useState<number | null>(null);
   const [currentPage, setCurrentPage] = useState<number>(1);
-  const [pdfScale, setPdfScale] = useState(1.0);
+  const [pdfScale] = useState(1.0);
   const [theme, setTheme] = useState<"light" | "dark">("dark");
 
   // Refs for cleanup and stable callbacks
@@ -86,7 +86,6 @@ export default function App() {
       setCurrentPage(viewingResult.page);
       setRotation(0);
       setNumPages(null);
-      setPdfScale(1.0);
     }
   }, [viewingResult]);
 
@@ -101,8 +100,11 @@ export default function App() {
 
     if (viewingResult) {
       document.addEventListener("keydown", handleKeyDown);
-      return () => document.removeEventListener("keydown", handleKeyDown);
+      return () => {
+        document.removeEventListener("keydown", handleKeyDown);
+      };
     }
+    return undefined;
   }, [viewingResult]);
 
   useEffect(() => {
@@ -126,8 +128,10 @@ export default function App() {
     });
   }, []);
 
-  const executeSearch = async (term: string) => {
-    if (files.length === 0 || !term.trim()) return;
+  const executeSearch = async (term: string): Promise<void> => {
+    if (files.length === 0 || !term.trim()) {
+      return;
+    }
 
     setKeyword(term);
     updateRecentSearches(term);
@@ -148,11 +152,6 @@ export default function App() {
     }
   };
 
-  const handleSearch = (e: React.FormEvent<HTMLFormElement>) => {
-    e.preventDefault();
-    executeSearch(keyword);
-  };
-
   // FIXED: Proper reset with URL cleanup
   const handleReset = useCallback(() => {
     // Clean up all tracked URLs
@@ -167,8 +166,8 @@ export default function App() {
     setError(null);
   }, []);
 
-  const onDocumentLoadSuccess = ({ numPages }: { numPages: number }) => {
-    setNumPages(numPages);
+  const onDocumentLoadSuccess = ({ numPages: count }: { numPages: number }) => {
+    setNumPages(count);
   };
 
   const changePage = useCallback(
@@ -221,14 +220,18 @@ export default function App() {
       "Relevance Score",
       "Relevance Explanation",
     ];
-    const rows = data.results.map((result) => [
-      files[result.docIndex].file.name,
-      result.pageNumber,
-      result.matchedTerm,
-      `"${result.contextSnippet.replace(/"/g, '""')}"`,
-      result.relevanceScore,
-      `"${result.relevanceExplanation.replace(/"/g, '""')}"`,
-    ]);
+    const rows = data.results.map((result) => {
+      const file = files[result.docIndex];
+      const fileName = file ? file.file.name : "Unknown";
+      return [
+        fileName,
+        result.pageNumber,
+        result.matchedTerm,
+        `"${result.contextSnippet.replace(/"/g, '""')}"`,
+        result.relevanceScore,
+        `"${result.relevanceExplanation.replace(/"/g, '""')}"`,
+      ];
+    });
 
     const csvContent =
       "data:text/csv;charset=utf-8," +
@@ -266,7 +269,7 @@ export default function App() {
               </button>
             )}
             <div className="px-3 py-1 rounded-full bg-slate-800 border border-slate-700 text-xs font-mono text-slate-400">
-              Gemini 1.5 Flash • v1.3.0
+              Gemini 1.5 Flash • v1.3.1
             </div>
             <button
               onClick={() => setTheme(theme === "dark" ? "light" : "dark")}
@@ -283,10 +286,7 @@ export default function App() {
         {/* Input Section */}
         <section className="space-y-6">
           <div className="bg-slate-800/50 rounded-2xl p-1 border border-slate-700">
-            <form
-              onSubmit={handleSearch}
-              className="grid grid-cols-1 lg:grid-cols-12 gap-6 p-6"
-            >
+            <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 p-6">
               {/* File Upload Column */}
               <div className="lg:col-span-5 space-y-4">
                 <h2 className="text-lg font-semibold text-white flex items-center">
@@ -307,7 +307,13 @@ export default function App() {
               <div className="hidden lg:block w-px bg-slate-700/50 mx-auto h-full"></div>
 
               {/* Search Column */}
-              <div className="lg:col-span-6 space-y-4 flex flex-col">
+              <form
+                onSubmit={(e) => {
+                  e.preventDefault();
+                  void executeSearch(keyword);
+                }}
+                className="lg:col-span-6 space-y-4 flex flex-col"
+              >
                 <h2 className="text-lg font-semibold text-white flex items-center">
                   <span className="w-6 h-6 rounded-full bg-slate-700 flex items-center justify-center text-xs mr-2">
                     2
@@ -384,7 +390,9 @@ export default function App() {
                             <li key={i}>
                               <button
                                 type="button"
-                                onClick={() => executeSearch(term)}
+                                onClick={() => {
+                                  void executeSearch(term);
+                                }}
                                 disabled={
                                   status === AppStatus.ANALYZING ||
                                   files.length === 0
@@ -412,8 +420,8 @@ export default function App() {
                     )}
                   </div>
                 </div>
-              </div>
-            </form>
+              </form>
+            </div>
           </div>
         </section>
 
@@ -496,7 +504,11 @@ export default function App() {
           <div
             className="absolute inset-0 bg-black/80 backdrop-blur-sm transition-opacity"
             onClick={() => setViewingResult(null)}
-            onKeyDown={(e) => e.key === "Enter" && setViewingResult(null)}
+            onKeyDown={(e) => {
+              if (e.key === "Enter") {
+                setViewingResult(null);
+              }
+            }}
             role="button"
             tabIndex={0}
             aria-label="Close viewer"
@@ -622,25 +634,32 @@ export default function App() {
                   </div>
                 }
               >
-                {Array.from(new Array(numPages), (el, index) => (
-                  <InView key={`page_${index + 1}`}>
-                    {({ inView, ref }) => (
-                      <div ref={ref}>
-                        {inView ? (
-                          <Page
-                            pageNumber={index + 1}
-                            rotate={rotation}
-                            renderTextLayer={true}
-                            renderAnnotationLayer={false}
-                            scale={pdfScale}
-                          />
-                        ) : (
-                          <div style={{ height: "842px" }} /> // Adjust height to match page height
-                        )}
-                      </div>
-                    )}
-                  </InView>
-                ))}
+                {Array.from(
+                  new Array(numPages ?? 0),
+                  (_: unknown, index: number) => {
+                    return (
+                      <InView key={`page_${index + 1}`}>
+                        {({ inView, ref }) => {
+                          return (
+                            <div ref={ref}>
+                              {inView ? (
+                                <Page
+                                  pageNumber={index + 1}
+                                  rotate={rotation}
+                                  renderTextLayer={true}
+                                  renderAnnotationLayer={false}
+                                  scale={pdfScale}
+                                />
+                              ) : (
+                                <div style={{ height: "842px" }} />
+                              )}
+                            </div>
+                          );
+                        }}
+                      </InView>
+                    );
+                  },
+                )}
               </Document>
             </div>
           </div>

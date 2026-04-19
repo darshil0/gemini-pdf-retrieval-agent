@@ -1,4 +1,8 @@
-import { GoogleGenerativeAI, SchemaType } from "@google/generative-ai";
+import {
+  GoogleGenerativeAI,
+  SchemaType,
+  GenerateContentResult,
+} from "@google/generative-ai";
 import { SearchResponse } from "../types";
 import { buildSearchPrompt } from "../agent_architecture/prompts";
 
@@ -15,16 +19,19 @@ const fileToGenerativePart = async (file: File) => {
   const chunks: Uint8Array[] = [];
   let readResult = await reader.read();
   while (!readResult.done) {
-    chunks.push(readResult.value);
+    if (readResult.value) {
+      chunks.push(readResult.value);
+    }
     readResult = await reader.read();
   }
 
-  const blob = new Blob(chunks, { type: file.type });
+  // Use explicit conversion to avoid SharedArrayBuffer issues in strict type checking
+  const blob = new Blob(chunks as BlobPart[], { type: file.type });
   const base64EncodedData = await new Promise<string>((resolve, reject) => {
     const fileReader = new FileReader();
     fileReader.onloadend = () => {
       if (typeof fileReader.result === "string") {
-        resolve(fileReader.result.split(",")[1]);
+        resolve(fileReader.result.split(",")[1] ?? "");
       } else {
         reject(new Error("Failed to read file as base64 string."));
       }
@@ -54,7 +61,7 @@ export async function searchInDocuments(
   const prompt = buildSearchPrompt(files.length, keyword);
 
   try {
-    const result = await model.generateContent({
+    const result: GenerateContentResult = await model.generateContent({
       contents: [{ role: "user", parts: [...fileParts, { text: prompt }] }],
       generationConfig: {
         responseMimeType: "application/json",
@@ -90,7 +97,8 @@ export async function searchInDocuments(
       },
     });
 
-    const parsedResponse = JSON.parse(result.response.text());
+    const text = result.response.text();
+    const parsedResponse = JSON.parse(text) as SearchResponse;
     return parsedResponse;
   } catch (error) {
     console.error("Error during Gemini API call or parsing:", error);

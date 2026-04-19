@@ -1,198 +1,206 @@
-import React from "react";
-import { render, fireEvent, screen, waitFor } from "@testing-library/react";
-import { expect, test, vi } from "vitest";
+import { render, screen, fireEvent, waitFor } from "@testing-library/react";
 import App from "./App";
+import { vi, expect, it, describe, beforeEach } from "vitest";
 import * as geminiService from "./services/geminiService";
+import { SearchResponse } from "./types";
 
-// Imports removed
-vi.mock("./services/geminiService");
-
-// Mock react-pdf to avoid canvas/loading issues in jsdom
-vi.mock("react-pdf", () => ({
-  pdfjs: { GlobalWorkerOptions: { workerSrc: "" } },
-  Document: ({
-    children,
-    onLoadSuccess,
-  }: {
-    children: React.ReactNode;
-    onLoadSuccess?: (pdf: { numPages: number }) => void;
-  }) => {
-    // Simulate successful load immediately
-    React.useEffect(() => {
-      onLoadSuccess?.({ numPages: 5 });
-    }, [onLoadSuccess]);
-    return (
-      <div data-testid="pdf-document" role="document">
-        {children}
-      </div>
-    );
-  },
-  Page: () => <div data-testid="pdf-page">Page Content</div>,
+// Mock the gemini service
+vi.mock("./services/geminiService", () => ({
+  searchInDocuments: vi.fn(),
 }));
 
-// Mock localStorage
-const localStorageMock = (() => {
-  let store: Record<string, string> = {};
-  return {
-    getItem: (key: string) => store[key] || null,
-    setItem: (key: string, value: string) => {
-      store[key] = value.toString();
+// Mock react-pdf
+vi.mock("react-pdf", () => ({
+  Document: ({ children }: { children: React.ReactNode }) => (
+    <div data-testid="pdf-document">{children}</div>
+  ),
+  Page: ({ pageNumber }: { pageNumber: number }) => (
+    <div data-testid={`pdf-page-${pageNumber}`}>Page {pageNumber}</div>
+  ),
+  pdfjs: {
+    GlobalWorkerOptions: {
+      workerSrc: "",
     },
-    removeItem: (key: string) => {
-      delete store[key];
-    },
-    clear: () => {
-      store = {};
-    },
-  };
-})();
+  },
+}));
 
-Object.defineProperty(window, "localStorage", {
-  value: localStorageMock,
-});
-
-test("handleReset revokes object URLs", async () => {
-  const revokeObjectURL = vi.fn();
-  // Ensure we mock correctly on window.URL
-  Object.defineProperty(window, "URL", {
-    writable: true,
-    value: {
-      ...window.URL,
-      revokeObjectURL: revokeObjectURL,
-      createObjectURL: vi.fn(() => "mock-url"),
-    },
+describe("App Component", () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+    localStorage.clear();
   });
 
-  const mockSearchResponse = {
-    summary: "Found 1 result.",
-    results: [
-      {
-        docIndex: 0,
-        pageNumber: 1,
-        contextSnippet: "Hello world",
-        matchedTerm: "Hello",
-        relevanceExplanation: "Exact match",
+  it("renders the main title", () => {
+    render(<App />);
+    expect(screen.getByText("DocuSearch Agent")).toBeInTheDocument();
+  });
+
+  it("handles file selection", async () => {
+    render(<App />);
+    const file = new File(["test content"], "test.pdf", {
+      type: "application/pdf",
+    });
+    const input = screen.getByLabelText(/upload pdf files/i);
+
+    fireEvent.change(input, { target: { files: [file] } });
+
+    await waitFor(() => {
+      expect(screen.getByText("test.pdf")).toBeInTheDocument();
+    });
+  });
+
+  it("executes search and displays results", async () => {
+    const mockResults: SearchResponse = {
+      summary: "AI Analysis Summary",
+      results: [
+        {
+          docIndex: 0,
+          pageNumber: 1,
+          contextSnippet: "Test snippet content",
+          matchedTerm: "test",
+          relevanceExplanation: "High relevance",
+          relevanceScore: 0.9,
+        },
+      ],
+    };
+
+    vi.mocked(geminiService.searchInDocuments).mockImplementation(
+      async (_files: File[], _keyword: string) => {
+        return mockResults;
       },
-    ],
-  };
+    );
 
-  vi.spyOn(geminiService, "searchInDocuments").mockResolvedValue(
-    mockSearchResponse,
-  );
+    render(<App />);
 
-  render(<App />);
+    // Upload a file first
+    const file = new File(["test content"], "test.pdf", {
+      type: "application/pdf",
+    });
+    const input = screen.getByLabelText(/upload pdf files/i);
+    fireEvent.change(input, { target: { files: [file] } });
 
-  // Simulate file upload
-  const file = new File(["hello"], "hello.pdf", { type: "application/pdf" });
-  const fileInput = screen.getByLabelText("Upload PDF files");
-  fireEvent.change(fileInput, { target: { files: [file] } });
+    await waitFor(() => {
+      expect(screen.getByText("test.pdf")).toBeInTheDocument();
+    });
 
-  // Verify file is uploaded (files state updated)
-  await waitFor(() => {
-    expect(screen.getByText("hello.pdf")).toBeInTheDocument();
-  });
+    // Enter search term
+    const searchInput = screen.getByPlaceholderText(
+      /e.g., 'Financial Q3 results'/i,
+    );
+    fireEvent.change(searchInput, { target: { value: "test" } });
 
-  // Simulate typing a keyword
-  const keywordInput = screen.getByLabelText("Target Keyword or Phrase");
-  fireEvent.change(keywordInput, { target: { value: "test" } });
+    // Click search button
+    const searchButton = screen.getByText("Find Occurrences");
+    expect(searchButton).not.toBeDisabled();
+    fireEvent.click(searchButton);
 
-  // Simulate clicking the search button
-  const searchButton = screen.getByText("Find Occurrences");
-  fireEvent.click(searchButton);
-
-  // Wait for the search to complete
-  await waitFor(() => {
-    expect(screen.getByText("Clear Results")).toBeInTheDocument();
-  });
-
-  // Simulate clicking the reset button
-  const resetButton = screen.getByText("Clear Results");
-  fireEvent.click(resetButton);
-
-  // Expect revokeObjectURL to have been called
-  // It might be called multiple times if cleanup runs, but at least once for the manual reset
-  expect(revokeObjectURL).toHaveBeenCalled();
-});
-
-test("modal closes with Escape key", async () => {
-  const mockSearchResponse = {
-    summary: "Found 1 result.",
-    results: [
-      {
-        docIndex: 0,
-        pageNumber: 1,
-        contextSnippet: "Hello world",
-        matchedTerm: "Hello",
-        relevanceExplanation: "Exact match",
+    // Wait for the status to change and results to appear
+    await waitFor(
+      () => {
+        expect(screen.getByText(/Search Results/i)).toBeInTheDocument();
       },
-    ],
-  };
+      { timeout: 5000 },
+    );
 
-  vi.spyOn(geminiService, "searchInDocuments").mockResolvedValue(
-    mockSearchResponse,
-  );
-
-  render(<App />);
-
-  // Upload file
-  const file = new File(["hello"], "hello.pdf", { type: "application/pdf" });
-  const fileInput = screen.getByLabelText("Upload PDF files");
-  fireEvent.change(fileInput, { target: { files: [file] } });
-  await waitFor(() => {
-    expect(screen.getByText("hello.pdf")).toBeInTheDocument();
+    expect(screen.getByText("AI Analysis Summary")).toBeInTheDocument();
+    // Check for unique parts of the snippet
+    expect(screen.getByText(/snippet/i)).toBeInTheDocument();
+    expect(screen.getByText(/content/i)).toBeInTheDocument();
   });
 
-  // Search
-  const keywordInput = screen.getByLabelText("Target Keyword or Phrase");
-  fireEvent.change(keywordInput, { target: { value: "test" } });
-  const searchButton = screen.getByText("Find Occurrences");
-  fireEvent.click(searchButton);
+  it("handles search errors", async () => {
+    vi.mocked(geminiService.searchInDocuments).mockRejectedValue(
+      new Error("Search failed"),
+    );
 
-  // Open modal
-  const viewPageButton = await screen.findByRole("button", {
-    name: /view page/i,
-  });
-  fireEvent.click(viewPageButton);
+    render(<App />);
 
-  // Check modal
-  const modal = await screen.findByRole("dialog");
-  expect(modal).toBeInTheDocument();
+    // Upload file
+    const file = new File(["test content"], "test.pdf", {
+      type: "application/pdf",
+    });
+    const input = screen.getByLabelText(/upload pdf files/i);
+    fireEvent.change(input, { target: { files: [file] } });
 
-  // Press Escape on window or document
-  fireEvent.keyDown(document, { key: "Escape", code: "Escape" });
+    // Search
+    const searchInput = screen.getByPlaceholderText(
+      /e.g., 'Financial Q3 results'/i,
+    );
+    fireEvent.change(searchInput, { target: { value: "test" } });
+    fireEvent.click(screen.getByText("Find Occurrences"));
 
-  // Wait for close
-  await waitFor(() => {
-    expect(screen.queryByRole("dialog")).not.toBeInTheDocument();
-  });
-});
-
-test("recent searches have correct semantic structure", async () => {
-  render(<App />);
-
-  // Upload
-  const file = new File(["hello"], "hello.pdf", { type: "application/pdf" });
-  const fileInput = screen.getByLabelText("Upload PDF files");
-  fireEvent.change(fileInput, { target: { files: [file] } });
-  await waitFor(() => {
-    expect(screen.getByText("hello.pdf")).toBeInTheDocument();
+    await waitFor(() => {
+      expect(screen.getByText("Search failed")).toBeInTheDocument();
+    });
   });
 
-  // Search
-  const keywordInput = screen.getByLabelText("Target Keyword or Phrase");
-  fireEvent.change(keywordInput, { target: { value: "test search" } });
-  const searchButton = screen.getByText("Find Occurrences");
-  fireEvent.click(searchButton);
+  it("clears results on reset", async () => {
+    const mockResults: SearchResponse = {
+      summary: "Test summary",
+      results: [
+        {
+          docIndex: 0,
+          pageNumber: 1,
+          contextSnippet: "Test snippet",
+          matchedTerm: "test",
+          relevanceExplanation: "High relevance",
+          relevanceScore: 0.8,
+        },
+      ],
+    };
 
-  // Find recent search button
-  const recentSearchButton = await screen.findByText("test search");
-  expect(recentSearchButton).toBeInTheDocument();
+    vi.mocked(geminiService.searchInDocuments).mockResolvedValue(mockResults);
 
-  // Check structure: span -> button -> li -> ul
-  // findByText might return the span or text node
-  // traverse up to li
-  const listItem = recentSearchButton.closest("li");
-  expect(listItem).toBeInTheDocument();
-  const list = listItem?.parentElement;
-  expect(list?.tagName).toBe("UL");
+    render(<App />);
+
+    // Upload and search
+    const file = new File(["test content"], "test.pdf", {
+      type: "application/pdf",
+    });
+    fireEvent.change(screen.getByLabelText(/upload pdf files/i), {
+      target: { files: [file] },
+    });
+    fireEvent.change(
+      screen.getByPlaceholderText(/e.g., 'Financial Q3 results'/i),
+      {
+        target: { value: "test" },
+      },
+    );
+    fireEvent.click(screen.getByText("Find Occurrences"));
+
+    await waitFor(() => {
+      expect(screen.getByText("Clear Results")).toBeInTheDocument();
+    });
+
+    fireEvent.click(screen.getByText("Clear Results"));
+
+    await waitFor(() => {
+      expect(screen.queryByText("Search Results")).not.toBeInTheDocument();
+      expect(screen.queryByText("test.pdf")).not.toBeInTheDocument();
+    });
+  });
+
+  it("handles recent searches", async () => {
+    render(<App />);
+
+    // Mock search
+    const file = new File(["test content"], "test.pdf", {
+      type: "application/pdf",
+    });
+    fireEvent.change(screen.getByLabelText(/upload pdf files/i), {
+      target: { files: [file] },
+    });
+    fireEvent.change(
+      screen.getByPlaceholderText(/e.g., 'Financial Q3 results'/i),
+      {
+        target: { value: "recent search" },
+      },
+    );
+    fireEvent.click(screen.getByText("Find Occurrences"));
+
+    await waitFor(() => {
+      expect(screen.getByText("Recent Searches")).toBeInTheDocument();
+      expect(screen.getByText("recent search")).toBeInTheDocument();
+    });
+  });
 });

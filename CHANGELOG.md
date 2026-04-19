@@ -5,6 +5,15 @@ All notable changes to DocuSearch Agent will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.3.1] - 2026-04-19
+
+### Fixed
+
+- **TypeScript**: Resolved all remaining type errors in `App.tsx`, `vitest.setup.ts`, `vitest.config.ts`, and test files.
+- **Security**: Addressed security vulnerabilities by running `npm audit fix`, reducing identified issues from 23 to 17.
+- **Consistency**: Standardized configuration filenames (e.g., renamed `prettierrc.json` to `.prettierrc.json`).
+- **Cleanup**: Removed duplicate root-level assets to maintain a clean project structure.
+
 ## [1.3.0] - 2025-12-13
 
 ### Added

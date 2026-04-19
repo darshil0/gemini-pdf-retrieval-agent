@@ -25,20 +25,27 @@ cp .env.example .env
 npm run dev
 ```
 
-## Key Issues Fixed (v1.3.0)
+## Key Issues Fixed (v1.3.1)
 
-### Performance & Memory
+### Code Quality & Stability
 
-1. ✅ **Streaming Document Processing** - Implemented streaming for large file uploads to reduce memory overhead.
-2. ✅ **Lazy Loading PDFs** - PDF pages are now lazy-loaded to optimize memory usage.
+1. ✅ **TypeScript Resolution** - Fixed all remaining type errors across the application and test suites.
+2. ✅ **Configuration Standardization** - Renamed tool configuration files to standard dotted formats for better tool compatibility.
+3. ✅ **Security Hardening** - Reduced security vulnerabilities by upgrading dependencies via `npm audit fix`.
+4. ✅ **Project Cleanup** - Removed duplicate assets and optimized project structure.
 
-### Search & UI/UX
+### Performance & Memory (v1.3.0)
 
-3. ✅ **Improved Search Accuracy** - Enhanced the search prompt with relevance scoring to provide more accurate results.
-4. ✅ **Text Selection in PDF Viewer** - Enabled the text layer in the PDF viewer to allow for text selection and copying.
-5. ✅ **Search History** - Added a search history feature to easily access previous searches.
-6. ✅ **Export Search Results** - Implemented a feature to export search results to a CSV file.
-7. ✅ **Dark Mode Support** - Added a dark mode toggle to the UI.
+5. ✅ **Streaming Document Processing** - Implemented streaming for large file uploads to reduce memory overhead.
+6. ✅ **Lazy Loading PDFs** - PDF pages are now lazy-loaded to optimize memory usage.
+
+### Search & UI/UX (v1.3.0)
+
+7. ✅ **Improved Search Accuracy** - Enhanced the search prompt with relevance scoring to provide more accurate results.
+8. ✅ **Text Selection in PDF Viewer** - Enabled the text layer in the PDF viewer to allow for text selection and copying.
+9. ✅ **Search History** - Added a search history feature to easily access previous searches.
+10. ✅ **Export Search Results** - Implemented a feature to export search results to a CSV file.
+11. ✅ **Dark Mode Support** - Added a dark mode toggle to the UI.
 
 ## Features
 
@@ -130,4 +137,4 @@ MIT License - see [LICENSE](LICENSE) file for details.
 
 ---
 
-**Built with ❤️ by Darshil** • v1.3.0
+**Built with ❤️ by Darshil** • v1.3.1
