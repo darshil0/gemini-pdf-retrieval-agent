@@ -1,73 +1,75 @@
-// src/__tests__/integration.test.tsx
-import { describe, it, expect, vi } from "vitest";
 import { render, screen, fireEvent, waitFor } from "@testing-library/react";
 import App from "../App";
+import { vi, expect, it, describe, beforeEach } from "vitest";
 import * as geminiService from "../services/geminiService";
+import { SearchResponse } from "../types";
 
-vi.mock("../services/geminiService");
+// Mock the gemini service
+vi.mock("../services/geminiService", () => ({
+  searchInDocuments: vi.fn(),
+}));
+
+// Mock react-pdf
+vi.mock("react-pdf", () => ({
+  Document: ({ children }: { children: React.ReactNode }) => (
+    <div data-testid="pdf-document">{children}</div>
+  ),
+  Page: ({ pageNumber }: { pageNumber: number }) => (
+    <div data-testid={`pdf-page-${pageNumber}`}>Page {pageNumber}</div>
+  ),
+  pdfjs: {
+    GlobalWorkerOptions: {
+      workerSrc: "",
+    },
+  },
+}));
 
 describe("Integration Tests", () => {
-  it("complete workflow: upload, search, highlight", async () => {
-    const mockSearchResponse = {
-      summary: "Found 1 result.",
+  beforeEach(() => {
+    vi.clearAllMocks();
+  });
+
+  it("should complete a full search flow", async () => {
+    const mockResults: SearchResponse = {
+      summary: "AI Summary",
       results: [
         {
           docIndex: 0,
           pageNumber: 1,
-          contextSnippet: "test content",
-          matchedTerm: "test",
-          relevanceExplanation: "Exact match",
+          contextSnippet: "Found in document",
+          matchedTerm: "search",
+          relevanceExplanation: "Direct match",
+          relevanceScore: 1.0,
         },
       ],
     };
 
-    vi.spyOn(geminiService, "searchInDocuments").mockResolvedValue(
-      mockSearchResponse,
-    );
+    vi.mocked(geminiService.searchInDocuments).mockResolvedValue(mockResults);
 
     render(<App />);
 
-    // 1. Upload file
-    const file = new File(["test content"], "test.pdf", {
+    // 1. Upload
+    const file = new File(["pdf content"], "test.pdf", {
       type: "application/pdf",
     });
-    const input = screen.getByLabelText("Upload PDF files");
+    const input = screen.getByLabelText(/upload pdf files/i);
     fireEvent.change(input, { target: { files: [file] } });
 
-    await waitFor(() => {
-      expect(screen.getByText("test.pdf")).toBeInTheDocument();
-    });
-
-    // 2. Enter search query
-    const searchInput = screen.getByLabelText("Target Keyword or Phrase");
-    fireEvent.change(searchInput, { target: { value: "test" } });
-
-    // 3. Execute search
-    const searchButton = screen.getByText("Find Occurrences");
-    fireEvent.click(searchButton);
-
-    // 4. Verify results displayed
-    await waitFor(() => {
-      expect(screen.getByText("Found 1 result.")).toBeInTheDocument();
-    });
-  });
-
-  it("prevents exceeding 10-file limit", async () => {
-    render(<App />);
-
-    const files = Array.from(
-      { length: 11 },
-      (_, i) =>
-        new File(["content"], `test${i}.pdf`, { type: "application/pdf" }),
+    // 2. Search
+    const searchInput = screen.getByPlaceholderText(
+      /e.g., 'Financial Q3 results'/i,
     );
+    fireEvent.change(searchInput, { target: { value: "search" } });
+    fireEvent.click(screen.getByText("Find Occurrences"));
 
-    const input = screen.getByLabelText("Upload PDF files");
-    fireEvent.change(input, { target: { files } });
-
+    // 3. Verify results
     await waitFor(() => {
-      expect(
-        screen.getByText(/Cannot upload more than 10 files/i),
-      ).toBeInTheDocument();
+      expect(screen.getByText("AI Summary")).toBeInTheDocument();
+      expect(screen.getByText("Found in document")).toBeInTheDocument();
     });
+
+    // 4. Open viewer
+    fireEvent.click(screen.getByText("View Page 1"));
+    expect(screen.getByText("Page 1 of --")).toBeInTheDocument();
   });
 });

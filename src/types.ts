@@ -3,7 +3,8 @@ export interface SearchResult {
   pageNumber: number;
   contextSnippet: string;
   relevanceExplanation: string;
-  matchedTerm?: string; // The specific variation found (e.g. 'color' vs 'colour')
+  relevanceScore: number;
+  matchedTerm: string;
 }
 
 export interface SearchResponse {
@@ -14,7 +15,7 @@ export interface SearchResponse {
 export interface UploadedFile {
   file: File;
   id: string;
-  previewUrl?: string;
+  previewUrl: string;
 }
 
 export enum AppStatus {
