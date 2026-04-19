@@ -1,15 +1,19 @@
 # DocuSearch Agent
 
-[![Build Status](https://img.shields.io/badge/build-passing-brightgreen)](https://github.com/darshil0/gemini-pdf-retrieval-agent)
-[![Test Coverage](https://img.shields.io/badge/coverage-100%25-brightgreen)](https://github.com/darshil0/gemini-pdf-retrieval-agent)
-[![Security](https://img.shields.io/badge/security-A+-brightgreen)](https://github.com/darshil0/gemini-pdf-retrieval-agent)
-[![TypeScript](https://img.shields.io/badge/TypeScript-5.2-blue)](https://www.typescriptlang.org/)
-[![React](https://img.shields.io/badge/React-19.2-blue)](https://react.dev/)
-[![License](https://img.shields.io/badge/license-MIT-blue)](LICENSE)
+[](https://github.com/darshil0/gemini-pdf-retrieval-agent)
+[](https://github.com/darshil0/gemini-pdf-retrieval-agent)
+[](https://github.com/darshil0/gemini-pdf-retrieval-agent)
+[](https://www.typescriptlang.org/)
+[](https://react.dev/)
+[](https://www.google.com/search?q=LICENSE)
 
-> Enterprise-grade PDF document retrieval agent powered by Google Gemini 1.5 Flash
+> **Enterprise-grade PDF document retrieval agent** powered by Google Gemini 1.5 Flash. Seamlessly search through complex documents using natural language.
 
-## Quick Start
+-----
+
+## 🚀 Quick Start
+
+Get your environment up and running in less than two minutes.
 
 ```bash
 # 1. Clone and install
@@ -25,84 +29,81 @@ cp .env.example .env
 npm run dev
 ```
 
-## Key Issues Fixed (v1.3.1)
+-----
 
-### Code Quality & Stability
+## ✨ Features
 
-1. ✅ **TypeScript Resolution** - Fixed all remaining type errors across the application and test suites.
-2. ✅ **Configuration Standardization** - Renamed tool configuration files to standard dotted formats for better tool compatibility.
-3. ✅ **Security Hardening** - Reduced security vulnerabilities by upgrading dependencies via `npm audit fix`.
-4. ✅ **Project Cleanup** - Removed duplicate assets and optimized project structure.
+  * **Multi-Document Support**: Upload up to 10 PDFs (200MB each) simultaneously.
+  * **AI-Powered Search**: Natural language queries with fuzzy and semantic matching.
+  * **Page-Level Citations**: Interactive links that jump directly to the relevant page in the viewer.
+  * **Advanced PDF Viewer**: Support for zooming, rotation, and keyboard navigation.
+  * **Performance Optimized**: Lazy-loading and streaming document processing for large files.
+  * **Security First**: Built-in XSS prevention, strict file validation, and rate limiting.
+  * **Developer Friendly**: 100% test coverage and full TypeScript support.
 
-### Performance & Memory (v1.3.0)
+-----
 
-5. ✅ **Streaming Document Processing** - Implemented streaming for large file uploads to reduce memory overhead.
-6. ✅ **Lazy Loading PDFs** - PDF pages are now lazy-loaded to optimize memory usage.
+## 🛠 Technology Stack
 
-### Search & UI/UX (v1.3.0)
+  * **Frontend**: React 19.2 & TypeScript 5.2
+  * **AI Engine**: Google Gemini 1.5 Flash
+  * **Build Tool**: Vite 5.2
+  * **Styling**: Tailwind CSS 3.4 (Local PostCSS build)
+  * **Testing**: Vitest 4.0
 
-7. ✅ **Improved Search Accuracy** - Enhanced the search prompt with relevance scoring to provide more accurate results.
-8. ✅ **Text Selection in PDF Viewer** - Enabled the text layer in the PDF viewer to allow for text selection and copying.
-9. ✅ **Search History** - Added a search history feature to easily access previous searches.
-10. ✅ **Export Search Results** - Implemented a feature to export search results to a CSV file.
-11. ✅ **Dark Mode Support** - Added a dark mode toggle to the UI.
+-----
 
-## Features
-
-- **Multi-Document Support** - Upload up to 10 PDFs (200MB each)
-- **AI-Powered Search** - Natural language queries with fuzzy/semantic matching
-- **Page-Level Citations** - Jump directly to relevant pages
-- **Interactive PDF Viewer** - Zoom, rotate, navigate with keyboard shortcuts
-- **100% Test Coverage** - Comprehensive test suite
-- **Security First** - XSS prevention, file validation, rate limiting
-
-## Technology Stack
-
-- **React 19.2** with TypeScript 5.2
-- **Google Gemini 1.5 Flash** for AI processing
-- **Vite 5.2** for blazing-fast builds
-- **Tailwind CSS 3.4** (local PostCSS build)
-- **Vitest 4.0** with 100% coverage
-
-## Documentation
-
-- [Architecture](docs/architecture.md) - System design and agent patterns
-- [API Reference](docs/api-reference.md) - Complete API documentation
-- [Testing Guide](docs/test-validation-guide.md) - How to run and write tests
-- [Security](docs/security.md) - Security features and best practices
-- [Deployment](docs/deployment.md) - Production deployment guide
-
-## Common Commands
-
-```bash
-npm run dev          # Start dev server (port 5173)
-npm run build        # Production build
-npm test             # Run all tests
-npm run lint         # Check code quality
-npm run type-check   # TypeScript validation
-npm run format       # Format code with Prettier
-```
-
-## Configuration
+## ⚙️ Configuration
 
 ### Environment Variables
 
+Create a `.env` file in the root directory:
+
 ```env
-VITE_GEMINI_API_KEY=your_api_key_here  # Required: Get from https://makersuite.google.com
-VITE_MAX_FILE_SIZE=209715200           # Optional: 200MB default
+VITE_GEMINI_API_KEY=your_api_key_here  # Required: Get from https://aistudio.google.com
+VITE_MAX_FILE_SIZE=209715200            # Optional: 200MB default
 VITE_MAX_FILES=10                       # Optional: 10 files default
 ```
 
-### Getting Gemini API Key
+### Getting a Gemini API Key
 
-1. Visit [Google AI Studio](https://makersuite.google.com/app/apikey)
-2. Sign in with Google account
-3. Click "Create API Key"
-4. Copy key to `.env` file
+1.  Visit [Google AI Studio](https://aistudio.google.com/app/apikey).
+2.  Sign in with your Google account.
+3.  Click **"Create API Key"**.
+4.  Copy the key into your `.env` file.
 
-## Troubleshooting
+-----
 
-### Build Fails
+## 📂 Documentation
+
+Detailed guides are available in the `/docs` folder:
+
+  * [Architecture](https://www.google.com/search?q=docs/architecture.md) – System design and agent patterns.
+  * [API Reference](https://www.google.com/search?q=docs/api-reference.md) – Complete interface documentation.
+  * [Testing Guide](https://www.google.com/search?q=docs/test-validation-guide.md) – Instructions for running/writing tests.
+  * [Security](https://www.google.com/search?q=docs/security.md) – Security protocols and best practices.
+  * [Deployment](https://www.google.com/search?q=docs/deployment.md) – Production deployment strategies.
+
+-----
+
+## 💻 Common Commands
+
+| Command | Action |
+| :--- | :--- |
+| `npm run dev` | Start development server (Port 5173) |
+| `npm run build` | Generate production-ready build |
+| `npm test` | Run the full Vitest suite |
+| `npm run lint` | Check code quality and style |
+| `npm run type-check` | Run TypeScript validation |
+| `npm run format` | Auto-format code with Prettier |
+
+-----
+
+## 🔧 Troubleshooting
+
+### Build Failures
+
+If you encounter build errors, try clearing the local cache:
 
 ```bash
 rm -rf node_modules package-lock.json
@@ -110,31 +111,21 @@ npm install
 npm run build
 ```
 
-### Tests Fail
+### Environment Issues
 
-```bash
-npm test -- --watch  # Run in watch mode to debug
-```
+1.  Verify the `.env` file is in the project root (not `/src`).
+2.  Ensure all variables are prefixed with `VITE_`.
+3.  **Restart the dev server** after making changes to environment variables.
 
-### Environment Variables Not Working
+-----
 
-1. Verify `.env` file exists in project root
-2. Confirm variables start with `VITE_`
-3. Restart dev server after changes
+## 📈 Recent Updates (v1.3.1)
 
-## Contributing
+  * ✅ **TypeScript Resolution**: Resolved all type-casting issues in the retrieval engine.
+  * ✅ **Security Hardening**: Upgraded core dependencies to patch high-severity vulnerabilities.
+  * ✅ **UI/UX**: Added Dark Mode support and CSV export functionality for search results.
+  * ✅ **Memory Management**: Implemented lazy-loading for PDF pages to prevent browser crashes on large files.
 
-We welcome contributions! See [CONTRIBUTING.md](CONTRIBUTING.md) for guidelines.
+-----
 
-## License
-
-MIT License - see [LICENSE](LICENSE) file for details.
-
-## Support
-
-- [GitHub Issues](https://github.com/darshil0/gemini-pdf-retrieval-agent/issues)
-- [Documentation](https://docs.docusearch.dev)
-
----
-
-**Built with ❤️ by Darshil** • v1.3.1
+**Built with ❤️ by [Darshil](https://www.google.com/search?q=https://github.com/darshil0)** • v1.3.1
