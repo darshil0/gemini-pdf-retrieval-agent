@@ -1,7 +1,3 @@
-I've cleaned up the README to ensure it meets "enterprise-grade" standards. Key improvements include removing hidden non-breaking space characters (which cause CLI errors), re-organizing the hierarchy for better flow, and polishing the Markdown syntax for better rendering across GitHub and GitLab.
-
------
-
 # DocuSearch Agent
 
 [](https://github.com/darshil0/gemini-pdf-retrieval-agent)
