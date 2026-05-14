@@ -1,12 +1,16 @@
-# Tool Prompts
+# Tool Prompts (Instructions)
 
-## Search Tool Instructions
+> **Version**: v1.4.0
 
-**Goal**: Identify every occurrence of a specific keyword, phrase, or concept within the provided documents.
+## 🔍 Search Tool (SEARCH_TOOL_INSTRUCTIONS)
 
-**Procedure**:
+**Primary Task**: Identify every occurrence of a specific keyword, phrase, or concept within the provided document corpus.
 
-1.  **Scan**: Read all provided text from all files.
-2.  **Identify**: Locate specific matches based on the user's query.
-3.  **Extract**: Capture the exact context and location (page number) for each match.
-4.  **Format**: Return the findings in a strict JSON format.
+### 📋 Operational Procedure
+
+1.  **Deep Scan**: Iterate through all text extracted from all provided files within the specified index range.
+2.  **Match Identification**: Locate exact, fuzzy, and semantic matches based on the target query.
+3.  **Data Capture**: Extract the precise `matchedTerm` and the surrounding `contextSnippet` (20-40 words).
+4.  **Metadata Assignment**: Assign accurate `docIndex` and `pageNumber` for each match found.
+5.  **Relevance Scoring**: Evaluate every result against the relevance protocol (see [PROTOCOLS.md](./PROTOCOLS.md)).
+

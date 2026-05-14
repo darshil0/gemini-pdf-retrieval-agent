@@ -1,21 +1,25 @@
-# Agent Architecture
+# Agent Architecture Guide
 
-This directory defines the core intelligence of the agent, separated into three components:
+> **Version**: v1.4.0  
+> **Status**: Finalized  
+> **Pattern**: System-Tool-Protocol
 
-1.  **System Prompt**: The persona and core identity.
-2.  **Tool Prompts**: Specific instructions for using tools.
-3.  **Protocols**: Strict constraints and logical flows that must be followed.
+This directory defines the core intelligence and behavioral guidelines for the DocuSearch Agent. The architecture is modularized into three distinct layers to ensure reliability, predictability, and high-quality AI responses.
 
-## Components
+## 🧱 Architecture Components
 
-### [SYSTEM_PROMPT.md](./SYSTEM_PROMPT.md)
+### 1. [System Prompt (Persona)](./SYSTEM_PROMPT.md)
+Defines the agent's identity, role, and overarching capabilities. This is the "brain" of the agent.
 
-Defines the `SYSTEM_PERSONA`.
+### 2. [Tool Prompts (Instructions)](./TOOL_PROMPTS.md)
+Specific operational instructions for the tools available to the agent (e.g., Search). This is the "skillset".
 
-### [TOOL_PROMPTS.md](./TOOL_PROMPTS.md)
+### 3. [Protocols (Logic & Constraints)](./PROTOCOLS.md)
+Strict rules and logical workflows that the agent MUST follow during execution. This is the "governance".
 
-Defines the `SEARCH_TOOL_INSTRUCTIONS`.
+---
 
-### [PROTOCOLS.md](./PROTOCOLS.md)
+## 🛠 Implementation Reference
+The live implementation of these prompts can be found in:
+`src/agent_architecture/prompts.ts`
 
-Defines the `SEARCH_PROTOCOL` constraints.
