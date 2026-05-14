@@ -6,6 +6,7 @@ interface ImportMetaEnv {
   readonly VITE_MAX_FILES?: string;
   readonly VITE_RATE_LIMIT?: string;
   readonly VITE_DEBUG?: string;
+  readonly VITE_PDF_WORKER_SRC?: string;
   // Add more VITE_ prefixed env variables here
 }
 

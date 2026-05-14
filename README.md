@@ -39,7 +39,7 @@ npm run dev
   * **Advanced PDF Viewer**: Support for zooming, rotation, and keyboard navigation.
   * **Performance Optimized**: Lazy-loading and streaming document processing for large files.
   * **Security First**: Built-in XSS prevention, strict file validation, and rate limiting.
-  * **Developer Friendly**: 100% test coverage and full TypeScript support.
+  * **Developer Friendly**: Comprehensive test suite with full TypeScript strict mode.
 
 -----
 
@@ -63,6 +63,7 @@ Create a `.env` file in the root directory:
 VITE_GEMINI_API_KEY=your_api_key_here  # Required: Get from https://aistudio.google.com
 VITE_MAX_FILE_SIZE=209715200            # Optional: 200MB default
 VITE_MAX_FILES=10                       # Optional: 10 files default
+VITE_PDF_WORKER_SRC=                    # Optional: Custom PDF.js worker URL (for air-gapped envs)
 ```
 
 ### Getting a Gemini API Key
@@ -126,6 +127,8 @@ npm run build
   * ✅ **UI/UX**: Added Dark Mode support and CSV export functionality for search results.
   * ✅ **Memory Management**: Implemented lazy-loading for PDF pages to prevent browser crashes on large files.
 
+> **Note on Memory**: Uploading many large PDFs (8+ files, 50MB+ each) may consume significant browser memory. For best performance on devices with ≤8GB RAM, limit concurrent uploads to 5 files.
+
 -----
 
-**Built with ❤️ by [Darshil](https://www.google.com/search?q=https://github.com/darshil0)** • v1.3.1
+**Built with ❤️ by [Darshil](https://www.google.com/search?q=https://github.com/darshil0)** • v1.4.0

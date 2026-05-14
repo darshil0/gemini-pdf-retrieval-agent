@@ -1,3 +1,6 @@
+/**
+ * Represents a parsed document with pages and text content.
+ */
 interface Document {
   documentName: string;
   pages: {
@@ -7,6 +10,10 @@ interface Document {
   }[];
 }
 
+/**
+ * Represents a single keyword match found in a document.
+ * Includes position information and surrounding context.
+ */
 export interface KeywordMatch {
   keyword: string;
   documentName: string;
@@ -20,12 +27,21 @@ export interface KeywordMatch {
   fullLine: string;
 }
 
+/**
+ * Options for controlling keyword search behavior.
+ */
 interface SearchOptions {
+  /** Whether the search should be case-sensitive. Defaults to false. */
   caseSensitive?: boolean;
+  /** Whether to match whole words only. Defaults to false. */
   wholeWord?: boolean;
+  /** Maximum number of characters to include in context before/after match. Defaults to 50. */
   maxContextLength?: number;
 }
 
+/**
+ * Aggregate statistics about keyword matches across documents.
+ */
 interface MatchStatistics {
   totalMatches: number;
   documentsWithMatches: number;
@@ -33,6 +49,22 @@ interface MatchStatistics {
 }
 
 export const KeywordSearchService = {
+  /**
+   * Searches for a keyword across all pages of all provided documents.
+   * Supports case-insensitive, whole-word, and fuzzy matching.
+   * Results are sorted by document name and page number.
+   *
+   * @param keyword - The search term to find
+   * @param documents - Array of parsed documents to search through
+   * @param options - Optional search configuration
+   * @returns Array of KeywordMatch objects sorted by document and page
+   * @throws {Error} If keyword is empty
+   *
+   * @example
+   * ```ts
+   * const matches = KeywordSearchService.searchKeyword("revenue", docs, { caseSensitive: false });
+   * ```
+   */
   searchKeyword(
     keyword: string,
     documents: Document[],
@@ -96,6 +128,18 @@ export const KeywordSearchService = {
     });
   },
 
+  /**
+   * Calculates aggregate statistics for a set of keyword matches.
+   *
+   * @param matches - Array of KeywordMatch objects to analyze
+   * @returns Statistics including total matches, documents with matches, and pages with matches
+   *
+   * @example
+   * ```ts
+   * const stats = KeywordSearchService.getMatchStatistics(matches);
+   * console.log(`Found ${stats.totalMatches} in ${stats.documentsWithMatches} docs`);
+   * ```
+   */
   getMatchStatistics(matches: KeywordMatch[]): MatchStatistics {
     const documentsWithMatches = new Set(matches.map((m) => m.documentName))
       .size;

@@ -1,5 +1,5 @@
 // src/components/KeywordHighlighter.tsx
-import React, { useState, useEffect } from "react";
+import { useState, useEffect } from "react";
 import { Search, ChevronLeft, ChevronRight, X } from "lucide-react";
 import { KeywordMatch } from "../services/keywordSearch";
 
@@ -11,13 +11,15 @@ interface KeywordHighlighterProps {
   onJumpToMatch: (match: KeywordMatch) => void;
 }
 
-export const KeywordHighlighter: React.FC<KeywordHighlighterProps> = ({
+// Issue #16: Confirmed safe — all keyword text is rendered via React text nodes,
+// not dangerouslySetInnerHTML. No XSS risk.
+export const KeywordHighlighter = ({
   matches,
   currentMatchIndex,
   onNavigate,
   onClose,
   onJumpToMatch,
-}) => {
+}: KeywordHighlighterProps) => {
   const [filterDocument, setFilterDocument] = useState<string>("all");
   const [filteredMatches, setFilteredMatches] =
     useState<KeywordMatch[]>(matches);

@@ -1,4 +1,3 @@
-import React from "react";
 import { FileText, Bookmark, Eye } from "lucide-react";
 import { SearchResult } from "../types";
 
@@ -9,14 +8,20 @@ interface SearchResultCardProps {
   onView: () => void;
 }
 
-export const SearchResultCard: React.FC<SearchResultCardProps> = ({
+export const SearchResultCard = ({
   result,
   fileName,
   keyword,
   onView,
-}) => {
+}: SearchResultCardProps) => {
+  // Issue #12: Defensive checks for result fields
+  const contextSnippet = result.contextSnippet ?? "";
+  const matchedTerm = result.matchedTerm ?? "";
+  const relevanceExplanation = result.relevanceExplanation ?? "";
+  const pageNumber = result.pageNumber ?? 0;
+  const docIndex = result.docIndex ?? 0;
   // Determine what to highlight: prefer the exact term found by AI, fallback to search keyword
-  const termToHighlight = result.matchedTerm || keyword;
+  const termToHighlight = matchedTerm || keyword;
 
   // Highlight logic with regex escaping for special characters
   const getHighlightedText = (text: string, highlight: string) => {
@@ -55,7 +60,7 @@ export const SearchResultCard: React.FC<SearchResultCardProps> = ({
         <div className="flex items-center space-x-2 text-blue-400">
           <FileText size={16} />
           <span className="text-xs font-semibold uppercase tracking-wider">
-            Doc #{result.docIndex + 1}
+            Doc #{docIndex + 1}
           </span>
           <span
             className="text-sm text-slate-300 font-medium truncate max-w-[200px]"
@@ -66,29 +71,29 @@ export const SearchResultCard: React.FC<SearchResultCardProps> = ({
         </div>
         <div className="flex items-center space-x-1 text-emerald-400 bg-emerald-900/20 px-2 py-1 rounded text-xs font-medium border border-emerald-500/20">
           <Bookmark size={12} />
-          <span>Page {result.pageNumber}</span>
+          <span>Page {pageNumber}</span>
         </div>
       </div>
 
       <div className="mb-4 text-slate-300 leading-relaxed text-sm bg-slate-900/50 p-4 rounded-lg border border-slate-700/50 flex-grow">
         <span className="text-slate-500 mr-1">&quot;...</span>
-        {getHighlightedText(result.contextSnippet, termToHighlight)}
+        {getHighlightedText(contextSnippet, termToHighlight)}
         <span className="text-slate-500 ml-1">...&quot;</span>
       </div>
 
       <div className="flex items-center justify-between pt-2 border-t border-slate-700/50 mt-auto">
         <span
           className="text-xs text-slate-500 italic truncate pr-2"
-          title={result.relevanceExplanation}
+          title={relevanceExplanation}
         >
-          {result.relevanceExplanation}
+          {relevanceExplanation}
         </span>
         <button
           onClick={onView}
           className="flex-shrink-0 flex items-center space-x-2 text-xs font-medium text-blue-400 bg-blue-500/10 hover:bg-blue-500/20 px-3 py-1.5 rounded transition-colors border border-blue-500/20"
         >
           <Eye size={14} />
-          <span>View Page {result.pageNumber}</span>
+          <span>View Page {pageNumber}</span>
         </button>
       </div>
     </div>

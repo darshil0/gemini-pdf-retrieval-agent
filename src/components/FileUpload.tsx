@@ -1,5 +1,5 @@
 // src/components/FileUpload.tsx
-import React, { useCallback, useState } from "react";
+import { useCallback, useState } from "react";
 import { Upload, X, FileText, AlertCircle } from "lucide-react";
 
 const MAX_FILES = 10;
@@ -15,16 +15,17 @@ interface FileUploadProps {
 }
 
 interface FileValidationError {
+  id: string;
   file: string;
   error: string;
 }
 
-export const FileUpload: React.FC<FileUploadProps> = ({
+export const FileUpload = ({
   onFilesSelected,
   uploadedFiles,
   onRemoveFile,
   isProcessing = false,
-}) => {
+}: FileUploadProps) => {
   const [dragActive, setDragActive] = useState(false);
   const [errors, setErrors] = useState<FileValidationError[]>([]);
 
@@ -37,6 +38,7 @@ export const FileUpload: React.FC<FileUploadProps> = ({
         // Check file type
         if (!ALLOWED_MIME_TYPES.includes(file.type)) {
           validationErrors.push({
+            id: `${file.name}-type-${Date.now()}`,
             file: file.name,
             error: "Only PDF files are allowed",
           });
@@ -46,6 +48,7 @@ export const FileUpload: React.FC<FileUploadProps> = ({
         // Check file size
         if (file.size > MAX_FILE_SIZE_BYTES) {
           validationErrors.push({
+            id: `${file.name}-size-${Date.now()}`,
             file: file.name,
             error: `File size exceeds ${MAX_FILE_SIZE_MB}MB limit`,
           });
@@ -59,6 +62,7 @@ export const FileUpload: React.FC<FileUploadProps> = ({
           )
         ) {
           validationErrors.push({
+            id: `${file.name}-dup-${Date.now()}`,
             file: file.name,
             error: "File already uploaded",
           });
@@ -84,6 +88,7 @@ export const FileUpload: React.FC<FileUploadProps> = ({
       if (totalFiles > MAX_FILES) {
         setErrors([
           {
+            id: `system-limit-${Date.now()}`,
             file: "System",
             error: `Cannot upload more than ${MAX_FILES} files. Currently have ${uploadedFiles.length} file(s). Attempting to add ${fileArray.length} more.`,
           },
@@ -153,9 +158,9 @@ export const FileUpload: React.FC<FileUploadProps> = ({
       {/* Error Messages */}
       {errors.length > 0 && (
         <div className="space-y-2">
-          {errors.map((error, index) => (
+          {errors.map((error) => (
             <div
-              key={index}
+              key={error.id}
               className="flex items-start gap-2 p-3 bg-red-900/20 border border-red-800 rounded-lg"
             >
               <AlertCircle className="w-5 h-5 text-red-400 flex-shrink-0 mt-0.5" />
@@ -164,7 +169,7 @@ export const FileUpload: React.FC<FileUploadProps> = ({
                 <p className="text-xs text-red-300">{error.error}</p>
               </div>
               <button
-                onClick={() => setErrors(errors.filter((_, i) => i !== index))}
+                onClick={() => setErrors(errors.filter((e) => e.id !== error.id))}
                 className="text-red-400 hover:text-red-300"
                 aria-label="Dismiss error"
               >
