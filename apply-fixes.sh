@@ -1,23 +1,24 @@
 #!/bin/bash
 
 # DocuSearch Agent - Apply All Fixes Script
-# Version: 1.2.3
-# Run this script to apply all fixes automatically
+# Version: 1.4.0
+# Run this script to apply all production-readiness fixes automatically
 
 set -e
 
-echo "🔧 DocuSearch Agent - Applying All Fixes v1.2.3"
+echo "🔧 DocuSearch Agent - Applying All Fixes v1.4.0"
 echo "================================================"
 echo ""
 
-# Step 1: Remove duplicate vitest.setup.ts from root
-echo "📝 Step 1: Removing duplicate test setup file..."
-if [ -f "vitest.setup.ts" ]; then
-    rm vitest.setup.ts
-    echo "✅ Removed: vitest.setup.ts (root)"
-else
-    echo "ℹ️  No duplicate file found (already clean)"
+# Step 1: Check for Node/NPM
+echo "📝 Step 1: Verifying environment..."
+if ! command -v node &> /dev/null || ! command -v npm &> /dev/null; then
+    echo "⚠️  Error: node or npm not found in PATH."
+    echo "   If you are on Windows, ensure they are in your Environment Variables."
+    echo "   Current PATH search failed."
+    # We don't exit here as the user might be running in a custom environment
 fi
+echo "✅ Environment check finished"
 echo ""
 
 # Step 2: Check and fix Prettier config filename
@@ -37,9 +38,11 @@ echo "📝 Step 3: Creating backup of modified files..."
 BACKUP_DIR="backup_$(date +%Y%m%d_%H%M%S)"
 mkdir -p "$BACKUP_DIR"
 
-for file in "vite.config.ts" "vitest.config.ts" "src/vite-env.d.ts" "src/App.tsx"; do
+for file in "package.json" "package-lock.json" "src/App.tsx" "CHANGELOG.md" "docs/DOCUMENTATION.md"; do
     if [ -f "$file" ]; then
-        cp "$file" "$BACKUP_DIR/"
+        # Create subdirectories in backup if needed
+        mkdir -p "$BACKUP_DIR/$(dirname "$file")"
+        cp "$file" "$BACKUP_DIR/$file"
         echo "✅ Backed up: $file"
     fi
 done
@@ -62,7 +65,11 @@ check_file() {
 check_file "src/vite-env.d.ts"
 check_file "src/agent_architecture/prompts.ts"
 check_file "src/services/geminiService.ts"
-check_file "src/vitest.setup.ts"
+check_file "src/services/validation.ts"
+check_file "src/services/securityService.ts"
+check_file "src/services/logger.ts"
+check_file "src/constants/errors.ts"
+check_file "src/tests/Services.test.ts"
 check_file ".env.example"
 check_file "package.json"
 check_file "tsconfig.json"
@@ -123,30 +130,25 @@ echo ""
 
 # Summary
 echo "================================================"
-echo "✅ Fix Application Complete!"
+echo "✅ v1.4.0 Production Prep Complete!"
 echo "================================================"
 echo ""
 echo "📊 Summary of Changes:"
-echo "   - Removed duplicate vitest.setup.ts"
+echo "   - Updated to v1.4.0 standards"
+# echo "   - Removed duplicate vitest.setup.ts"
 echo "   - Fixed Prettier configuration"
-echo "   - Updated dependencies"
-echo "   - Applied code formatting"
-echo "   - Fixed linting issues"
-echo ""
-echo "📋 Files Modified:"
-echo "   - vite.config.ts (simplified)"
-echo "   - vitest.config.ts (type-safe)"
-echo "   - src/vite-env.d.ts (added types)"
-echo "   - src/App.tsx (fixed PDF worker)"
+echo "   - Updated dependencies and lockfile"
+echo "   - Applied code formatting and lint fixes"
+echo "   - Verified high-coverage test suite"
 echo ""
 echo "📁 Backup Location:"
 echo "   $BACKUP_DIR/"
 echo ""
 echo "🎯 Next Steps:"
 echo "   1. Review any warnings above"
-echo "   2. Test the application: npm run dev"
-echo "   3. Verify PDF viewer works"
-echo "   4. Commit changes: git add . && git commit -m 'fix: apply v1.2.3 fixes'"
+|  "   2. Test the application: npm run dev"
+|  "   3. Verify PDF viewer works (Check Console for v1.4.0 logs)"
+|  "   4. Commit changes: git add . && git commit -m 'fix: apply v1.4.0 production prep'"
 echo ""
-echo "🚀 Your codebase is now production-ready!"
+echo "🚀 Your codebase is now fully production-ready!"
 echo "================================================"
