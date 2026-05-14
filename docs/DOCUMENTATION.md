@@ -1,20 +1,20 @@
 # DocuSearch Agent - Complete Documentation
 
 ## Table of Contents
-1. [Agent Architecture](#agent-architecture-documentation)
-2. [API Reference](#api-reference---docusearch-agent)
-3. [Security Policy](#security-policy)
-4. [Deployment Guide](#deployment-guide---docusearch-agent-v140)
-5. [Test Validation Guide](#test-validation-guide---docusearch-agent-v140)
-6. [Remaining Issues & Future Enhancements](#remaining-issues--future-enhancements---docusearch-agent)
-7. [Complete Update Instructions](#complete-update-instructions)
-8. [Codebase Issues and Fixes Report](#codebase-issues-and-fixes-report)
+1. [Agent Architecture](#1-agent-architecture-documentation)
+2. [API Reference](#2-api-reference)
+3. [Security Policy](#3-security-policy)
+4. [Deployment Guide](#4-deployment-guide)
+5. [Test Validation Guide](#5-test-validation-guide)
+6. [Remaining Issues & Future Enhancements](#6-remaining-issues--future-enhancements)
+7. [Complete Update Instructions](#7-complete-update-instructions)
+8. [Codebase Issues and Fixes Report](#8-codebase-issues-and-fixes-report)
 
 ---
 
-# Agent Architecture Documentation
+---
 
-## Overview
+# 1. Agent Architecture Documentation
 
 DocuSearch Agent implements a three-layer agent architecture based on the **System-Tool-Protocol** pattern. This architecture ensures consistent, predictable, and robust behavior for document retrieval and analysis.
 
@@ -573,16 +573,11 @@ See `src/__tests__/Architecture.test.ts` for validation tests ensuring complianc
 - **Additional tools** for annotations and exports
 - **Advanced protocols** for real-time collaboration
 - **Improved error recovery** with AI-assisted suggestions
-# API Reference - DocuSearch Agent
-
-## Overview
-
-This document provides complete API documentation for DocuSearch Agent's services, methods, types, and interfaces.
-
-**Version**: 1.4.0  
-**Last Updated**: May 14, 2026
-
 ---
+
+# 2. API Reference
+
+This section provides complete API documentation for DocuSearch Agent's services, methods, types, and interfaces.
 
 ## 📦 Core Services
 
@@ -1556,13 +1551,11 @@ For API questions or issues:
 **Version**: 1.2.2  
 **Last Updated**: December 5, 2025  
 **Maintained By**: Darshil
-# Security Policy
+---
 
-## Overview
+# 3. Security Policy
 
 DocuSearch Agent v1.4.0 implements comprehensive security measures to protect users and data. This document outlines our security features, vulnerability reporting process, and best practices.
-
----
 
 ## Security Features
 
@@ -2058,7 +2051,9 @@ Regular security assessments:
 **Last Updated**: 2026-05-14  
 **Version**: 1.4.0  
 **Next Review**: 2026-08-14
-# Deployment Guide - DocuSearch Agent v1.4.0
+---
+
+# 4. Deployment Guide
 
 Complete guide for deploying the Gemini PDF Retrieval Agent to production.
 
@@ -2900,13 +2895,11 @@ npm run deploy           # Deploy to GitHub Pages
 **Version**: 2.0.0  
 **Last Updated**: 2025-12-06  
 **Status**: Production Ready ✅
-# Test Validation Guide - DocuSearch Agent v1.4.0
+---
 
-## Overview
+# 5. Test Validation Guide
 
 This guide provides comprehensive instructions for validating the test suite and ensuring 100% coverage for all critical paths.
-
----
 
 ## Running the Test Suite
 
@@ -3497,17 +3490,11 @@ describe("Performance", () => {
 
 **Last Updated**: 2025-12-06
 **Version**: 1.4.0
-# Remaining Issues & Future Enhancements - DocuSearch Agent
-
-## Document Overview
-
-This document tracks known issues, limitations, and planned enhancements for DocuSearch Agent. Items are categorized by severity and planned release version.
-
-**Last Updated**: May 14, 2026
-**Current Version**: v1.4.0
-**Next Release**: v1.4.1 (Planned: June 2026)
-
 ---
+
+# 6. Remaining Issues & Future Enhancements
+
+This section tracks known issues, limitations, and planned enhancements for DocuSearch Agent. Items are categorized by severity and planned release version.
 
 ## 🐛 Known Issues
 
@@ -4147,7 +4134,9 @@ For historical reference, see what was completed:
 **Maintained By**: Darshil
 
 _Have suggestions? [Open an issue](https://github.com/your-username/gemini-pdf-retrieval-agent/issues/new) or start a [discussion](https://github.com/your-username/gemini-pdf-retrieval-agent/discussions)!_
-# Complete Update Instructions
+---
+
+# 7. Complete Update Instructions
 
 ## Files to Update
 
@@ -4339,7 +4328,9 @@ If you encounter any issues:
 2. Review the backup files in `backup_*/` directory
 3. Ensure Node.js version is 18+ (`node --version`)
 4. Try clearing all caches: `rm -rf node_modules package-lock.json && npm install`
-# Codebase Issues and Fixes Report
+---
+
+# 8. Codebase Issues and Fixes Report
 
 ## Issues Found and Fixes Applied
 
