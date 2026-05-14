@@ -1,144 +1,118 @@
 # DocuSearch Agent
 
-[](https://github.com/darshil0/gemini-pdf-retrieval-agent)
-[](https://github.com/darshil0/gemini-pdf-retrieval-agent)
-[](https://github.com/darshil0/gemini-pdf-retrieval-agent)
-[](https://www.typescriptlang.org/)
-[](https://react.dev/)
-[](https://www.google.com/search?q=LICENSE)
-
 > **Enterprise-grade PDF document retrieval agent** powered by Google Gemini 1.5 Flash. Seamlessly search through complex documents using natural language.
 
------
+[![TypeScript](https://img.shields.io/badge/TypeScript-5.2-blue.svg)](https://www.typescriptlang.org/)
+[![React](https://img.shields.io/badge/React-19.2-61dafb.svg)](https://react.dev/)
+[![Vite](https://img.shields.io/badge/Vite-5.2-646cff.svg)](https://vitejs.dev/)
+[![License](https://img.shields.io/badge/license-MIT-green.svg)](LICENSE)
 
-## 🚀 Quick Start
-
-Get your environment up and running in less than two minutes.
-
-```bash
-# 1. Clone and install
-git clone https://github.com/darshil0/gemini-pdf-retrieval-agent.git
-cd gemini-pdf-retrieval-agent
-npm install
-
-# 2. Configure API key
-cp .env.example .env
-# Edit .env and add: VITE_GEMINI_API_KEY=your_api_key_here
-
-# 3. Start development
-npm run dev
-```
-
------
+---
 
 ## ✨ Features
 
-  * **Multi-Document Support**: Upload up to 10 PDFs (200MB each) simultaneously.
-  * **AI-Powered Search**: Natural language queries with fuzzy and semantic matching.
-  * **Page-Level Citations**: Interactive links that jump directly to the relevant page in the viewer.
-  * **Advanced PDF Viewer**: Support for zooming, rotation, and keyboard navigation.
-  * **Performance Optimized**: Lazy-loading and streaming document processing for large files.
-  * **Security First**: Built-in XSS prevention, strict file validation, and rate limiting.
-  * **Developer Friendly**: Comprehensive test suite with full TypeScript strict mode.
+*   **Multi-Document Support**: Upload and search across up to 10 PDFs (200MB each) simultaneously.
+*   **AI-Powered Search**: Natural language queries with fuzzy and semantic matching via Gemini 1.5 Flash.
+*   **Page-Level Citations**: Interactive links that jump directly to the relevant page in the viewer.
+*   **Advanced PDF Viewer**: Smooth rendering with zooming, rotation, and keyboard navigation.
+*   **Production Ready**: Structured logging, runtime validation, and persistent rate limiting.
+*   **Developer Friendly**: 100% TypeScript strict mode and comprehensive Vitest suite.
 
------
+---
 
 ## 🛠 Technology Stack
 
-  * **Frontend**: React 19.2 & TypeScript 5.2
-  * **AI Engine**: Google Gemini 1.5 Flash
-  * **Build Tool**: Vite 5.2
-  * **Styling**: Tailwind CSS 3.4 (Local PostCSS build)
-  * **Testing**: Vitest 4.0
+*   **Core**: React 19.2, TypeScript 5.2
+*   **AI Engine**: Google Gemini 1.5 Flash API
+*   **PDF Core**: PDF.js dist & React-PDF 10.2
+*   **Build/Tooling**: Vite 5.2, ESLint, Prettier
+*   **Styling**: Tailwind CSS 3.4
+*   **Testing**: Vitest 4.0
 
------
+---
 
-## ⚙️ Configuration
+## 🚀 Getting Started
 
-### Environment Variables
+### Prerequisites
 
-Create a `.env` file in the root directory:
+*   **Node.js**: v18.0.0 or higher
+*   **npm**: v9.0.0 or higher
+*   **API Key**: A Google Gemini API key from [Google AI Studio](https://aistudio.google.com/)
 
-```env
-VITE_GEMINI_API_KEY=your_api_key_here  # Required: Get from https://aistudio.google.com
-VITE_MAX_FILE_SIZE=209715200            # Optional: 200MB default
-VITE_MAX_FILES=10                       # Optional: 10 files default
-VITE_PDF_WORKER_SRC=                    # Optional: Custom PDF.js worker URL (for air-gapped envs)
-VITE_DEBUG=false                        # Optional: Enable verbose logging (true/false)
+### Installation
+
+```bash
+# 1. Clone the repository
+git clone https://github.com/darshil0/gemini-pdf-retrieval-agent.git
+cd gemini-pdf-retrieval-agent
+
+# 2. Install dependencies
+npm install
+
+# 3. Configure environment
+cp .env.example .env
 ```
 
-### Getting a Gemini API Key
+### Configuration
 
-1.  Visit [Google AI Studio](https://aistudio.google.com/app/apikey).
-2.  Sign in with your Google account.
-3.  Click **"Create API Key"**.
-4.  Copy the key into your `.env` file.
+Edit your `.env` file with the following variables:
 
------
+```env
+VITE_GEMINI_API_KEY=your_api_key_here  # Required
+VITE_MAX_FILE_SIZE=209715200            # Optional (Default: 200MB)
+VITE_MAX_FILES=10                       # Optional (Default: 10)
+VITE_PDF_WORKER_SRC=                    # Optional (Custom worker URL)
+VITE_DEBUG=false                        # Optional (Verbose logging)
+```
+
+---
+
+## 💻 Development & Build
+
+| Command | Description |
+| :--- | :--- |
+| `npm run dev` | Start development server on port 5173 |
+| `npm run build` | Build the project for production |
+| `npm run preview` | Locally preview the production build |
+| `npm test` | Run the full test suite |
+| `npm run lint` | Check for linting and type errors |
+| `npm run format` | Auto-format codebase with Prettier |
+
+---
 
 ## 📂 Documentation
 
-Detailed guides are available in the consolidated [DOCUMENTATION.md](docs/DOCUMENTATION.md) file, which includes:
+For deep dives into the architecture and API, see the consolidated [DOCUMENTATION.md](docs/DOCUMENTATION.md):
 
-  * **Architecture** – System design and agent patterns.
-  * **API Reference** – Complete interface documentation.
-  * **Testing Guide** – Instructions for running/writing tests.
-  * **Security** – Security protocols and best practices.
-  * **Deployment** – Production deployment strategies.
+*   [**System Architecture**](docs/DOCUMENTATION.md#agent-architecture-documentation)
+*   [**API Reference**](docs/DOCUMENTATION.md#api-reference---docusearch-agent)
+*   [**Security Protocols**](docs/DOCUMENTATION.md#security-policy)
+*   [**Deployment Guide**](docs/DOCUMENTATION.md#deployment-guide---docusearch-agent-v140)
 
------
-
-## 💻 Common Commands
-
-| Command | Action |
-| :--- | :--- |
-| `npm run dev` | Start development server (Port 5173) |
-| `npm run build` | Generate production-ready build |
-| `npm test` | Run the full Vitest suite |
-| `npm run lint` | Check code quality and style |
-| `npm run type-check` | Run TypeScript validation |
-| `npm run format` | Auto-format code with Prettier |
-
------
+---
 
 ## 🔧 Troubleshooting
 
-### Build Failures
+### Memory Constraints
+Uploading many large PDFs (8+ files, 50MB+ each) may consume significant browser memory. For best performance on devices with ≤8GB RAM, we recommend limiting concurrent uploads to 5 files.
 
-If you encounter build errors, try clearing the local cache:
+### PDF Worker Loading
+If the PDF viewer fails to load in restricted networks, configure `VITE_PDF_WORKER_SRC` to a local path or a specific CDN mirror. The application includes an automatic fallback mechanism to `unpkg.com`.
 
-```bash
-rm -rf node_modules package-lock.json
-npm install
-npm run build
-```
+### Logging
+Enable `VITE_DEBUG=true` to see structured system logs in the browser console, including API request lifecycle and state transitions.
 
-### Environment Issues
+---
 
-1.  Verify the `.env` file is in the project root (not `/src`).
-2.  Ensure all variables are prefixed with `VITE_`.
-3.  **Restart the dev server** after making changes to environment variables.
+## 🤝 Contributing
 
-### PDF Rendering Issues
+1.  Fork the Project
+2.  Create your Feature Branch (`git checkout -b feature/AmazingFeature`)
+3.  Commit your Changes (`git commit -m 'Add some AmazingFeature'`)
+4.  Push to the Branch (`git push origin feature/AmazingFeature`)
+5.  Open a Pull Request
 
-If the PDF viewer fails to load, check your internet connection or the configured `VITE_PDF_WORKER_SRC`. The app includes an automatic fallback to `unpkg.com` if the primary `cdnjs` worker is unreachable.
+---
 
-### Viewing Logs
+**Built with ❤️ by [Darshil](https://github.com/darshil0)** • [Changelog](Changelog.MD)
 
-Enable verbose logging by setting `VITE_DEBUG=true` in your `.env`. Logs are visible in the browser's developer console (F12) with a structured format: `[LEVEL][CONTEXT] TIMESTAMP — MESSAGE`.
-
------
-
-## 📈 Recent Updates (v1.4.0)
-
-  * ✅ **Refactored Core**: Implemented a structured `LoggerService` and `ValidationService` for production-grade observability and type safety.
-  * ✅ **Reliability Plus**: Added robust PDF.js worker fallback logic and API call timeouts (60s).
-  * ✅ **Security Layer**: Persistent rate limiting via `localStorage` and fail-fast API key format validation.
-  * ✅ **UI Refinement**: Added arrow key navigation for the PDF viewer and improved CSV export escaping.
-  * ✅ **Memory Fixes**: Resolved all known Object URL memory leaks in search and upload paths.
-
-> **Note on Memory**: Uploading many large PDFs (8+ files, 50MB+ each) may consume significant browser memory. For best performance on devices with ≤8GB RAM, limit concurrent uploads to 5 files.
-
------
-
-**Built with ❤️ by [Darshil](https://www.google.com/search?q=https://github.com/darshil0)** • v1.4.0
