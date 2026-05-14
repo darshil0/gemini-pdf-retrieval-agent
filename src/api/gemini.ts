@@ -14,11 +14,11 @@ import {
   SchemaType,
   GenerateContentResult,
 } from "@google/generative-ai";
-import { SearchResponse } from "../types";
-import { buildSearchPrompt } from "../agent_architecture/prompts";
-import { validateSearchResponse } from "./validation";
-import { createLogger } from "./logger";
-import { ErrorMessages } from "../constants/errors";
+import { SearchResponse } from "@core/types";
+import { buildSearchPrompt } from "@core/architecture/prompts";
+import { validateSearchResponse } from "@core/services/validation";
+import { createLogger } from "@core/services/logger";
+import { ErrorMessages } from "@core/constants/errors";
 
 const log = createLogger("GeminiService");
 

@@ -9,7 +9,7 @@
  * @since v1.1.0
  */
 
-import { createLogger } from "./logger";
+import { createLogger } from "@core/services/logger";
 
 const log = createLogger("SecurityService");
 

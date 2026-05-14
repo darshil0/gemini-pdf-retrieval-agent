@@ -18,15 +18,15 @@ import {
   AlertTriangle,
   RefreshCw,
 } from "lucide-react";
-import { FileUpload } from "./components/FileUpload";
-import { SearchResultCard } from "./components/SearchResultCard";
-import { searchInDocuments } from "./services/geminiService";
-import { UploadedFile, AppStatus, SearchResponse } from "./types";
+import { FileUpload } from "@components/FileUpload";
+import { SearchResultCard } from "@components/SearchResultCard";
+import { searchInDocuments } from "@api/gemini";
+import { UploadedFile, AppStatus, SearchResponse } from "@core/types";
 import { Document, Page, pdfjs } from "react-pdf";
 import { InView } from "react-intersection-observer";
-import { escapeCSVField, validateStringArray } from "./services/validation";
-import { ErrorMessages } from "./constants/errors";
-import { createLogger } from "./services/logger";
+import { escapeCSVField, validateStringArray } from "@core/services/validation";
+import { ErrorMessages } from "@core/constants/errors";
+import { createLogger } from "@core/services/logger";
 
 const log = createLogger("App");
 

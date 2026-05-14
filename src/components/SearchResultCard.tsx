@@ -1,5 +1,5 @@
 import { FileText, Bookmark, Eye } from "lucide-react";
-import { SearchResult } from "../types";
+import { SearchResult } from "@core/types";
 
 interface SearchResultCardProps {
   result: SearchResult;

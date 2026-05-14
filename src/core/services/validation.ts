@@ -8,7 +8,7 @@
  * @since v1.4.0
  */
 
-import { SearchResponse, SearchResult } from "../types";
+import { SearchResponse, SearchResult } from "@core/types";
 
 /**
  * Validates that a parsed object conforms to the SearchResult interface.
