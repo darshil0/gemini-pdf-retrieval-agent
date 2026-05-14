@@ -94,7 +94,7 @@ We follow [Conventional Commits](https://www.conventionalcommits.org/):
 ### Pull Request Process
 1.  Ensure all tests and linting pass.
 2.  Update relevant sections in `docs/DOCUMENTATION.md` if your change affects the API or architecture.
-3.  Add entries to `Changelog.MD` under the `[Unreleased]` section.
+3.  Add entries to `Changelog.MD` under the `1.4.0` section.
 4.  Submit PR and wait for maintainer review (2-5 days).
 
 ---
