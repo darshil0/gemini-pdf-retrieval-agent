@@ -19,6 +19,7 @@
 *   **Modular Architecture**: Clean separation of concerns across `api`, `core`, `components`, and `styles`.
 *   **Path Aliasing**: Simplified imports using `@api`, `@core`, `@components`, and `@styles` aliases.
 *   **Enterprise Observability**: Structured `LoggerService` for real-time tracking of AI request lifecycles.
+*   **Robust Security**: Persistent rate limiting and runtime `ValidationService` for data integrity.
 
 ---
 
@@ -38,24 +39,13 @@ The DocuSearch Agent follows the **System-Tool-Protocol** pattern to ensure pred
 
 ---
 
-## 🛠 Technology Stack
-
-*   **Core**: React 19.2, TypeScript 5.2
-*   **AI Engine**: Google Gemini 1.5 Flash API
-*   **PDF Core**: PDF.js dist & React-PDF 10.2
-*   **Build/Tooling**: Vite 5.2, ESLint, Prettier
-*   **Styling**: Tailwind CSS 3.4
-*   **Testing**: Vitest 4.0 (with 70%+ coverage)
-
----
-
 ## 🚀 Getting Started
 
 ### Prerequisites
 
-*   **Node.js**: v24.14.0 (Recommended, see `.nvmrc`) or v18.0.0+
+*   **Node.js**: v24.14.0 (Recommended) or v18.0.0+
 *   **npm**: v9.0.0 or higher
-*   **API Key**: A Google Gemini API key from [Google AI Studio](https://aistudio.google.com/)
+*   **API Key**: Google Gemini API key from [Google AI Studio](https://aistudio.google.com/)
 
 ### Installation
 
@@ -87,7 +77,24 @@ VITE_DEBUG=false                        # Optional (Verbose logging)
 
 ---
 
+## 📂 Project Structure & Aliases
+
+The codebase is organized into modular domains with pre-configured path aliases:
+
+| Alias | Directory | Purpose |
+| :--- | :--- | :--- |
+| `@api` | `src/api/` | External services and API clients |
+| `@core` | `src/core/` | Architecture, constants, types, and foundational services |
+| `@components` | `src/components/` | Reusable UI components |
+| `@styles` | `src/styles/` | Global and component-level stylesheets |
+| `@tests` | `src/tests/` | Unit and integration test suites |
+| `@` | `src/` | Project root source |
+
+---
+
 ## 💻 Development & Build
+
+### Available Commands
 
 | Command | Description |
 | :--- | :--- |
@@ -98,7 +105,7 @@ VITE_DEBUG=false                        # Optional (Verbose logging)
 | `npm run lint` | Check for linting and type errors |
 | `npm run format` | Auto-format codebase with Prettier |
 
-### Maintenance & Production Readiness
+### Maintenance & Health Checks
 
 We provide automated scripts to ensure your codebase stays optimized and consistent:
 
@@ -107,18 +114,14 @@ We provide automated scripts to ensure your codebase stays optimized and consist
 
 These scripts perform dependency cleanup, formatting, linting, type-checking, and test validation in a single pass.
 
-### Project Structure & Aliases
+---
 
-The codebase is organized into modular directories with pre-configured path aliases:
+## 🛠 Technology Stack
 
-| Alias | Directory | Purpose |
-| :--- | :--- | :--- |
-| `@api` | `src/api/` | External services and API clients |
-| `@core` | `src/core/` | Architecture, constants, types, and foundational services |
-| `@components` | `src/components/` | Reusable UI components |
-| `@styles` | `src/styles/` | Global and component-level stylesheets |
-| `@tests` | `src/tests/` | Unit and integration test suites |
-| `@` | `src/` | Project root source |
+*   **Frontend**: React 19.2, TypeScript 5.2, Tailwind CSS 3.4
+*   **AI Engine**: Google Gemini 1.5 Flash API
+*   **PDF Core**: PDF.js & React-PDF 10.2
+*   **Tooling**: Vite 5.2, ESLint, Prettier, Vitest 4.0
 
 ---
 
@@ -136,13 +139,13 @@ For deep dives into the architecture and API, see the consolidated [DOCUMENTATIO
 ## 🔧 Troubleshooting
 
 ### Memory Constraints
-Uploading many large PDFs (8+ files, 50MB+ each) may consume significant browser memory. For best performance on devices with ≤8GB RAM, we recommend limiting concurrent uploads to 5 files.
+Uploading many large PDFs (8+ files, 50MB+ each) may consume significant browser memory. For best performance, we recommend limiting concurrent uploads to 5 files on devices with ≤8GB RAM.
 
 ### PDF Worker Loading
 If the PDF viewer fails to load in restricted networks, configure `VITE_PDF_WORKER_SRC` to a local path or a specific CDN mirror. The application includes an automatic fallback mechanism to `unpkg.com`.
 
 ### Logging
-Enable `VITE_DEBUG=true` to see structured system logs in the browser console, including API request lifecycle and state transitions.
+Enable `VITE_DEBUG=true` in your `.env` to see structured system logs in the browser console, including API request lifecycles and state transitions.
 
 ---
 
