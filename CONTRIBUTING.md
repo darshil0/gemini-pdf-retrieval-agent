@@ -99,5 +99,5 @@ We follow [Conventional Commits](https://www.conventionalcommits.org/):
 
 ---
 
-**Built with ❤️ by the DocuSearch Team**
+**Built with ❤️ by Darshil**
 
