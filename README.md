@@ -84,10 +84,10 @@ VITE_DEBUG=false                        # Optional (Verbose logging)
 
 For deep dives into the architecture and API, see the consolidated [DOCUMENTATION.md](docs/DOCUMENTATION.md):
 
-*   [**System Architecture**](docs/DOCUMENTATION.md#agent-architecture-documentation)
-*   [**API Reference**](docs/DOCUMENTATION.md#api-reference---docusearch-agent)
-*   [**Security Protocols**](docs/DOCUMENTATION.md#security-policy)
-*   [**Deployment Guide**](docs/DOCUMENTATION.md#deployment-guide---docusearch-agent-v140)
+*   [**System Architecture**](docs/DOCUMENTATION.md#1-agent-architecture-documentation)
+*   [**API Reference**](docs/DOCUMENTATION.md#2-api-reference)
+*   [**Security Protocols**](docs/DOCUMENTATION.md#3-security-policy)
+*   [**Deployment Guide**](docs/DOCUMENTATION.md#4-deployment-guide)
 
 ---
 
