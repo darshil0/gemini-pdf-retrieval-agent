@@ -22,8 +22,8 @@ import { ErrorMessages } from "../constants/errors";
 
 const log = createLogger("GeminiService");
 
-/** Default timeout for API requests in milliseconds (60 seconds). */
-const API_TIMEOUT_MS = 60_000;
+/** Default timeout for API requests in milliseconds. Defaults to 60s if not set in environment. */
+const API_TIMEOUT_MS = parseInt(import.meta.env.VITE_API_TIMEOUT || "60000");
 
 /** Default timeout for file stream reading in milliseconds (30 seconds). */
 const FILE_STREAM_TIMEOUT_MS = 30_000;
@@ -170,9 +170,9 @@ export async function searchInDocuments(
 ): Promise<SearchResponse> {
   log.info("Search started", { keyword, fileCount: files.length });
 
-  // FIXED: Use correct Gemini 1.5 Flash model
+  // FIXED: Use environment-configurable Gemini model
   const model = genAI.getGenerativeModel({
-    model: "gemini-1.5-flash",
+    model: import.meta.env.VITE_GEMINI_MODEL || "gemini-1.5-flash",
   });
 
   const abortController = new AbortController();

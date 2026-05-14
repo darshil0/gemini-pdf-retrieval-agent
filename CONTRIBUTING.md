@@ -13,7 +13,7 @@ Before contributing, please familiarize yourself with our consolidated documenta
 ## 🚀 Getting Started
 
 ### Prerequisites
-- **Node.js**: v18.0.0+
+- **Node.js**: v24.14.0 (Recommended, see `.nvmrc`) or v18.0.0+
 - **npm**: v9.0.0+
 - **API Key**: Google Gemini API Key from [Google AI Studio](https://aistudio.google.com/)
 
