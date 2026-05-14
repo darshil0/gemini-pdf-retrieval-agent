@@ -7,8 +7,41 @@
 4. [Deployment Guide](#4-deployment-guide)
 5. [Test Validation Guide](#5-test-validation-guide)
 6. [Remaining Issues & Future Enhancements](#6-remaining-issues--future-enhancements)
-7. [Complete Update Instructions](#7-complete-update-instructions)
-8. [Codebase Issues and Fixes Report](#8-codebase-issues-and-fixes-report)
+7. [Project Structure & Aliases](#7-project-structure--aliases)
+8. [Complete Update Instructions](#8-complete-update-instructions)
+9. [Codebase Issues and Fixes Report](#9-codebase-issues-and-fixes-report)
+
+---
+
+# 7. Project Structure & Aliases
+
+DocuSearch Agent v1.4.0 uses a modular directory structure with path aliasing for better maintainability and cleaner imports.
+
+## Directory Map
+
+```text
+src/
+├── api/                # External API clients and services (e.g., Gemini)
+├── components/         # React UI components
+├── core/               # Foundational logic and utilities
+│   ├── architecture/   # System-Tool-Protocol prompt definitions
+│   ├── constants/      # Shared constants and error messages
+│   ├── services/       # Logging, validation, and security services
+│   └── types/          # Centralized TypeScript definitions
+├── styles/             # Global and component stylesheets
+└── tests/              # Unit and integration test suites
+```
+
+## Path Aliases
+
+| Alias | Target Path | Usage Example |
+| :--- | :--- | :--- |
+| `@api` | `src/api/` | `import { search } from "@api/gemini";` |
+| `@core` | `src/core/` | `import { Logger } from "@core/services/logger";` |
+| `@components` | `src/components/` | `import { Card } from "@components/UI";` |
+| `@styles` | `src/styles/` | `import "@styles/global.css";` |
+| `@tests` | `src/tests/` | `import { mock } from "@tests/fixtures";` |
+| `@` | `src/` | `import App from "@/App";` |
 
 ---
 
@@ -1540,7 +1573,7 @@ const results = await completeWorkflow(file, "revenue Q4");
 For API questions or issues:
 
 1. Check this documentation
-2. Review [examples](./examples)
+2. Review the documentation in `@core/architecture` and `@api`
 3. Search [GitHub Issues](https://github.com/your-username/gemini-pdf-retrieval-agent/issues)
 4. Open new issue with API-related label
 

@@ -16,9 +16,9 @@
 *   **AI-Powered Search**: Natural language queries with fuzzy and semantic matching via Gemini 1.5 Flash.
 *   **Page-Level Citations**: Interactive links that jump directly to the relevant page in the viewer.
 *   **Advanced PDF Viewer**: Smooth rendering with zooming, rotation, and keyboard navigation.
+*   **Modular Architecture**: Clean separation of concerns across `api`, `core`, `components`, and `styles`.
+*   **Path Aliasing**: Simplified imports using `@api`, `@core`, `@components`, and `@styles` aliases.
 *   **Enterprise Observability**: Structured `LoggerService` for real-time tracking of AI request lifecycles.
-*   **Robust Security**: Persistent rate limiting and runtime `ValidationService` for data integrity.
-*   **Developer Friendly**: 100% TypeScript strict mode and comprehensive Vitest suite.
 
 ---
 
@@ -102,6 +102,19 @@ We provide automated scripts to ensure your codebase stays optimized and consist
 *   **Windows**: `./apply-fixes.ps1`
 
 These scripts perform dependency cleanup, formatting, linting, type-checking, and test validation in a single pass.
+
+### Project Structure & Aliases
+
+The codebase is organized into modular directories with pre-configured path aliases:
+
+| Alias | Directory | Purpose |
+| :--- | :--- | :--- |
+| `@api` | `src/api/` | External services and API clients |
+| `@core` | `src/core/` | Architecture, constants, types, and foundational services |
+| `@components` | `src/components/` | Reusable UI components |
+| `@styles` | `src/styles/` | Global and component-level stylesheets |
+| `@tests` | `src/tests/` | Unit and integration test suites |
+| `@` | `src/` | Project root source |
 
 ---
 

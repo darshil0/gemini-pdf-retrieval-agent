@@ -18,15 +18,17 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 - **Infrastructure**: Introduced `apply-fixes.ps1` for native Windows maintenance and modernized `apply-fixes.sh`.
 - **Environment**: Added `.editorconfig`, `.gitattributes`, `.nvmrc`, and `.npmrc` for cross-platform standardization and Node.js version locking.
 - **Aesthetics**: Updated `architecture_diagram.png` with a high-fidelity v1.4.0 design reflecting the System-Tool-Protocol pattern.
+- **Organization**: Major structural reorganization into modular domains (`src/api`, `src/core`, `src/components`, `src/styles`).
+- **Aliasing**: Implemented a comprehensive path aliasing system (`@api`, `@core`, `@components`, `@styles`, `@tests`) in `tsconfig.json` and `vite.config.ts`.
 
 ### Changed
 - **Documentation**: Consolidated all technical guides into a single master `docs/DOCUMENTATION.md` file for better maintainability and navigation.
 - **Documentation**: Overhauled the `docs/agent_architecture/` guide with detailed persona, tool, and protocol definitions aligned with v1.4.0 logic.
 - **README**: Reorganized the root `README.md` with a professional layout, industry-standard sections, and updated documentation anchors.
 - **Contributing**: Refined the `CONTRIBUTING.md` guide with new mandatory coding standards (Structured Logging, Runtime Validation).
-- **Service Layer**: Refactored to strictly follow agent architecture patterns.
+- **Service Layer**: Refactored to strictly follow agent architecture patterns and use path aliases.
 - **Error Handling**: Enhanced logic to align with agent protocol specifications.
-- **Configuration**: Modernized `tailwind.config.js`, `vite.config.ts`, `vitest.config.ts`, and `tsconfig.json` with optimized build settings and environment support.
+- **Configuration**: Modernized `tailwind.config.js`, `vite.config.ts`, `vitest.config.ts`, and `tsconfig.json` with path aliases and optimized build settings.
 
 ### Fixed
 - **Cleanup**: Standardized all internal documentation links and fixed stale version/model references (e.g., corrected Gemini 1.5 Flash naming).
