@@ -28,9 +28,13 @@ The DocuSearch Agent follows the **System-Tool-Protocol** pattern to ensure pred
 
 ![Architecture Diagram](public/assets/architecture_diagram.png)
 
-*   **System Layer**: Defines the agent's persona and expert role.
-*   **Tool Layer**: Operational instructions for document ingestion and retrieval.
-*   **Protocol Layer**: Strict constraints on fuzzy matching, error handling, and output formats.
+### 🧩 Architecture Layers
+
+1.  [**System Layer (Persona)**](docs/agent_architecture/SYSTEM_PROMPT.md): Defines the agent's identity, role, and overarching capabilities. This is the "brain" of the agent.
+2.  [**Tool Layer (Instructions)**](docs/agent_architecture/TOOL_PROMPTS.md): Specific operational instructions for the tools available to the agent (e.g., Document Search). This is the "skillset".
+3.  [**Protocol Layer (Logic & Constraints)**](docs/agent_architecture/PROTOCOLS.md): Strict rules and logical workflows that the agent MUST follow during execution. This is the "governance".
+
+> **Implementation Note**: The live prompt logic is maintained in [`src/core/architecture/prompts.ts`](src/core/architecture/prompts.ts).
 
 ---
 
