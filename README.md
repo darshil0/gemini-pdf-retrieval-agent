@@ -74,6 +74,7 @@ Edit your `.env` file with the following variables:
 ```env
 VITE_GEMINI_API_KEY=your_api_key_here  # Required
 VITE_GEMINI_MODEL=gemini-1.5-flash      # Optional (Default: gemini-1.5-flash)
+VITE_API_TIMEOUT=60000                  # Optional (Default: 60s)
 VITE_MAX_FILE_SIZE=209715200            # Optional (Default: 200MB)
 VITE_MAX_FILES=10                       # Optional (Default: 10)
 VITE_PDF_WORKER_SRC=                    # Optional (Custom worker URL)

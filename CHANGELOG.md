@@ -14,7 +14,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 - **Security**: Upgraded `SecurityService` with persistent rate limiting backed by `localStorage` to survive page reloads.
 - **Error Handling**: Centralized all user-facing strings in `ErrorMessages` constants for consistency across the app.
 - **Accessibility**: Added arrow key navigation (Left/Up for previous, Right/Down for next) to the PDF viewer.
-- **Infrastructure**: Added `VITE_PDF_WORKER_SRC` environment variable for configurable worker paths in restricted environments.
+- **Infrastructure**: Added `VITE_PDF_WORKER_SRC` and `VITE_API_TIMEOUT` environment variables for configurable worker paths and request durations.
 - **Infrastructure**: Introduced `apply-fixes.ps1` for native Windows maintenance and modernized `apply-fixes.sh`.
 - **Environment**: Added `.editorconfig`, `.gitattributes`, `.nvmrc`, and `.npmrc` for cross-platform standardization and Node.js version locking.
 - **Aesthetics**: Updated `architecture_diagram.png` with a high-fidelity v1.4.0 design reflecting the System-Tool-Protocol pattern.
@@ -43,6 +43,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 - **Environment**: Resolved local dependency issues and environment path conflicts to enable a standardized production build.
 - **Dependencies**: Removed unused and broken `tailwindcss-dark-mode` plugin from Tailwind configuration.
 - **UI**: Corrected `Changelog` link in `README.md` to use proper filesystem casing for cross-platform compatibility.
+- **Organization**: Standardized test suite location by moving `App.test.tsx` to `src/tests/`.
+- **Logic**: Refactored `GeminiService` to use environment-driven model selection and request timeouts.
 
 
 ## [1.3.1] - 2026-04-19
