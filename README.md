@@ -5,6 +5,7 @@
 [![TypeScript](https://img.shields.io/badge/TypeScript-5.2-blue.svg)](https://www.typescriptlang.org/)
 [![React](https://img.shields.io/badge/React-19.2-61dafb.svg)](https://react.dev/)
 [![Vite](https://img.shields.io/badge/Vite-5.2-646cff.svg)](https://vitejs.dev/)
+[![Node](https://img.shields.io/badge/Node-24.14-green.svg)](https://nodejs.org/)
 [![License](https://img.shields.io/badge/license-MIT-green.svg)](LICENSE)
 
 ---
@@ -15,8 +16,21 @@
 *   **AI-Powered Search**: Natural language queries with fuzzy and semantic matching via Gemini 1.5 Flash.
 *   **Page-Level Citations**: Interactive links that jump directly to the relevant page in the viewer.
 *   **Advanced PDF Viewer**: Smooth rendering with zooming, rotation, and keyboard navigation.
-*   **Production Ready**: Structured logging, runtime validation, and persistent rate limiting.
+*   **Enterprise Observability**: Structured `LoggerService` for real-time tracking of AI request lifecycles.
+*   **Robust Security**: Persistent rate limiting and runtime `ValidationService` for data integrity.
 *   **Developer Friendly**: 100% TypeScript strict mode and comprehensive Vitest suite.
+
+---
+
+## 🧱 Architecture
+
+The DocuSearch Agent follows the **System-Tool-Protocol** pattern to ensure predictable and high-quality AI behavior.
+
+![Architecture Diagram](public/assets/architecture_diagram.png)
+
+*   **System Layer**: Defines the agent's persona and expert role.
+*   **Tool Layer**: Operational instructions for document ingestion and retrieval.
+*   **Protocol Layer**: Strict constraints on fuzzy matching, error handling, and output formats.
 
 ---
 
@@ -27,7 +41,7 @@
 *   **PDF Core**: PDF.js dist & React-PDF 10.2
 *   **Build/Tooling**: Vite 5.2, ESLint, Prettier
 *   **Styling**: Tailwind CSS 3.4
-*   **Testing**: Vitest 4.0
+*   **Testing**: Vitest 4.0 (with 70%+ coverage)
 
 ---
 
@@ -35,7 +49,7 @@
 
 ### Prerequisites
 
-*   **Node.js**: v18.0.0 or higher
+*   **Node.js**: v24.14.0 (Recommended, see `.nvmrc`) or v18.0.0+
 *   **npm**: v9.0.0 or higher
 *   **API Key**: A Google Gemini API key from [Google AI Studio](https://aistudio.google.com/)
 
@@ -59,6 +73,7 @@ Edit your `.env` file with the following variables:
 
 ```env
 VITE_GEMINI_API_KEY=your_api_key_here  # Required
+VITE_GEMINI_MODEL=gemini-1.5-flash      # Optional (Default: gemini-1.5-flash)
 VITE_MAX_FILE_SIZE=209715200            # Optional (Default: 200MB)
 VITE_MAX_FILES=10                       # Optional (Default: 10)
 VITE_PDF_WORKER_SRC=                    # Optional (Custom worker URL)
@@ -77,6 +92,15 @@ VITE_DEBUG=false                        # Optional (Verbose logging)
 | `npm test` | Run the full test suite |
 | `npm run lint` | Check for linting and type errors |
 | `npm run format` | Auto-format codebase with Prettier |
+
+### Maintenance & Production Readiness
+
+We provide automated scripts to ensure your codebase stays optimized and consistent:
+
+*   **Linux/macOS**: `./apply-fixes.sh`
+*   **Windows**: `./apply-fixes.ps1`
+
+These scripts perform dependency cleanup, formatting, linting, type-checking, and test validation in a single pass.
 
 ---
 
@@ -115,4 +139,3 @@ Enable `VITE_DEBUG=true` to see structured system logs in the browser console, i
 ---
 
 **Built with ❤️ by [Darshil](https://github.com/darshil0)** • [Changelog](CHANGELOG.md)
-
