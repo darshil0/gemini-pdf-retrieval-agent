@@ -78,13 +78,13 @@ VITE_DEBUG=false                        # Optional: Enable verbose logging (true
 
 ## 📂 Documentation
 
-Detailed guides are available in the `/docs` folder:
+Detailed guides are available in the consolidated [DOCUMENTATION.md](docs/DOCUMENTATION.md) file, which includes:
 
-  * [Architecture](https://www.google.com/search?q=docs/architecture.md) – System design and agent patterns.
-  * [API Reference](https://www.google.com/search?q=docs/api-reference.md) – Complete interface documentation.
-  * [Testing Guide](https://www.google.com/search?q=docs/test-validation-guide.md) – Instructions for running/writing tests.
-  * [Security](https://www.google.com/search?q=docs/security.md) – Security protocols and best practices.
-  * [Deployment](https://www.google.com/search?q=docs/deployment.md) – Production deployment strategies.
+  * **Architecture** – System design and agent patterns.
+  * **API Reference** – Complete interface documentation.
+  * **Testing Guide** – Instructions for running/writing tests.
+  * **Security** – Security protocols and best practices.
+  * **Deployment** – Production deployment strategies.
 
 -----
 
