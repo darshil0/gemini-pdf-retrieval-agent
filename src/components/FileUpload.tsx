@@ -2,9 +2,11 @@
 import { useCallback, useState } from "react";
 import { Upload, X, FileText, AlertCircle } from "lucide-react";
 
-const MAX_FILES = 10;
-const MAX_FILE_SIZE_MB = 200;
-const MAX_FILE_SIZE_BYTES = MAX_FILE_SIZE_MB * 1024 * 1024;
+const MAX_FILES = parseInt(import.meta.env.VITE_MAX_FILES || "10");
+const MAX_FILE_SIZE_BYTES = parseInt(
+  import.meta.env.VITE_MAX_FILE_SIZE || "209715200",
+);
+const MAX_FILE_SIZE_MB = Math.round(MAX_FILE_SIZE_BYTES / (1024 * 1024));
 const ALLOWED_MIME_TYPES = ["application/pdf"];
 
 interface FileUploadProps {
