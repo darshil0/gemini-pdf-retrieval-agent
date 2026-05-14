@@ -21,5 +21,5 @@ Strict rules and logical workflows that the agent MUST follow during execution. 
 
 ## 🛠 Implementation Reference
 The live implementation of these prompts can be found in:
-`src/agent_architecture/prompts.ts`
+`src/core/architecture/prompts.ts`
 

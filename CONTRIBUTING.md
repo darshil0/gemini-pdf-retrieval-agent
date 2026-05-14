@@ -46,7 +46,7 @@ npm run dev
 We use a centralized `LoggerService` for observability. DO NOT use `console.log` directly.
 
 ```typescript
-import { createLogger } from '../services/logger';
+import { createLogger } from "@core/services/logger";
 const logger = createLogger('FeatureName');
 
 logger.info('Action started', { metadata: 'data' });
@@ -58,7 +58,7 @@ All API responses and external data MUST be validated using `ValidationService` 
 
 ### 3. TypeScript Strictness
 - 100% `tsc --noEmit` compliance.
-- No `any` types. Use proper interfaces defined in `src/types.ts` or local feature types.
+- No `any` types. Use proper interfaces defined in `@core/types` or local feature types.
 
 ### 4. Component Architecture
 - Use functional components with standard React 19 patterns.
