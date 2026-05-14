@@ -12,8 +12,6 @@
 
 ---
 
----
-
 # 1. Agent Architecture Documentation
 
 DocuSearch Agent implements a three-layer agent architecture based on the **System-Tool-Protocol** pattern. This architecture ensures consistent, predictable, and robust behavior for document retrieval and analysis.
@@ -600,7 +598,7 @@ constructor(apiKey: string, options?: GeminiServiceOptions)
 
 ```typescript
 const service = new GeminiService("AIzaSyB...", {
-  model: "gemini-2.5-flash",
+  model: "gemini-1.5-flash",
   timeout: 30000,
   maxRetries: 3,
 });
@@ -2040,18 +2038,6 @@ Regular security assessments:
 
 ---
 
-## Contact
-
-**Security Team**: security@example.com  
-**Response Time**: Within 48 hours  
-**PGP Key**: [Public Key](security-pgp-key.asc)
-
----
-
-**Last Updated**: 2026-05-14  
-**Version**: 1.4.0  
-**Next Review**: 2026-08-14
----
 
 # 4. Deployment Guide
 
@@ -2185,26 +2171,25 @@ Edit `.env`:
 VITE_GEMINI_API_KEY=your_api_key_here
 
 # Optional: API Configuration
-VITE_GEMINI_MODEL=gemini-2.0-flash-exp
+VITE_GEMINI_MODEL=gemini-1.5-flash
 VITE_API_TIMEOUT=30000
 
 # Optional: Feature Flags
 VITE_MAX_FILE_SIZE=209715200  # 200MB in bytes
 VITE_MAX_FILES=10
-VITE_ENABLE_DEBUG=false
+VITE_DEBUG=false              # Enable verbose structured logging
 
 # Optional: Rate Limiting
 VITE_RATE_LIMIT_REQUESTS=10
 VITE_RATE_LIMIT_WINDOW=60000  # 1 minute
 
-# Optional: Infrastructure & Debug
+# Optional: Infrastructure
 VITE_PDF_WORKER_SRC=          # Custom PDF worker CDN URL
-VITE_DEBUG=false              # Enable verbose structured logging
 ```
 
 ### Getting API Key
 
-1. Go to [Google AI Studio](https://makersuite.google.com/app/apikey)
+1. Go to [Google AI Studio](https://aistudio.google.com/app/apikey)
 2. Sign in with Google account
 3. Click "Create API Key"
 4. Copy key to `.env` file
@@ -3488,7 +3473,9 @@ describe("Performance", () => {
 
 ---
 
-**Last Updated**: 2025-12-06
+---
+
+**Last Updated**: 2026-05-14
 **Version**: 1.4.0
 ---
 
@@ -3514,7 +3501,7 @@ Processing PDFs larger than 100MB can take 10-20 seconds, causing the UI to feel
 - Users can upload files up to 200MB, but should expect longer processing times
 - Progress indicator shows activity
 
-**Planned Fix** (v1.3.0):
+**Planned Fix** (v1.5.0):
 
 - Implement streaming document processing
 - Add chunked upload for large files
@@ -3555,7 +3542,7 @@ Loading 10 large PDFs (50MB+ each) can consume 400-500MB of browser memory, pote
 - Recommend uploading 5 or fewer documents at once
 - Close unused documents to free memory
 
-**Planned Fix** (v1.3.0):
+**Planned Fix** (v1.5.0):
 
 - Implement lazy loading for PDF pages
 - Add document unloading feature
@@ -3589,7 +3576,7 @@ Semantic search occasionally returns false positives when searching for very abs
 - Combine multiple search terms
 - Manually filter results
 
-**Planned Fix** (v1.3.0):
+**Planned Fix** (v1.5.0):
 
 - Improve AI prompt engineering for better context understanding
 - Add relevance scoring threshold
@@ -3613,7 +3600,7 @@ Text selection in the PDF viewer can be finicky, especially at higher zoom level
 - Zoom to 100% for easier selection
 - Use browser's PDF viewer for extensive copying
 
-**Planned Fix** (v1.3.1):
+**Planned Fix** (v1.5.0):
 
 - Upgrade react-pdf to latest version
 - Implement custom text layer rendering
@@ -3630,7 +3617,7 @@ Text selection in the PDF viewer can be finicky, especially at higher zoom level
 **Description**:
 Users cannot easily access their previous searches within a session.
 
-**Planned Enhancement** (v1.3.0):
+**Planned Enhancement** (v1.5.0):
 
 - Add search history dropdown
 - Store last 10 searches
@@ -3778,7 +3765,7 @@ Best performance with English documents. Other languages supported but may have 
 **Cannot Fix**
 
 **Description**:
-Gemini 2.5 Flash has context limits. Very long documents may need chunking, potentially losing cross-page context.
+Gemini 1.5 Flash has context limits. Very long documents may need chunking, potentially losing cross-page context.
 
 **Impact**:
 
@@ -3794,7 +3781,7 @@ Gemini 2.5 Flash has context limits. Very long documents may need chunking, pote
 
 ## 🎯 Planned Enhancements
 
-### v1.3.0 (Q1 2026)
+### v1.5.0 (Q3 2026)
 
 #### Performance Improvements
 
