@@ -1546,8 +1546,8 @@ For API questions or issues:
 
 ---
 
-**Version**: 1.2.2  
-**Last Updated**: December 5, 2025  
+**Version**: 1.4.0  
+**Last Updated**: May 14, 2026  
 **Maintained By**: Darshil
 ---
 
@@ -2869,16 +2869,16 @@ npm run deploy           # Deploy to GitHub Pages
 | Variable              | Required | Default                | Description           |
 | --------------------- | -------- | ---------------------- | --------------------- |
 | `VITE_GEMINI_API_KEY` | Yes      | -                      | Google Gemini API key |
-| `VITE_GEMINI_MODEL`   | No       | `gemini-2.0-flash-exp` | AI model to use       |
-| `VITE_API_TIMEOUT`    | No       | `30000`                | API timeout (ms)      |
+| `VITE_GEMINI_MODEL`   | No       | `gemini-1.5-flash`     | AI model to use       |
+| `VITE_API_TIMEOUT`    | No       | `60000`                | API timeout (ms)      |
 | `VITE_MAX_FILE_SIZE`  | No       | `209715200`            | Max file size (bytes) |
 | `VITE_MAX_FILES`      | No       | `10`                   | Maximum files allowed |
 | `VITE_ENABLE_DEBUG`   | No       | `false`                | Enable debug logging  |
 
 ---
 
-**Version**: 2.0.0  
-**Last Updated**: 2025-12-06  
+**Version**: 1.4.0  
+**Last Updated**: May 14, 2026  
 **Status**: Production Ready ✅
 ---
 
