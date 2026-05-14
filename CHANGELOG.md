@@ -16,13 +16,22 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 - **Accessibility**: Added arrow key navigation (Left/Up for previous, Right/Down for next) to the PDF viewer.
 - **Infrastructure**: Added `VITE_PDF_WORKER_SRC` environment variable for configurable worker paths in restricted environments.
 
+### Changed
+- **Documentation**: Consolidated all technical guides into a single master `docs/DOCUMENTATION.md` file for better maintainability and navigation.
+- **Documentation**: Overhauled the `docs/agent_architecture/` guide with detailed persona, tool, and protocol definitions aligned with v1.4.0 logic.
+- **README**: Reorganized the root `README.md` with a professional layout, industry-standard sections, and updated documentation anchors.
+- **Contributing**: Refined the `CONTRIBUTING.md` guide with new mandatory coding standards (Structured Logging, Runtime Validation).
+- **Service Layer**: Refactored to strictly follow agent architecture patterns.
+- **Error Handling**: Enhanced logic to align with agent protocol specifications.
+
 ### Fixed
+- **Cleanup**: Standardized all internal documentation links and fixed stale version/model references (e.g., corrected Gemini 1.5 Flash naming).
 - **Memory**: Resolved memory leaks by ensuring `URL.revokeObjectURL` is called in both success and catch blocks of the search flow.
 - **Stability**: Prevented race conditions by disabling file uploads while a search is in the `ANALYZING` state.
 - **UI**: Replaced unstable array-index keys with unique IDs in the `FileUpload` error rendering.
 - **Robustness**: Added defensive null-guards for `numPages` and search result fields to prevent runtime crashes.
 - **Security**: Added strict format validation for Gemini API keys on initialization.
-- **Cleanup**: Removed unused `tailwindcss-dark-mode` dependency.
+- **Dependencies**: Removed unused `tailwindcss-dark-mode` dependency.
 
 
 ## [1.3.1] - 2026-04-19
