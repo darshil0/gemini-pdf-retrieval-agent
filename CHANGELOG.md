@@ -4,24 +4,22 @@ All notable changes to **DocuSearch Agent** will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/), and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [1.3.1] - 2026-04-18
+
+## [1.4.0] - 2026-05-13
+
+### Added
+- **Reliability**: Implemented robust PDF.js worker fallback (local -> CDN).
+- **Security**: Added runtime validation of Gemini API responses using Zod.
+- **Performance**: Added request timeouts (VITE_API_TIMEOUT_MS) and AbortSignal support for Gemini API calls.
+- **UX**: Improved PDF viewer error handling with "Retry" and "Download" options.
+- **Stability**: Implemented debouncing for file uploads to prevent race conditions.
+- **Validation**: Added fail-fast Gemini API key format validation on app startup.
 
 ### Fixed
-- **TypeScript**: Resolved all remaining type errors in `App.tsx`, `vitest.setup.ts`, `vitest.config.ts`, and test files.
-- **Security**: Addressed vulnerabilities via `npm audit fix`, reducing identified issues from 23 to 17.
-- **Consistency**: Standardized configuration filenames (e.g., renamed `prettierrc.json` to `.prettierrc.json`).
-- **Cleanup**: Removed duplicate root-level assets to maintain project structure integrity.
+- **Memory**: Ensured strict Object URL revocation in all success and error paths.
+- **UI**: Replaced unstable array-index keys with unique IDs in FileUpload component.
 
 ## [1.3.1] - 2026-04-19
-
-### Fixed
-
-- **TypeScript**: Resolved all remaining type errors in `App.tsx`, `vitest.setup.ts`, `vitest.config.ts`, and test files.
-- **Security**: Addressed security vulnerabilities by running `npm audit fix`, reducing identified issues from 23 to 17.
-- **Consistency**: Standardized configuration filenames (e.g., renamed `prettierrc.json` to `.prettierrc.json`).
-- **Cleanup**: Removed duplicate root-level assets to maintain a clean project structure.
-
-## [1.3.0] - 2025-12-13
 
 ### Added
 - **Performance**: Implemented streaming for large file uploads to reduce memory overhead.
@@ -36,6 +34,14 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 - **Critical**: Fixed a bug in the PDF viewer that caused rendering failures when lazy loading was enabled.
 - **Tests**: Polyfilled `DOMMatrix` and improved the `File` mock in the test environment for better CI/CD stability.
 
+## [1.3.1] - 2026-04-18
+
+### Fixed
+- **TypeScript**: Resolved all remaining type errors in `App.tsx`, `vitest.setup.ts`, `vitest.config.ts`, and test files.
+- **Security**: Addressed vulnerabilities via `npm audit fix`, reducing identified issues from 23 to 17.
+- **Consistency**: Standardized configuration filenames (e.g., renamed `prettierrc.json` to `.prettierrc.json`).
+- **Cleanup**: Removed duplicate root-level assets to maintain project structure integrity.
+
 ## [1.2.3] - 2025-12-12
 
 ### Fixed
@@ -46,6 +52,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 - **Styling**: Replaced unstable CDN-linked Tailwind with a local PostCSS build pipeline.
 - **Dependencies**: Migrated from `@google/genai` (preview) to `@google/generative-ai` (stable).
 - **QA**: Achieved 0 TypeScript errors and 0 lint warnings across the codebase.
+
+
 
 ## [1.2.2] - 2025-12-05
 
