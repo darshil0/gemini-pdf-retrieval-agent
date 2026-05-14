@@ -6,7 +6,7 @@ Thank you for considering contributing! We follow strict engineering standards t
 
 Before contributing, please familiarize yourself with our consolidated documentation:
 - [**Master Documentation**](docs/DOCUMENTATION.md): System architecture, API reference, security, and deployment.
-- [**Agent Architecture Guide**](docs/agent_architecture/README.md): Detailed logic for persona, tools, and protocols.
+- [**Agent Architecture Guide**](README.md#🧱-architecture): Detailed logic for persona, tools, and protocols.
 
 ---
 

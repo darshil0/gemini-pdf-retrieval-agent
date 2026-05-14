@@ -63,12 +63,12 @@ check_file() {
 }
 
 check_file "src/vite-env.d.ts"
-check_file "src/agent_architecture/prompts.ts"
-check_file "src/services/geminiService.ts"
-check_file "src/services/validation.ts"
-check_file "src/services/securityService.ts"
-check_file "src/services/logger.ts"
-check_file "src/constants/errors.ts"
+check_file "src/core/architecture/prompts.ts"
+check_file "src/api/gemini.ts"
+check_file "src/core/services/validation.ts"
+check_file "src/core/services/securityService.ts"
+check_file "src/core/services/logger.ts"
+check_file "src/core/constants/errors.ts"
 check_file "src/tests/Services.test.ts"
 check_file ".env.example"
 check_file "package.json"

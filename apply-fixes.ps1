@@ -55,12 +55,12 @@ Write-Host "📝 Step 4: Verifying critical files..."
 $missingFiles = 0
 $criticalFiles = @(
     "src/vite-env.d.ts",
-    "src/agent_architecture/prompts.ts",
-    "src/services/geminiService.ts",
-    "src/services/validation.ts",
-    "src/services/securityService.ts",
-    "src/services/logger.ts",
-    "src/constants/errors.ts",
+    "src/core/architecture/prompts.ts",
+    "src/api/gemini.ts",
+    "src/core/services/validation.ts",
+    "src/core/services/securityService.ts",
+    "src/core/services/logger.ts",
+    "src/core/constants/errors.ts",
     "src/tests/Services.test.ts",
     ".env.example",
     "package.json",
