@@ -15,6 +15,9 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 - **Error Handling**: Centralized all user-facing strings in `ErrorMessages` constants for consistency across the app.
 - **Accessibility**: Added arrow key navigation (Left/Up for previous, Right/Down for next) to the PDF viewer.
 - **Infrastructure**: Added `VITE_PDF_WORKER_SRC` environment variable for configurable worker paths in restricted environments.
+- **Infrastructure**: Introduced `apply-fixes.ps1` for native Windows maintenance and modernized `apply-fixes.sh`.
+- **Environment**: Added `.editorconfig`, `.gitattributes`, `.nvmrc`, and `.npmrc` for cross-platform standardization and Node.js version locking.
+- **Aesthetics**: Updated `architecture_diagram.png` with a high-fidelity v1.4.0 design reflecting the System-Tool-Protocol pattern.
 
 ### Changed
 - **Documentation**: Consolidated all technical guides into a single master `docs/DOCUMENTATION.md` file for better maintainability and navigation.
@@ -23,6 +26,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 - **Contributing**: Refined the `CONTRIBUTING.md` guide with new mandatory coding standards (Structured Logging, Runtime Validation).
 - **Service Layer**: Refactored to strictly follow agent architecture patterns.
 - **Error Handling**: Enhanced logic to align with agent protocol specifications.
+- **Configuration**: Modernized `tailwind.config.js`, `vite.config.ts`, `vitest.config.ts`, and `tsconfig.json` with optimized build settings and environment support.
 
 ### Fixed
 - **Cleanup**: Standardized all internal documentation links and fixed stale version/model references (e.g., corrected Gemini 1.5 Flash naming).
@@ -37,7 +41,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 - **Testing**: Created `ValidationService.test.ts` to achieve 100% line coverage for the runtime validation layer.
 - **Functional**: Added "Empty Results" integration test case to verify robust UI handling for null search responses.
 - **Environment**: Resolved local dependency issues and environment path conflicts to enable a standardized production build.
-- **Dependencies**: Removed unused `tailwindcss-dark-mode` dependency.
+- **Dependencies**: Removed unused and broken `tailwindcss-dark-mode` plugin from Tailwind configuration.
+- **UI**: Corrected `Changelog` link in `README.md` to use proper filesystem casing for cross-platform compatibility.
 
 
 ## [1.3.1] - 2026-04-19
