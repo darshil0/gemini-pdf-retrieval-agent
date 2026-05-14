@@ -4,8 +4,8 @@
 
 This document provides complete API documentation for DocuSearch Agent's services, methods, types, and interfaces.
 
-**Version**: 1.2.2  
-**Last Updated**: December 5, 2025
+**Version**: 1.4.0  
+**Last Updated**: May 14, 2026
 
 ---
 
@@ -99,53 +99,37 @@ interface Document {
 
 ---
 
-#### search()
+#### searchInDocuments()
 
-Searches documents using natural language query.
+Searches documents using natural language query via Gemini 1.5 Flash.
 
 ```typescript
-async search(
-  query: string,
-  documents: Document[],
-  options?: SearchOptions
-): Promise<SearchResult[]>
+async searchInDocuments(
+  files: File[],
+  keyword: string
+): Promise<SearchResponse>
 ```
 
 **Parameters**:
 
-- `query` (string, required): Natural language search query (min 3 characters)
-- `documents` (Document[], required): Array of uploaded documents to search
-- `options` (SearchOptions, optional): Search configuration
+- `files` (File[]): Array of PDF files to search
+- `keyword` (string): Search term or phrase
 
-**Returns**: `Promise<SearchResult[]>`
+**Returns**: `Promise<SearchResponse>`
 
-- Array of search results ranked by relevance
+- Validated response with summary and results
 
-**Throws**:
+**Security & Reliability**:
 
-- `InvalidQueryError`: Query too short or invalid
-- `SearchError`: Search execution failed
-- `APIError`: Gemini API request failed
+- **Timeouts**: API calls time out after 60 seconds.
+- **Validation**: Responses are validated at runtime against the expected schema.
+- **Streaming**: Files are read as streams with a 30-second timeout.
 
 **Example**:
 
 ```typescript
-const results = await service.search(
-  "What were the Q4 revenue figures?",
-  uploadedDocuments,
-  {
-    maxResults: 10,
-    fuzzyMatch: true,
-    semanticSearch: true,
-    minConfidence: 0.7,
-  },
-);
-
-results.forEach((result) => {
-  console.log(`${result.document.name} - Page ${result.pageNumber}`);
-  console.log(`Snippet: ${result.snippet}`);
-  console.log(`Confidence: ${result.confidence}`);
-});
+const response = await searchInDocuments(files, "revenue");
+console.log(response.summary);
 ```
 
 **SearchOptions**:
@@ -221,91 +205,58 @@ const context = await service.extractContext(document, 15, {
 
 ---
 
-### DocumentService
+### ValidationService
 
-Manages document lifecycle and metadata.
+Provides runtime type safety and sanitization.
 
-#### validateFile()
+#### validateSearchResponse()
 
-Validates file before upload.
+Validates and sanitizes raw API response.
 
 ```typescript
-validateFile(file: File): ValidationResult
+function validateSearchResponse(data: unknown): SearchResponse
 ```
 
-**Parameters**:
+#### escapeCSVField()
 
-- `file` (File): File to validate
-
-**Returns**: `ValidationResult`
+Escapes a string for safe CSV usage.
 
 ```typescript
-interface ValidationResult {
-  valid: boolean;
-  errors?: string[];
-  warnings?: string[];
-}
-```
-
-**Example**:
-
-```typescript
-const result = documentService.validateFile(file);
-
-if (!result.valid) {
-  console.error("Validation failed:", result.errors);
-}
-
-if (result.warnings) {
-  console.warn("Warnings:", result.warnings);
-}
+function escapeCSVField(value: string | number): string
 ```
 
 ---
 
-#### add()
+### LoggerService
 
-Adds document to managed collection.
+Structured logging with levels and context.
 
-```typescript
-add(document: Document): void
-```
+#### createLogger()
 
-**Parameters**:
-
-- `document` (Document): Document to add
-
-**Example**:
+Creates a scoped logger instance.
 
 ```typescript
-documentService.add(processedDocument);
+function createLogger(context: string): Logger
 ```
+
+**Methods**: `debug`, `info`, `warn`, `error`
 
 ---
 
-#### remove()
+### SecurityService
 
-Removes document from collection.
+Handles security validations and rate limiting.
 
-```typescript
-remove(id: string): boolean
-```
+#### checkRateLimit()
 
-**Parameters**:
-
-- `id` (string): Document ID
-
-**Returns**: `boolean`
-
-- `true` if removed, `false` if not found
-
-**Example**:
+Checks rate limit with localStorage persistence.
 
 ```typescript
-const removed = documentService.remove("doc-123");
-if (removed) {
-  console.log("Document removed successfully");
-}
+function checkRateLimit(
+  identifier: string,
+  limit: number,
+  timeframe: number
+): boolean
 ```
 
 ---

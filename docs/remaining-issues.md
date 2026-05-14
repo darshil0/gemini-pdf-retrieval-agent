@@ -4,9 +4,9 @@
 
 This document tracks known issues, limitations, and planned enhancements for DocuSearch Agent. Items are categorized by severity and planned release version.
 
-**Last Updated**: December 5, 2025
-**Current Version**: v1.2.2
-**Next Release**: v1.3.0 (Planned: January 2026)
+**Last Updated**: May 14, 2026
+**Current Version**: v1.4.0
+**Next Release**: v1.4.1 (Planned: June 2026)
 
 ---
 
@@ -152,39 +152,27 @@ Users cannot easily access their previous searches within a session.
 
 ---
 
-#### Issue #6: Export Results
-
-**Status**: 🟠 Not Started
+**Status**: ✅ Completed (v1.4.0)
 **Severity**: Low
 **Feature Request**: Yes
 
 **Description**:
-No way to export search results for reference or sharing.
+Added `exportResults` utility with proper CSV escaping for all document fields and search metadata.
 
-**Planned Enhancement** (v1.4.0):
-
+**Planned Enhancement** (Future):
 - Export to PDF with highlighted pages
-- Export to JSON/CSV with citations
 - Copy all results to clipboard
 
 ---
 
 ### Low Priority
 
-#### Issue #7: Dark Mode Support
-
-**Status**: 🟠 Not Started
+**Status**: ✅ Completed (v1.3.1)
 **Severity**: Low
 **Feature Request**: Yes
 
 **Description**:
-Application doesn't adapt to system dark mode preference.
-
-**Planned Enhancement** (v1.4.0):
-
-- Detect system color scheme
-- Add manual toggle
-- Dark-optimized PDF viewer
+Application detects system preference and provides manual toggle. Theme is persisted in `localStorage`.
 
 ---
 
@@ -594,33 +582,16 @@ Found something not listed here?
 
 ---
 
-## 📅 Release Roadmap
-
-```
-Q4 2025 (Current)
-└── v1.2.2 ✅ (Architecture Formalization)
-
-Q1 2026
-├── v1.3.0 🚧 (Performance & UX)
-│   ├── Streaming processing
-│   ├── Memory optimization
-│   ├── Search history
-│   └── Advanced filters
-│
-└── v1.3.1 🔜 (Bug Fixes)
-
 Q2 2026
-└── v1.4.0 🔮 (Export & Collaboration)
-    ├── Export features
-    ├── Sharing capabilities
-    └── Advanced AI features
+└── v1.4.0 ✅ (Refactoring & Stability)
+    ├── Structured logging
+    ├── Persistent rate limiting
+    ├── Runtime validation
+    ├── CSV export escaping
+    └── Keyboard navigation
 
 Q3 2026
 └── v1.5.0 🔮 (Enterprise & Integration)
-    ├── Enterprise features
-    ├── Platform integrations
-    └── Mobile apps
-```
 
 ---
 

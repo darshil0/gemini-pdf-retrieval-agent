@@ -5,19 +5,25 @@ All notable changes to **DocuSearch Agent** will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/), and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 
-## [1.4.0] - 2026-05-13
+## [1.4.0] - 2026-05-14
 
 ### Added
-- **Reliability**: Implemented robust PDF.js worker fallback (local -> CDN).
-- **Security**: Added runtime validation of Gemini API responses using Zod.
-- **Performance**: Added request timeouts (VITE_API_TIMEOUT_MS) and AbortSignal support for Gemini API calls.
-- **UX**: Improved PDF viewer error handling with "Retry" and "Download" options.
-- **Stability**: Implemented debouncing for file uploads to prevent race conditions.
-- **Validation**: Added fail-fast Gemini API key format validation on app startup.
+- **Observability**: Introduced a structured `LoggerService` with level-based logging (DEBUG, INFO, WARN, ERROR) and contextual metadata.
+- **Validation**: Added a runtime `ValidationService` for sanitizing API responses, validating string arrays from storage, and safe CSV escaping.
+- **Reliability**: Implemented PDF.js worker fallback logic (primary CDN -> secondary CDN) with automatic health checks.
+- **Security**: Upgraded `SecurityService` with persistent rate limiting backed by `localStorage` to survive page reloads.
+- **Error Handling**: Centralized all user-facing strings in `ErrorMessages` constants for consistency across the app.
+- **Accessibility**: Added arrow key navigation (Left/Up for previous, Right/Down for next) to the PDF viewer.
+- **Infrastructure**: Added `VITE_PDF_WORKER_SRC` environment variable for configurable worker paths in restricted environments.
 
 ### Fixed
-- **Memory**: Ensured strict Object URL revocation in all success and error paths.
-- **UI**: Replaced unstable array-index keys with unique IDs in FileUpload component.
+- **Memory**: Resolved memory leaks by ensuring `URL.revokeObjectURL` is called in both success and catch blocks of the search flow.
+- **Stability**: Prevented race conditions by disabling file uploads while a search is in the `ANALYZING` state.
+- **UI**: Replaced unstable array-index keys with unique IDs in the `FileUpload` error rendering.
+- **Robustness**: Added defensive null-guards for `numPages` and search result fields to prevent runtime crashes.
+- **Security**: Added strict format validation for Gemini API keys on initialization.
+- **Cleanup**: Removed unused `tailwindcss-dark-mode` dependency.
+
 
 ## [1.3.1] - 2026-04-19
 

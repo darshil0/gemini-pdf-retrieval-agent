@@ -2,7 +2,7 @@
 
 ## Overview
 
-DocuSearch Agent v2.0.0 implements comprehensive security measures to protect users and data. This document outlines our security features, vulnerability reporting process, and best practices.
+DocuSearch Agent v1.4.0 implements comprehensive security measures to protect users and data. This document outlines our security features, vulnerability reporting process, and best practices.
 
 ---
 
@@ -80,27 +80,27 @@ bytes[0] === 0x25 && bytes[1] === 0x50; // %PDF ✅
 
 ### 3. Rate Limiting
 
-#### Request Throttling
+#### Persistent Request Throttling
 
 ```typescript
-// Client-side rate limiting
+// Client-side rate limiting backed by localStorage
 const allowed = SecurityService.checkRateLimit(
-  userId,
+  "search",
   10, // Max 10 requests
   60000, // Per minute
 );
 
 if (!allowed) {
-  throw new Error("Rate limit exceeded. Please wait.");
+  throw new Error(ErrorMessages.API_RATE_LIMITED);
 }
 ```
 
+**Persistence**: Rate limit counters are stored in `localStorage`, ensuring that refreshing the page or restarting the browser does not reset the limit.
+
 **Limits:**
 
-- **API Requests**: 10 per minute
-- **File Uploads**: 10 files total
 - **Search Queries**: 10 per minute
-- **Cooldown**: 60 seconds
+- **Cooldown**: 60 seconds (rolling window)
 
 ### 4. Secure Headers
 
@@ -315,19 +315,18 @@ describe("Security", () => {
 
 ### Version History
 
-**v2.0.0 (2025-12-06)**
+**v1.4.0 (2026-05-14)**
 
-- ✅ Added input sanitization
-- ✅ Implemented rate limiting
-- ✅ Enhanced file validation
-- ✅ Added security headers
-- ✅ API key protection
+- ✅ Added runtime response validation service
+- ✅ Implemented persistent rate limiting (localStorage)
+- ✅ Added fail-fast API key format validation
+- ✅ Centralized error messaging for consistent security UX
 
-**v1.2.2 (2025-12-05)**
+**v1.3.1 (2026-04-19)**
 
-- ⚠️ Basic validation only
-- ⚠️ No rate limiting
-- ⚠️ Extension-based file checking
+- ✅ Basic validation
+- ✅ Extension-based file checking
+- ✅ Search history persistence
 
 ### Planned Improvements
 
@@ -498,6 +497,6 @@ Regular security assessments:
 
 ---
 
-**Last Updated**: 2025-12-06  
-**Version**: 2.0.0  
-**Next Review**: 2025-03-06
+**Last Updated**: 2026-05-14  
+**Version**: 1.4.0  
+**Next Review**: 2026-08-14
