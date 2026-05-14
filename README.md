@@ -114,5 +114,5 @@ Enable `VITE_DEBUG=true` to see structured system logs in the browser console, i
 
 ---
 
-**Built with ❤️ by [Darshil](https://github.com/darshil0)**
+**Built with ❤️ by [Darshil](https://github.com/darshil0)** • [Changelog](CHANGELOG.md)
 
