@@ -101,6 +101,18 @@ export default function App() {
     }
   }, []);
 
+  // FIXED: Page navigation logic with bounds checking (Issue #17)
+  const changePage = useCallback(
+    (offset: number) => {
+      setCurrentPage((prev) => {
+        if (numPages === null || numPages === undefined) return prev;
+        const newPage = prev + offset;
+        return newPage >= 1 && newPage <= numPages ? newPage : prev;
+      });
+    },
+    [numPages],
+  );
+
   // FIXED: Initialize viewer state when opening a file
   useEffect(() => {
     if (viewingResult) {
@@ -210,17 +222,6 @@ export default function App() {
   };
 
   // Issue #13: Gracefully handle null numPages
-  const changePage = useCallback(
-    (offset: number) => {
-      setCurrentPage((prev) => {
-        if (numPages === null || numPages === undefined) return prev;
-        const newPage = prev + offset;
-        return newPage >= 1 && newPage <= numPages ? newPage : prev;
-      });
-    },
-    [numPages],
-  );
-
   // FIXED: File upload handler with proper URL management
   // Issue #4: Prevent uploads during active search to avoid race conditions
   const handleFilesSelected = useCallback(

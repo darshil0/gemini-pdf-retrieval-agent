@@ -31,6 +31,12 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 - **UI**: Replaced unstable array-index keys with unique IDs in the `FileUpload` error rendering.
 - **Robustness**: Added defensive null-guards for `numPages` and search result fields to prevent runtime crashes.
 - **Security**: Added strict format validation for Gemini API keys on initialization.
+- **TypeScript**: Fixed hoisting issue in `App.tsx` where `changePage` was used before its declaration (`TS2448`).
+- **QA**: Suppressed `no-console` warnings in `logger.ts` for the central logging sink, achieving 0 lint warnings across all business logic.
+- **Testing**: Refactored `Services.test.ts` to test actual service implementations instead of redefined mocks, significantly increasing code coverage.
+- **Testing**: Created `ValidationService.test.ts` to achieve 100% line coverage for the runtime validation layer.
+- **Functional**: Added "Empty Results" integration test case to verify robust UI handling for null search responses.
+- **Environment**: Resolved local dependency issues and environment path conflicts to enable a standardized production build.
 - **Dependencies**: Removed unused `tailwindcss-dark-mode` dependency.
 
 

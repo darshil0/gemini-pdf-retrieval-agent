@@ -72,4 +72,31 @@ describe("Integration Tests", () => {
     fireEvent.click(screen.getByText("View Page 1"));
     expect(screen.getByText("Page 1 of --")).toBeInTheDocument();
   });
+
+  it("should handle empty search results gracefully", async () => {
+    vi.mocked(geminiService.searchInDocuments).mockResolvedValue({
+      summary: "No matches found.",
+      results: [],
+    });
+
+    render(<App />);
+
+    // 1. Upload
+    const file = new File(["pdf content"], "test.pdf", {
+      type: "application/pdf",
+    });
+    const input = screen.getByLabelText(/upload pdf files/i);
+    fireEvent.change(input, { target: { files: [file] } });
+
+    // 2. Search
+    const searchInput = screen.getByPlaceholderText(/e.g., 'Financial Q3 results'/i);
+    fireEvent.change(searchInput, { target: { value: "empty" } });
+    fireEvent.click(screen.getByText("Find Occurrences"));
+
+    // 3. Verify empty state
+    await waitFor(() => {
+      expect(screen.getByText("No matches found.")).toBeInTheDocument();
+      expect(screen.queryByText("View Page")).not.toBeInTheDocument();
+    });
+  });
 });
