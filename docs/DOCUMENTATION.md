@@ -2097,7 +2097,7 @@ Access at `http://localhost:5173`
 
 **Recommended**:
 
-- Node.js v20.0.0+
+- Node.js v24.14.0+ (Standardized via `.nvmrc`)
 - npm v10.0.0+
 - 8GB RAM
 - 2GB disk space
@@ -2170,9 +2170,9 @@ Edit `.env`:
 # Required: Gemini API Key
 VITE_GEMINI_API_KEY=your_api_key_here
 
-# Optional: API Configuration
+# Optional: AI Configuration
 VITE_GEMINI_MODEL=gemini-1.5-flash
-VITE_API_TIMEOUT=30000
+VITE_API_TIMEOUT=60000
 
 # Optional: Feature Flags
 VITE_MAX_FILE_SIZE=209715200  # 200MB in bytes
@@ -2208,11 +2208,12 @@ VITE_PDF_WORKER_SRC=          # Custom PDF worker CDN URL
     "dev": "vite",
     "build": "tsc && vite build",
     "preview": "vite preview",
-    "test": "vitest",
-    "test:coverage": "vitest --coverage",
-    "lint": "eslint . --ext ts,tsx",
-    "lint:fix": "eslint . --ext ts,tsx --fix",
-    "type-check": "tsc --noEmit"
+    "test": "vitest run",
+    "test:coverage": "vitest run --coverage",
+    "lint": "eslint . --ext .ts,.tsx",
+    "lint:fix": "eslint . --ext .ts,.tsx --fix",
+    "type-check": "tsc --noEmit",
+    "format": "prettier --write \"src/**/*.{ts,tsx,json,css,md}\" \"*.{json,md}\""
   }
 }
 ```
@@ -2222,46 +2223,52 @@ VITE_PDF_WORKER_SRC=          # Custom PDF worker CDN URL
 ```json
 {
   "compilerOptions": {
-    "target": "ES2020",
-    "lib": ["ES2020", "DOM", "DOM.Iterable"],
+    "target": "ES2022",
+    "lib": ["ES2022", "DOM", "DOM.Iterable"],
     "module": "ESNext",
+    "moduleResolution": "bundler",
     "strict": true,
     "jsx": "react-jsx",
-    "moduleResolution": "bundler",
     "resolveJsonModule": true,
     "isolatedModules": true,
     "noEmit": true,
-    "noUnusedLocals": true,
-    "noUnusedParameters": true,
-    "noFallthroughCasesInSwitch": true
-  }
+    "incremental": true,
+    "baseUrl": ".",
+    "paths": {
+      "@/*": ["src/*"]
+    }
+  },
+  "include": ["src/**/*", "vite.config.ts", "vitest.config.ts", "src/vite-env.d.ts"]
 }
 ```
 
 #### vite.config.ts
 
 ```typescript
-import { defineConfig } from "vite";
+import { defineConfig, loadEnv } from "vite";
 import react from "@vitejs/plugin-react";
 
-export default defineConfig({
-  plugins: [react()],
-  server: {
-    port: 5173,
-    host: true,
-  },
-  build: {
-    outDir: "dist",
-    sourcemap: true,
-    rollupOptions: {
-      output: {
-        manualChunks: {
-          "react-vendor": ["react", "react-dom"],
-          "pdf-vendor": ["react-pdf", "pdfjs-dist"],
+export default defineConfig(({ mode }) => {
+  const env = loadEnv(mode, process.cwd(), "");
+  return {
+    plugins: [react()],
+    server: {
+      port: parseInt(env.VITE_PORT) || 5173,
+      host: true,
+    },
+    build: {
+      outDir: "dist",
+      sourcemap: true,
+      rollupOptions: {
+        output: {
+          manualChunks: {
+            "react-vendor": ["react", "react-dom"],
+            "pdf-vendor": ["react-pdf", "pdfjs-dist"],
+          },
         },
       },
     },
-  },
+  };
 });
 ```
 
@@ -2289,6 +2296,37 @@ npm run dev -- --host
 3. **Run tests** as you develop
 4. **Check types** regularly
 5. **Lint code** before committing
+
+---
+
+## Maintenance & Production Readiness
+
+The DocuSearch Agent includes automated utilities to maintain code quality and production standards. These scripts should be run before any major release or pull request.
+
+### Automated Maintenance Scripts
+
+#### Linux / macOS / Git Bash
+```bash
+# Apply all v1.4.0 fixes, re-install dependencies, and run full QA suite
+./apply-fixes.sh
+```
+
+#### Windows PowerShell
+```powershell
+# Native PowerShell equivalent for Windows environments
+./apply-fixes.ps1
+```
+
+### Production Checklist
+
+To maintain v1.4.0 standards, ensure the following before deployment:
+1. **Zero Errors**: `npm run type-check` and `npm run lint` must pass with 0 warnings.
+2. **Coverage**: Unit tests must maintain ≥70% coverage (100% for `ValidationService`).
+3. **Logs**: Structured logging must be used via `LoggerService` instead of `console.log`.
+4. **Security**: All API outputs must be sanitized via `ValidationService`.
+5. **Versioning**: Package and UI version metadata must match the target release.
+
+---
 
 ```bash
 # Terminal 1: Dev server
