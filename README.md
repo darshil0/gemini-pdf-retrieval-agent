@@ -64,6 +64,7 @@ VITE_GEMINI_API_KEY=your_api_key_here  # Required: Get from https://aistudio.goo
 VITE_MAX_FILE_SIZE=209715200            # Optional: 200MB default
 VITE_MAX_FILES=10                       # Optional: 10 files default
 VITE_PDF_WORKER_SRC=                    # Optional: Custom PDF.js worker URL (for air-gapped envs)
+VITE_DEBUG=false                        # Optional: Enable verbose logging (true/false)
 ```
 
 ### Getting a Gemini API Key
@@ -118,14 +119,23 @@ npm run build
 2.  Ensure all variables are prefixed with `VITE_`.
 3.  **Restart the dev server** after making changes to environment variables.
 
+### PDF Rendering Issues
+
+If the PDF viewer fails to load, check your internet connection or the configured `VITE_PDF_WORKER_SRC`. The app includes an automatic fallback to `unpkg.com` if the primary `cdnjs` worker is unreachable.
+
+### Viewing Logs
+
+Enable verbose logging by setting `VITE_DEBUG=true` in your `.env`. Logs are visible in the browser's developer console (F12) with a structured format: `[LEVEL][CONTEXT] TIMESTAMP — MESSAGE`.
+
 -----
 
-## 📈 Recent Updates (v1.3.1)
+## 📈 Recent Updates (v1.4.0)
 
-  * ✅ **TypeScript Resolution**: Resolved all type-casting issues in the retrieval engine.
-  * ✅ **Security Hardening**: Upgraded core dependencies to patch high-severity vulnerabilities.
-  * ✅ **UI/UX**: Added Dark Mode support and CSV export functionality for search results.
-  * ✅ **Memory Management**: Implemented lazy-loading for PDF pages to prevent browser crashes on large files.
+  * ✅ **Refactored Core**: Implemented a structured `LoggerService` and `ValidationService` for production-grade observability and type safety.
+  * ✅ **Reliability Plus**: Added robust PDF.js worker fallback logic and API call timeouts (60s).
+  * ✅ **Security Layer**: Persistent rate limiting via `localStorage` and fail-fast API key format validation.
+  * ✅ **UI Refinement**: Added arrow key navigation for the PDF viewer and improved CSV export escaping.
+  * ✅ **Memory Fixes**: Resolved all known Object URL memory leaks in search and upload paths.
 
 > **Note on Memory**: Uploading many large PDFs (8+ files, 50MB+ each) may consume significant browser memory. For best performance on devices with ≤8GB RAM, limit concurrent uploads to 5 files.
 
