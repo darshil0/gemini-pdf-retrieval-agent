@@ -5,6 +5,14 @@ All notable changes to **DocuSearch Agent** will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/), and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 
+## [1.4.2] - 2026-05-16
+
+### Fixed
+- **CRITICAL**: Restored `src/App.tsx` from corruption (it was accidentally overwritten with `package.json` content in v1.4.1).
+- **CRITICAL**: Completed restoration of CSS theme variables and utility classes in `src/styles/index.css` (e.g., `--primary`, `.btn-primary`).
+- **Infrastructure**: Standardized all imports in `src/App.tsx` to use path aliases (`@api`, `@core`, `@components`).
+- **Quality**: Verified project health by running full dependency installation and test suite (69/69 tests passing).
+
 ## [1.4.1] - 2026-05-16
 
 ### 🔴 Blocking Issues Fixed

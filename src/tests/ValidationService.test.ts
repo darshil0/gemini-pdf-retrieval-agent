@@ -4,7 +4,6 @@ import {
   escapeCSVField, 
   validateStringArray 
 } from "@/core/services/validation";
-import { SearchResponse } from "@/core/types";
 
 describe("ValidationService", () => {
   describe("validateSearchResponse", () => {
@@ -26,7 +25,7 @@ describe("ValidationService", () => {
       const result = validateSearchResponse(validData);
       expect(result.summary).toBe("Test summary");
       expect(result.results).toHaveLength(1);
-      expect(result.results[0].relevanceScore).toBe(0.8);
+      expect(result.results[0]?.relevanceScore).toBe(0.8);
     });
 
     it("should handle missing summary by providing default", () => {
@@ -50,7 +49,7 @@ describe("ValidationService", () => {
 
       const result = validateSearchResponse(data);
       expect(result.results).toHaveLength(1);
-      expect(result.results[0].docIndex).toBe(0);
+      expect(result.results[0]?.docIndex).toBe(0);
     });
 
     it("should throw if results is not an array", () => {
