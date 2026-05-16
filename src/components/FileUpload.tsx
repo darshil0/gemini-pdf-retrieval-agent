@@ -1,6 +1,9 @@
 // src/components/FileUpload.tsx
 import { useCallback, useState } from "react";
 import { Upload, X, FileText, AlertCircle } from "lucide-react";
+import { createLogger } from "@core/services/logger";
+
+const log = createLogger("FileUpload");
 
 const MAX_FILES = parseInt(import.meta.env.VITE_MAX_FILES || "10");
 const MAX_FILE_SIZE_BYTES = parseInt(
@@ -83,31 +86,58 @@ export const FileUpload = ({
     (files: FileList | null) => {
       if (!files || files.length === 0) return;
 
-      const fileArray = Array.from(files);
-      const totalFiles = uploadedFiles.length + fileArray.length;
+      try {
+        const fileArray = Array.from(files);
+        const totalFiles = uploadedFiles.length + fileArray.length;
 
-      // Check 10-file limit
-      if (totalFiles > MAX_FILES) {
+        // Check 10-file limit
+        if (totalFiles > MAX_FILES) {
+          setErrors([
+            {
+              id: `system-limit-${Date.now()}`,
+              file: "System",
+              error: `Cannot upload more than ${MAX_FILES} files. Currently have ${uploadedFiles.length} file(s). Attempting to add ${fileArray.length} more.`,
+            },
+          ]);
+          log.warn("File limit exceeded", {
+            currentCount: uploadedFiles.length,
+            attemptedAdd: fileArray.length,
+            limit: MAX_FILES,
+          });
+          return;
+        }
+
+        const { valid, errors: validationErrors } = validateFiles(fileArray);
+
+        if (validationErrors.length > 0) {
+          setErrors(validationErrors);
+          log.warn("File validation failed", {
+            errorCount: validationErrors.length,
+            fileCount: fileArray.length,
+          });
+        } else {
+          setErrors([]);
+        }
+
+        if (valid.length > 0) {
+          onFilesSelected(valid);
+          log.info("Files selected successfully", {
+            count: valid.length,
+            totalAfterUpload: uploadedFiles.length + valid.length,
+          });
+        }
+      } catch (error) {
+        // Handle unexpected errors in file processing
+        const errorMessage =
+          error instanceof Error ? error.message : "Unknown error during file upload";
         setErrors([
           {
-            id: `system-limit-${Date.now()}`,
-            file: "System",
-            error: `Cannot upload more than ${MAX_FILES} files. Currently have ${uploadedFiles.length} file(s). Attempting to add ${fileArray.length} more.`,
+            id: `error-${Date.now()}`,
+            file: "Upload Error",
+            error: errorMessage,
           },
         ]);
-        return;
-      }
-
-      const { valid, errors: validationErrors } = validateFiles(fileArray);
-
-      if (validationErrors.length > 0) {
-        setErrors(validationErrors);
-      } else {
-        setErrors([]);
-      }
-
-      if (valid.length > 0) {
-        onFilesSelected(valid);
+        log.error("Unexpected error during file handling", {}, error instanceof Error ? error : undefined);
       }
     },
     [uploadedFiles, onFilesSelected, validateFiles],
@@ -164,6 +194,8 @@ export const FileUpload = ({
             <div
               key={error.id}
               className="flex items-start gap-2 p-3 bg-red-900/20 border border-red-800 rounded-lg"
+              role="alert"
+              aria-live="polite"
             >
               <AlertCircle className="w-5 h-5 text-red-400 flex-shrink-0 mt-0.5" />
               <div className="flex-1">
@@ -172,7 +204,7 @@ export const FileUpload = ({
               </div>
               <button
                 onClick={() => setErrors(errors.filter((e) => e.id !== error.id))}
-                className="text-red-400 hover:text-red-300"
+                className="text-red-400 hover:text-red-300 flex-shrink-0"
                 aria-label="Dismiss error"
               >
                 <X className="w-4 h-4" />
@@ -193,6 +225,8 @@ export const FileUpload = ({
         onDragLeave={handleDrag}
         onDragOver={handleDrag}
         onDrop={handleDrop}
+        role="region"
+        aria-label="File upload area"
       >
         <input
           type="file"
