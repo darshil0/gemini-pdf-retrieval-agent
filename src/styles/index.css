@@ -3,6 +3,15 @@
 @tailwind utilities;
 
 @layer base {
+  :root {
+    --primary: #3b82f6;
+    --primary-hover: #2563eb;
+    --bg-dark: #0f172a;
+    --bg-slate-800: #1e293b;
+    --text-main: #e2e8f0;
+    --text-muted: #94a3b8;
+  }
+
   body {
     @apply bg-slate-900 text-slate-200;
   }
@@ -11,6 +20,10 @@
 @layer components {
   .glass-panel {
     @apply bg-slate-800/80 backdrop-blur-md border border-slate-700/50;
+  }
+
+  .btn-primary {
+    @apply bg-blue-600 hover:bg-blue-700 text-white font-medium py-2 px-4 rounded-lg transition-colors;
   }
 }
 
