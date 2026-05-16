@@ -37,10 +37,16 @@ pdfjs.GlobalWorkerOptions.workerSrc =
   import.meta.env.VITE_PDF_WORKER_SRC || WORKER_CDN_PRIMARY;
 
 // Attempt fallback if primary CDN fails
-fetch(pdfjs.GlobalWorkerOptions.workerSrc, { method: "HEAD" }).catch(() => {
-  log.warn("Primary PDF worker CDN unreachable, switching to fallback");
-  pdfjs.GlobalWorkerOptions.workerSrc = WORKER_CDN_FALLBACK;
-});
+fetch(pdfjs.GlobalWorkerOptions.workerSrc, { method: "HEAD" })
+  .then((response) => {
+    if (!response.ok) {
+      throw new Error("Primary CDN returned an error");
+    }
+  })
+  .catch(() => {
+    log.warn("Primary PDF worker CDN unreachable or error, switching to fallback");
+    pdfjs.GlobalWorkerOptions.workerSrc = WORKER_CDN_FALLBACK;
+  });
 
 export default function App() {
   const [files, setFiles] = useState<UploadedFile[]>([]);

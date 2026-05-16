@@ -1,6 +1,6 @@
 // src/__tests__/security.test.ts
 import { describe, it, expect } from "vitest";
-import { SecurityService } from "../services/securityService";
+import { SecurityService } from "@core/services/securityService";
 
 describe("SecurityService", () => {
   it("validates PDF file type", async () => {
