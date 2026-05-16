@@ -18,7 +18,7 @@ export const ErrorMessages = {
 
   // API errors
   API_KEY_MISSING: "Gemini API key is not configured. Please set VITE_GEMINI_API_KEY in your .env file.",
-  API_KEY_INVALID_FORMAT: "Gemini API key appears to be invalid. Please check your .env file.",
+  API_KEY_INVALID_FORMAT: "Gemini API key is invalid. Please check your .env file.",
   API_COMMUNICATION_ERROR: "An error occurred while communicating with the Gemini API.",
   API_RATE_LIMITED: "Too many requests. Please wait a moment before trying again.",
 
