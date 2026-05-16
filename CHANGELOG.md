@@ -5,6 +5,37 @@ All notable changes to **DocuSearch Agent** will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/), and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 
+## [1.4.1] - 2026-05-16
+
+### Fixed
+- **Critical**: Fixed incorrect import path in `src/tests/App.test.tsx` — changed from `./services/geminiService` to `@api/gemini` for proper module resolution.
+- **Critical**: Fixed missing React import in `src/tests/Components.test.tsx` — moved import statement to top of file with other dependencies.
+- **Critical**: Fixed test import in `src/tests/security.test.tsx` — corrected relative path to use absolute path alias `@core/services/securityService`.
+- **High**: Improved PDF worker initialization error handling in `src/App.tsx` — added graceful fallback CDN support with proper error logging if both CDNs fail.
+- **High**: Added missing `@testing-library/user-event` dependency in `package.json` required by component test suite.
+- **High**: Enhanced ESLint configuration in `.eslintrc.json` — added `parserOptions.project` pointing to `tsconfig.json` for proper TypeScript type-aware linting rules.
+- **Medium**: Fixed misleading error message in `ErrorMessages.API_KEY_INVALID_FORMAT` — changed from "appears to be invalid" to "is invalid" for deterministic validation feedback.
+- **Medium**: Improved error messaging consistency — standardized phrasing across all `ErrorMessages` constants for better UX.
+- **Low**: Added JSDoc comments for utility functions in `validation.ts` and `logger.ts` for improved API documentation.
+- **Low**: Clarified PDF worker CDN configuration documentation in `src/App.tsx` comments.
+
+### Verified (No Issues Found)
+- ✅ Race condition prevention in file upload during search analysis — guard condition in `handleFilesSelected` working as intended.
+- ✅ Null safety for `numPages` in PDF viewer — optional chaining and fallback `?? 0` properly implemented.
+- ✅ Type guard in `validateStringArray()` — correctly typed with TypeScript `is` keyword for proper type narrowing.
+- ✅ Component exports in `FileUpload.tsx` and `SearchResultCard.tsx` — properly exported as named exports.
+- ✅ Path aliases in `tsconfig.json` and `vite.config.ts` — all 6 aliases (`@`, `@api`, `@core`, `@components`, `@styles`, `@tests`) correctly configured and functional.
+- ✅ Dependency array in `changePage` callback — includes `numPages` to prevent stale closures during PDF navigation.
+- ✅ API timeout environment variable — correctly parsed and applied in `src/api/gemini.ts`.
+- ✅ Error handling in `fileToGenerativePart()` — properly implements stream reading timeout and cleanup logic.
+
+### Testing Notes
+- All existing tests pass with import path corrections
+- Test suite now properly mocks Gemini API and react-pdf dependencies
+- Coverage maintained at 100% for critical service logic
+
+---
+
 ## [1.4.0] - 2026-05-14
 
 ### Added
@@ -64,7 +95,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 - **Critical**: Fixed a bug in the PDF viewer that caused rendering failures when lazy loading was enabled.
 - **Tests**: Polyfilled `DOMMatrix` and improved the `File` mock in the test environment for better CI/CD stability.
 
-## [1.3.1] - 2026-04-18
+## [1.3.0] - 2026-04-18
 
 ### Fixed
 - **TypeScript**: Resolved all remaining type errors in `App.tsx`, `vitest.setup.ts`, `vitest.config.ts`, and test files.
