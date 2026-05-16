@@ -23,7 +23,7 @@ import { ErrorMessages } from "@core/constants/errors";
 const log = createLogger("GeminiService");
 
 /** Default timeout for API requests in milliseconds. Defaults to 60s if not set in environment. */
-const API_TIMEOUT_MS = parseInt(import.meta.env.VITE_API_TIMEOUT || "60000");
+const API_TIMEOUT_MS = parseInt(import.meta.env.VITE_API_TIMEOUT_MS || "60000");
 
 /** Default timeout for file stream reading in milliseconds (30 seconds). */
 const FILE_STREAM_TIMEOUT_MS = 30_000;
