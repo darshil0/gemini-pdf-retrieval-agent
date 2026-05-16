@@ -1,6 +1,6 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import { render, screen, fireEvent, waitFor } from "@testing-library/react";
-import { FileUpload } from "../components/FileUpload";
+import { FileUpload } from "@components/FileUpload";
 
 describe("FileUpload Component", () => {
   const mockOnFilesSelected = vi.fn();
