@@ -3,7 +3,7 @@ import {
   buildSearchPrompt,
   SEARCH_TOOL_INSTRUCTIONS,
   SEARCH_PROTOCOL,
-} from "@core/architecture/prompts";
+} from "@/core/architecture/prompts";
 
 describe("Agent Architecture (v1.4.0)", () => {
   it("should strictly include the SYSTEM definition in the prompt", () => {

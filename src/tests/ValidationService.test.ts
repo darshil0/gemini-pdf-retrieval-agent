@@ -3,7 +3,8 @@ import {
   validateSearchResponse, 
   escapeCSVField, 
   validateStringArray 
-} from "@core/services/validation";
+} from "@/core/services/validation";
+import { SearchResponse } from "@/core/types";
 
 describe("ValidationService", () => {
   describe("validateSearchResponse", () => {

@@ -6,8 +6,9 @@
  */
 
 import { describe, it, expect, vi, beforeEach } from "vitest";
-import { SecurityService } from "@core/services/securityService";
-import { searchInDocuments } from "@api/gemini";
+import { SecurityService } from "@/core/services/securityService";
+import { searchInDocuments } from "@/api/gemini";
+import { ErrorMessages } from "@/core/constants/errors";
 
 // Mock the Gemini API but keep the service logic
 vi.mock("@google/generative-ai", () => {

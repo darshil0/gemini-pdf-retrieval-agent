@@ -1,11 +1,11 @@
 import { render, screen, fireEvent, waitFor } from "@testing-library/react";
 import App from "../App";
 import { vi, expect, it, describe, beforeEach } from "vitest";
-import * as geminiService from "@api/gemini";
-import { SearchResponse } from "@core/types/index";
+import * as geminiService from "@/api/gemini";
+import { SearchResponse } from "@/core/types";
 
 // Mock the gemini service
-vi.mock("@api/gemini", () => ({
+vi.mock("@/api/gemini", () => ({
   searchInDocuments: vi.fn(),
 }));
 
