@@ -176,12 +176,13 @@ export async function searchInDocuments(
   });
 
   const abortController = new AbortController();
-  const fileParts = await Promise.all(
-    files.map((f) => fileToGenerativePart(f, abortController.signal)),
-  );
-  const prompt = buildSearchPrompt(files.length, keyword);
 
   try {
+    const fileParts = await Promise.all(
+      files.map((f) => fileToGenerativePart(f, abortController.signal)),
+    );
+    const prompt = buildSearchPrompt(files.length, keyword);
+
     const result: GenerateContentResult = await withTimeout(
       model.generateContent({
         contents: [{ role: "user", parts: [...fileParts, { text: prompt }] }],
@@ -244,9 +245,16 @@ export async function searchInDocuments(
       throw new Error(ErrorMessages.SEARCH_PARSE_FAILED);
     }
 
-    // Re-throw timeout errors as-is
-    if (error instanceof Error && error.message === ErrorMessages.SEARCH_TIMEOUT) {
-      throw error;
+    // Re-throw specific errors as-is
+    if (error instanceof Error) {
+      const messages = [
+        ErrorMessages.SEARCH_TIMEOUT,
+        ErrorMessages.FILE_READ_FAILED,
+        ErrorMessages.FILE_STREAM_TIMEOUT,
+      ];
+      if (messages.includes(error.message as (typeof messages)[number])) {
+        throw error;
+      }
     }
 
     throw new Error(ErrorMessages.API_COMMUNICATION_ERROR);

@@ -139,7 +139,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 - **Critical**: Fixed a bug in the PDF viewer that caused rendering failures when lazy loading was enabled.
 - **Tests**: Polyfilled `DOMMatrix` and improved the `File` mock in the test environment for better CI/CD stability.
 
-## [1.3.0] - 2026-04-18
+## [1.3.1] - 2026-04-18
 
 ### Fixed
 - **TypeScript**: Resolved all remaining type errors in `App.tsx`, `vitest.setup.ts`, `vitest.config.ts`, and test files.
