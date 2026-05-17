@@ -6,8 +6,8 @@
  */
 
 import { describe, it, expect, vi, beforeEach } from "vitest";
-import { SecurityService } from "@core/services/securityService";
-import { searchInDocuments } from "@api/gemini";
+import { SecurityService } from "@/core/services/securityService";
+import { searchInDocuments } from "@/api/gemini";
 
 // Mock the Gemini API but keep the service logic
 vi.mock("@google/generative-ai", () => {
@@ -99,7 +99,7 @@ describe("Service Layer Integration Tests", () => {
 
       expect(result.summary).toBe("Mocked Summary");
       expect(result.results).toHaveLength(1);
-      expect(result.results[0].docIndex).toBe(0);
+      expect(result.results[0]?.docIndex).toBe(0);
     });
 
     it("should throw error if API key is missing", async () => {

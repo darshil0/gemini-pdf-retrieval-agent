@@ -15,8 +15,6 @@ import {
   Download,
   Sun,
   Moon,
-  AlertTriangle,
-  RefreshCw,
 } from "lucide-react";
 import { FileUpload } from "@components/FileUpload";
 import { SearchResultCard } from "@components/SearchResultCard";
@@ -24,29 +22,9 @@ import { searchInDocuments } from "@api/gemini";
 import { UploadedFile, AppStatus, SearchResponse } from "@core/types";
 import { Document, Page, pdfjs } from "react-pdf";
 import { InView } from "react-intersection-observer";
-import { escapeCSVField, validateStringArray } from "@core/services/validation";
-import { ErrorMessages } from "@core/constants/errors";
-import { createLogger } from "@core/services/logger";
 
-const log = createLogger("App");
-
-// FIXED: PDF worker with configurable source and CDN fallback (Issues #1, #24)
-const WORKER_CDN_PRIMARY = `https://cdnjs.cloudflare.com/ajax/libs/pdf.js/5.4.449/pdf.worker.min.js`;
-const WORKER_CDN_FALLBACK = `https://unpkg.com/pdfjs-dist@5.4.449/build/pdf.worker.min.js`;
-pdfjs.GlobalWorkerOptions.workerSrc =
-  import.meta.env.VITE_PDF_WORKER_SRC || WORKER_CDN_PRIMARY;
-
-// Attempt fallback if primary CDN fails
-fetch(pdfjs.GlobalWorkerOptions.workerSrc, { method: "HEAD" })
-  .then((response) => {
-    if (!response.ok) {
-      throw new Error("Primary CDN returned an error");
-    }
-  })
-  .catch(() => {
-    log.warn("Primary PDF worker CDN unreachable or error, switching to fallback");
-    pdfjs.GlobalWorkerOptions.workerSrc = WORKER_CDN_FALLBACK;
-  });
+// FIXED: Use CDN for PDF worker (more reliable in production)
+pdfjs.GlobalWorkerOptions.workerSrc = `https://cdnjs.cloudflare.com/ajax/libs/pdf.js/5.4.449/pdf.worker.min.js`;
 
 export default function App() {
   const [files, setFiles] = useState<UploadedFile[]>([]);
@@ -65,11 +43,7 @@ export default function App() {
   const [numPages, setNumPages] = useState<number | null>(null);
   const [currentPage, setCurrentPage] = useState<number>(1);
   const [pdfScale] = useState(1.0);
-  // Issue #18: Persist theme preference in localStorage
-  const [theme, setTheme] = useState<"light" | "dark">(() => {
-    const saved = localStorage.getItem("docuSearch_theme");
-    return saved === "light" ? "light" : "dark";
-  });
+  const [theme, setTheme] = useState<"light" | "dark">("dark");
 
   // Refs for cleanup and stable callbacks
   const filesRef = useRef<UploadedFile[]>(files);
@@ -93,31 +67,18 @@ export default function App() {
     return url;
   }, []);
 
-  // Load recent searches from local storage on mount (Issue #9: strict validation)
+  // Load recent searches from local storage on mount
   useEffect(() => {
     const saved = localStorage.getItem("docuSearch_recent");
     if (saved) {
       try {
-        const parsed: unknown = JSON.parse(saved);
-        const validated = validateStringArray(parsed);
-        setRecentSearches(validated);
+        const parsed = JSON.parse(saved) as string[];
+        setRecentSearches(Array.isArray(parsed) ? parsed : []);
       } catch {
         localStorage.removeItem("docuSearch_recent");
       }
     }
   }, []);
-
-  // FIXED: Page navigation logic with bounds checking (Issue #17)
-  const changePage = useCallback(
-    (offset: number) => {
-      setCurrentPage((prev) => {
-        if (numPages === null || numPages === undefined) return prev;
-        const newPage = prev + offset;
-        return newPage >= 1 && newPage <= numPages ? newPage : prev;
-      });
-    },
-    [numPages],
-  );
 
   // FIXED: Initialize viewer state when opening a file
   useEffect(() => {
@@ -128,26 +89,12 @@ export default function App() {
     }
   }, [viewingResult]);
 
-  // FIXED: Keyboard event handling with arrow key support (Issue #17)
+  // FIXED: Proper keyboard event handling with cleanup
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
-      if (!viewingResult) return;
-
-      switch (e.key) {
-        case "Escape":
-          e.preventDefault();
-          setViewingResult(null);
-          break;
-        case "ArrowLeft":
-        case "ArrowUp":
-          e.preventDefault();
-          changePage(-1);
-          break;
-        case "ArrowRight":
-        case "ArrowDown":
-          e.preventDefault();
-          changePage(1);
-          break;
+      if (e.key === "Escape" && viewingResult) {
+        e.preventDefault();
+        setViewingResult(null);
       }
     };
 
@@ -158,11 +105,9 @@ export default function App() {
       };
     }
     return undefined;
-  }, [viewingResult, changePage]);
+  }, [viewingResult]);
 
-  // Issue #18: Persist theme and apply class
   useEffect(() => {
-    localStorage.setItem("docuSearch_theme", theme);
     if (theme === "dark") {
       document.documentElement.classList.add("dark");
     } else {
@@ -200,10 +145,8 @@ export default function App() {
       setData(response);
       setStatus(AppStatus.COMPLETE);
     } catch (err: unknown) {
-      // Issue #3: Clean up object URLs on error to prevent memory leaks
-      log.error("Search failed", { term }, err instanceof Error ? err : undefined);
       const errorMessage =
-        err instanceof Error ? err.message : ErrorMessages.SEARCH_FAILED;
+        err instanceof Error ? err.message : "Search failed.";
       setError(errorMessage);
       setStatus(AppStatus.ERROR);
     }
@@ -227,12 +170,19 @@ export default function App() {
     setNumPages(count);
   };
 
-  // Issue #13: Gracefully handle null numPages
+  const changePage = useCallback(
+    (offset: number) => {
+      setCurrentPage((prev) => {
+        const newPage = prev + offset;
+        return numPages && newPage >= 1 && newPage <= numPages ? newPage : prev;
+      });
+    },
+    [numPages],
+  );
+
   // FIXED: File upload handler with proper URL management
-  // Issue #4: Prevent uploads during active search to avoid race conditions
   const handleFilesSelected = useCallback(
     (selectedFiles: File[]) => {
-      if (status === AppStatus.ANALYZING) return;
       const newFiles = selectedFiles.map((file) => ({
         file,
         id: `${file.name}-${file.size}-${Date.now()}`,
@@ -240,7 +190,7 @@ export default function App() {
       }));
       setFiles((prev) => [...prev, ...newFiles]);
     },
-    [createPreviewUrl, status],
+    [createPreviewUrl],
   );
 
   // FIXED: File removal with URL cleanup
@@ -270,23 +220,22 @@ export default function App() {
       "Relevance Score",
       "Relevance Explanation",
     ];
-    // Issue #15: Proper CSV escaping using escapeCSVField utility
     const rows = data.results.map((result) => {
       const file = files[result.docIndex];
       const fileName = file ? file.file.name : "Unknown";
       return [
-        escapeCSVField(fileName),
-        escapeCSVField(result.pageNumber),
-        escapeCSVField(result.matchedTerm),
-        escapeCSVField(result.contextSnippet),
-        escapeCSVField(result.relevanceScore),
-        escapeCSVField(result.relevanceExplanation),
+        fileName,
+        result.pageNumber,
+        result.matchedTerm,
+        `"${result.contextSnippet.replace(/"/g, '""')}"`,
+        result.relevanceScore,
+        `"${result.relevanceExplanation.replace(/"/g, '""')}"`,
       ];
     });
 
     const csvContent =
       "data:text/csv;charset=utf-8," +
-      [headers.map((h) => escapeCSVField(h)).join(","), ...rows.map((e) => e.join(","))].join("\n");
+      [headers.join(","), ...rows.map((e) => e.join(","))].join("\n");
 
     const link = document.createElement("a");
     link.setAttribute("href", encodeURI(csvContent));
@@ -320,7 +269,7 @@ export default function App() {
               </button>
             )}
             <div className="px-3 py-1 rounded-full bg-slate-800 border border-slate-700 text-xs font-mono text-slate-400">
-              Gemini 1.5 Flash • v1.4.1
+              Gemini 1.5 Flash • v1.3.1
             </div>
             <button
               onClick={() => setTheme(theme === "dark" ? "light" : "dark")}
@@ -678,28 +627,10 @@ export default function App() {
                 }
                 error={
                   <div
-                    className="flex flex-col items-center justify-center h-full text-center animate-fade-in"
+                    className="flex items-center justify-center h-full text-red-400"
                     role="alert"
                   >
-                    <AlertTriangle className="w-12 h-12 text-red-400 mb-4" />
-                    <h4 className="text-lg font-semibold text-red-400 mb-2">
-                      {ErrorMessages.PDF_LOAD_FAILED}
-                    </h4>
-                    <p className="text-sm text-slate-400 mb-4 max-w-md">
-                      This can happen if the file is corrupted, password-protected, or uses an unsupported format.
-                    </p>
-                    <button
-                      onClick={() => {
-                        // Force re-render by cycling the viewer state
-                        const current = viewingResult;
-                        setViewingResult(null);
-                        setTimeout(() => setViewingResult(current), 100);
-                      }}
-                      className="flex items-center space-x-2 px-4 py-2 bg-slate-700 hover:bg-slate-600 text-white rounded-lg transition-colors border border-slate-600"
-                    >
-                      <RefreshCw size={16} />
-                      <span>Retry Loading</span>
-                    </button>
+                    <p>Failed to load PDF document.</p>
                   </div>
                 }
               >

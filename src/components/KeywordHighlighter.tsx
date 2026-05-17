@@ -1,5 +1,5 @@
 // src/components/KeywordHighlighter.tsx
-import React, { useState, useEffect } from "react";
+import { useState, useEffect } from "react";
 import { Search, ChevronLeft, ChevronRight, X } from "lucide-react";
 import { KeywordMatch } from "@core/services/keywordSearch";
 

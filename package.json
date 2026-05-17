@@ -1,6 +1,6 @@
 {
   "name": "gemini-pdf-retrieval-agent",
-  "version": "1.4.1",
+  "version": "1.4.2",
   "description": "Intelligent document search engine powered by Google Gemini 1.5 Flash",
   "main": "index.html",
   "type": "module",
