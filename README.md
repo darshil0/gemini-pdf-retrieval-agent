@@ -2,7 +2,7 @@
 
 > **Enterprise-grade PDF document retrieval agent** powered by Google Gemini 1.5 Flash. Seamlessly search through complex documents using natural language.
 
-[![Version](https://img.shields.io/badge/version-1.4.1-blue.svg)](CHANGELOG.md)
+[![Version](https://img.shields.io/badge/version-1.4.2-blue.svg)](CHANGELOG.md)
 [![TypeScript](https://img.shields.io/badge/TypeScript-5.2-blue.svg)](https://www.typescriptlang.org/)
 [![React](https://img.shields.io/badge/React-19.2-61dafb.svg)](https://react.dev/)
 [![Vite](https://img.shields.io/badge/Vite-5.2-646cff.svg)](https://vitejs.dev/)

@@ -18,7 +18,7 @@ export default defineConfig(({ mode }) => {
       },
     },
     server: {
-      port: parseInt(env.VITE_PORT) || 5173,
+      port: parseInt(env.VITE_PORT || "5173"),
       host: true,
     },
     build: {
