@@ -1,6 +1,6 @@
 # Protocols (Constraints & Logic)
 
-> **Version**: v1.4.0
+> **Version**: v1.4.2
 
 ## 📜 Search Protocol (SEARCH_PROTOCOL)
 
@@ -11,10 +11,11 @@
 
 ### 2. Relevance Scoring
 - **Threshold**: Only include results with a `relevanceScore` between **0.75 and 1.0**.
-- **Explanation**: Every match MUST include a `relevanceExplanation` (e.g., "Exact", "Fuzzy", "Semantic").
+- **Explanation**: Every match MUST include a `relevanceExplanation` (e.g., "Exact", "Fuzzy", "Synonym").
 
 ### 3. Output Requirements
 - **Format**: Valid JSON object only.
+- **Required Fields**: For each match, include `docIndex`, `pageNumber`, `contextSnippet`, `matchedTerm`, `relevanceExplanation`, and `relevanceScore`.
 - **No Hallucination**: If no matches meet the 0.75 threshold, return an empty `results` array `[]`.
 - **Citations**: All `pageNumber` values must be accurate to the source document.
 
