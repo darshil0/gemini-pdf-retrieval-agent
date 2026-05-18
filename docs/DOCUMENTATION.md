@@ -333,21 +333,22 @@ const SEARCH_PROTOCOL: SearchProtocol = {
     }
   ],
   constraints: [
-    "Minimum query length: 3 characters",
+    "Minimum query length: 2 characters",
     "Maximum query length: 500 characters",
     "Rate limit: 10 requests/minute (Persistent)",
-    "Timeout: 60 seconds per search API call",
+    "Timeout: Configurable (default 60s)",
     "Streaming timeout: 30 seconds per file"
   ],
   responseFormat: {
     structure: "JSON",
-    required: ["results", "totalResults", "processingTime"],
+    required: ["results", "summary"],
     resultSchema: {
-      documentName: "string",
+      docIndex: "number",
       pageNumber: "number",
-      content: "string",
-      relevanceScore: "number (0-1)",
-      context: "string"
+      contextSnippet: "string",
+      matchedTerm: "string",
+      relevanceExplanation: "string",
+      relevanceScore: "number (0.75-1.0)"
     }
   }
 };
@@ -1199,84 +1200,31 @@ debouncedSearch("abc"); // Only this executes after 300ms
 ### Core Types
 
 ```typescript
-// Document types
-type DocumentId = string;
-type DocumentStatus = "uploading" | "processing" | "ready" | "error";
-
-interface Document {
-  id: DocumentId;
-  name: string;
-  pageCount: number;
-  size: number;
-  status: DocumentStatus;
-  uploadedAt: Date;
-  processedAt: Date;
-  metadata: DocumentMetadata;
-  index: DocumentIndex;
-}
-
-interface DocumentMetadata {
-  title?: string;
-  author?: string;
-  subject?: string;
-  keywords?: string[];
-  createdDate?: Date;
-  modifiedDate?: Date;
-  producer?: string;
-  version?: string;
-}
-
-// Search types
-interface SearchResult {
-  id: string;
-  document: Document;
+export interface SearchResult {
+  docIndex: number;
   pageNumber: number;
-  snippet: string;
-  highlightedSnippet: string;
-  confidence: number;
-  context: string;
-  matches: Match[];
-  semanticScore: number;
-  fuzzyScore: number;
+  contextSnippet: string;
+  relevanceExplanation: string;
+  relevanceScore: number;
+  matchedTerm: string;
 }
 
-interface Match {
-  term: string;
-  found: string;
-  start: number;
-  end: number;
-  type: MatchType;
+export interface SearchResponse {
+  results: SearchResult[];
+  summary: string;
 }
 
-type MatchType = "exact" | "fuzzy" | "semantic";
-
-// Error types
-class InvalidFileError extends Error {
-  constructor(message: string) {
-    super(message);
-    this.name = "InvalidFileError";
-  }
+export interface UploadedFile {
+  file: File;
+  id: string;
+  previewUrl: string;
 }
 
-class ProcessingError extends Error {
-  constructor(
-    message: string,
-    public readonly originalError?: Error,
-  ) {
-    super(message);
-    this.name = "ProcessingError";
-  }
-}
-
-class APIError extends Error {
-  constructor(
-    message: string,
-    public readonly statusCode?: number,
-    public readonly response?: any,
-  ) {
-    super(message);
-    this.name = "APIError";
-  }
+export enum AppStatus {
+  IDLE = "IDLE",
+  ANALYZING = "ANALYZING",
+  COMPLETE = "COMPLETE",
+  ERROR = "ERROR",
 }
 ```
 
@@ -3318,11 +3266,11 @@ npm test -- --run
 **Test**: Search for "revenue" in financial report
 
 ```typescript
-✅ Finds 15 exact matches
+✅ Finds matches and synonyms (e.g., "sales")
 ✅ Shows page numbers: 1, 5, 7, 12, 14
-✅ Displays line numbers for each match
-✅ Highlights keyword in yellow
-✅ Provides surrounding context
+✅ Displays relevance score and explanation
+✅ Highlights keyword in snippets
+✅ Provides surrounding context (20-40 words)
 ```
 
 **Test**: Navigate between matches
