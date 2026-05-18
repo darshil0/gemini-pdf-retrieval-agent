@@ -6,7 +6,7 @@
 
 set -e
 
-echo "🔧 DocuSearch Agent - Applying All Fixes v1.4.0"
+echo "🔧 DocuSearch Agent - Applying All Fixes v1.4.2"
 echo "================================================"
 echo ""
 
@@ -130,11 +130,11 @@ echo ""
 
 # Summary
 echo "================================================"
-echo "✅ v1.4.0 Production Prep Complete!"
+echo "✅ v1.4.2 Production Prep Complete!"
 echo "================================================"
 echo ""
 echo "📊 Summary of Changes:"
-echo "   - Updated to v1.4.0 standards"
+echo "   - Updated to v1.4.2 standards"
 # echo "   - Removed duplicate vitest.setup.ts"
 echo "   - Fixed Prettier configuration"
 echo "   - Updated dependencies and lockfile"
@@ -147,8 +147,8 @@ echo ""
 echo "🎯 Next Steps:"
 echo "   1. Review any warnings above"
 |  "   2. Test the application: npm run dev"
-|  "   3. Verify PDF viewer works (Check Console for v1.4.0 logs)"
-|  "   4. Commit changes: git add . && git commit -m 'fix: apply v1.4.0 production prep'"
+|  "   3. Verify PDF viewer works (Check Console for v1.4.2 logs)"
+|  "   4. Commit changes: git add . && git commit -m 'fix: apply v1.4.2 production prep'"
 echo ""
 echo "🚀 Your codebase is now fully production-ready!"
 echo "================================================"
