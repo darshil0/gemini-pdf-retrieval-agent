@@ -854,25 +854,6 @@ const matches = KeywordSearchService.searchKeyword("revenue", docs, { caseSensit
 
 ---
 
-#### getMatchStatistics()
-
-Calculates aggregate statistics for a set of keyword matches.
-
-```typescript
-getMatchStatistics(matches: KeywordMatch[]): MatchStatistics
-```
-
-**Returns**: `MatchStatistics`
-
-**Example**:
-
-```typescript
-const stats = KeywordSearchService.getMatchStatistics(matches);
-console.log(`Found ${stats.totalMatches} in ${stats.documentsWithMatches} docs`);
-```
-
----
-
 
 ---
 
@@ -1136,7 +1117,7 @@ async function completeWorkflow(files: File[], query: string) {
     // 2. Search (Includes internal file processing)
     console.log("Searching documents...");
     const response = await searchInDocuments(files, query);
-
+    
     console.log(`Summary: ${response.summary}`);
     console.log(`Found ${response.results.length} matches`);
 
@@ -1172,8 +1153,8 @@ For API questions or issues:
 
 ---
 
-**Version**: 1.4.2
-**Last Updated**: May 18, 2026
+**Version**: 1.4.2  
+**Last Updated**: May 16, 2026  
 **Maintained By**: Darshil
 ---
 
@@ -1490,7 +1471,7 @@ describe("Security", () => {
 
 ### Version History
 
-**v1.4.2 (2026-05-18)**
+**v1.4.2 (2026-05-16)**
 
 - ✅ Added runtime response validation service
 - ✅ Implemented persistent rate limiting (localStorage)
@@ -2542,8 +2523,8 @@ npm run deploy           # Deploy to GitHub Pages
 
 ---
 
-**Version**: 1.4.2
-**Last Updated**: May 18, 2026
+**Version**: 1.4.2  
+**Last Updated**: May 16, 2026  
 **Status**: Production Ready ✅
 ---
 
@@ -3143,7 +3124,7 @@ describe("Performance", () => {
 
 ---
 
-**Last Updated**: 2026-05-18
+**Last Updated**: 2026-05-16
 **Version**: 1.4.2
 ---
 
