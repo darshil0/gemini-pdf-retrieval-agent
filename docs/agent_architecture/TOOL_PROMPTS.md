@@ -1,6 +1,7 @@
 # Tool Prompts (Instructions)
 
 > **Version**: v1.4.2
+> **Source of Truth**: [src/core/architecture/prompts.ts](../../src/core/architecture/prompts.ts)
 
 ## 🔍 Search Tool (SEARCH_TOOL_INSTRUCTIONS)
 
@@ -13,4 +14,3 @@
 3.  **Data Capture**: Extract the precise `matchedTerm` and the surrounding `contextSnippet` (20-40 words).
 4.  **Metadata Assignment**: Assign accurate `docIndex` and `pageNumber` for each match found.
 5.  **Relevance Scoring**: Evaluate every result against the relevance protocol (see [PROTOCOLS.md](./PROTOCOLS.md)).
-
