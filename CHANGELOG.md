@@ -191,7 +191,6 @@ This project follows the [Keep a Changelog](https://keepachangelog.com/en/1.0.0/
   * `tsconfig.json`
 
 ### Fixed
-
 * Corrected outdated documentation references and Gemini model naming inconsistencies.
 * Prevented memory leaks by ensuring `URL.revokeObjectURL()` executes in both success and failure paths.
 * Prevented upload race conditions while search analysis is running.
@@ -214,7 +213,6 @@ This project follows the [Keep a Changelog](https://keepachangelog.com/en/1.0.0/
 ## [1.3.1] - 2026-04-18
 
 ### Added
-
 * Streaming support for large file uploads to reduce memory usage.
 * Lazy-loaded PDF pages for improved rendering performance.
 * Relevance scoring improvements for search prompts.
@@ -224,7 +222,6 @@ This project follows the [Keep a Changelog](https://keepachangelog.com/en/1.0.0/
 * Dark mode toggle support.
 
 ### Fixed
-
 * Resolved remaining TypeScript issues in:
 
   * `App.tsx`
