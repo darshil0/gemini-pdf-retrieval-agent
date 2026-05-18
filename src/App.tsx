@@ -23,8 +23,11 @@ import { UploadedFile, AppStatus, SearchResponse } from "@core/types";
 import { Document, Page, pdfjs } from "react-pdf";
 import { InView } from "react-intersection-observer";
 
-// FIXED: Use CDN for PDF worker (more reliable in production)
-pdfjs.GlobalWorkerOptions.workerSrc = `https://cdnjs.cloudflare.com/ajax/libs/pdf.js/5.4.449/pdf.worker.min.js`;
+// FIXED: Use local worker from node_modules for version safety and offline support
+pdfjs.GlobalWorkerOptions.workerSrc = new URL(
+  "pdfjs-dist/build/pdf.worker.min.mjs",
+  import.meta.url,
+).toString();
 
 export default function App() {
   const [files, setFiles] = useState<UploadedFile[]>([]);
