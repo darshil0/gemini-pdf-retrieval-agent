@@ -1,6 +1,7 @@
 # Protocols (Constraints & Logic)
 
 > **Version**: v1.4.2
+> **Source of Truth**: [src/core/architecture/prompts.ts](../../src/core/architecture/prompts.ts)
 
 ## 📜 Search Protocol (SEARCH_PROTOCOL)
 
