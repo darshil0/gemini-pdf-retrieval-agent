@@ -1,6 +1,6 @@
 # Tool Prompts (Instructions)
 
-> **Version**: v1.4.0
+> **Version**: v1.4.2
 
 ## 🔍 Search Tool (SEARCH_TOOL_INSTRUCTIONS)
 
