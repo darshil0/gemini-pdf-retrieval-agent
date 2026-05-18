@@ -47,6 +47,8 @@ src/
 
 # 1. Agent Architecture Documentation
 
+> **Source of Truth**: The active prompts and protocols are defined in [src/core/architecture/prompts.ts](../src/core/architecture/prompts.ts).
+
 DocuSearch Agent implements a three-layer agent architecture based on the **System-Tool-Protocol** pattern. This architecture ensures consistent, predictable, and robust behavior for document retrieval and analysis.
 
 ## Architecture Layers
@@ -824,117 +826,30 @@ if (doc) {
 
 Provides local keyword search and matching utilities.
 
-#### fuzzySearch()
+#### searchKeyword()
 
-Performs fuzzy matching on text.
+Searches for a keyword across all pages of all provided documents.
 
 ```typescript
-fuzzySearch(
-  query: string,
+searchKeyword(
+  keyword: string,
   documents: Document[],
-  options?: FuzzyOptions
-): FuzzyResult[]
+  options: SearchOptions = {},
+): KeywordMatch[]
 ```
 
 **Parameters**:
 
-- `query` (string): Search query
-- `documents` (Document[]): Documents to search
-- `options` (FuzzyOptions, optional): Fuzzy search configuration
+- `keyword` (string): The search term to find
+- `documents` (Document[]): Array of parsed documents
+- `options` (SearchOptions): Optional search configuration
 
-**Returns**: `FuzzyResult[]`
-
-```typescript
-interface FuzzyResult {
-  item: Document;
-  score: number; // 0-1, higher is better
-  matches: FuzzyMatch[];
-}
-
-interface FuzzyMatch {
-  indices: [number, number][];
-  value: string;
-  key: string;
-}
-```
-
-**FuzzyOptions**:
-
-```typescript
-interface FuzzyOptions {
-  threshold?: number; // 0-1, lower is stricter (default: 0.3)
-  distance?: number; // Max distance to search (default: 100)
-  ignoreLocation?: boolean; // Ignore location (default: true)
-  keys?: string[]; // Fields to search (default: ['content'])
-}
-```
+**Returns**: `KeywordMatch[]`
 
 **Example**:
 
 ```typescript
-const results = searchService.fuzzySearch(
-  "behavoir", // Typo
-  documents,
-  {
-    threshold: 0.3,
-    keys: ["content", "metadata.title"],
-  },
-);
-
-// Finds "behavior", "behavioral", etc.
-```
-
----
-
-#### highlightText()
-
-Highlights search terms in text.
-
-```typescript
-highlightText(
-  text: string,
-  terms: string[],
-  options?: HighlightOptions
-): HighlightedText
-```
-
-**Parameters**:
-
-- `text` (string): Original text
-- `terms` (string[]): Terms to highlight
-- `options` (HighlightOptions, optional): Highlighting options
-
-**Returns**: `HighlightedText`
-
-```typescript
-interface HighlightedText {
-  text: string; // Original text
-  html: string; // HTML with <mark> tags
-  highlights: Highlight[]; // Highlight positions
-}
-
-interface Highlight {
-  start: number;
-  end: number;
-  term: string;
-  found: string;
-}
-```
-
-**Example**:
-
-```typescript
-const highlighted = searchService.highlightText(
-  "The behavior of users...",
-  ["behavoir"], // Typo
-  {
-    caseSensitive: false,
-    matchWhole: false,
-  },
-);
-
-console.log(highlighted.html);
-// "The <mark>behavior</mark> of users..."
+const matches = KeywordSearchService.searchKeyword("revenue", docs, { caseSensitive: false });
 ```
 
 ---
