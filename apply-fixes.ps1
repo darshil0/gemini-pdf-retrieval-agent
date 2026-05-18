@@ -3,7 +3,7 @@
 
 $ErrorActionPreference = "Stop"
 
-Write-Host "🔧 DocuSearch Agent - Applying All Fixes v1.4.0" -ForegroundColor Cyan
+Write-Host "🔧 DocuSearch Agent - Applying All Fixes v1.4.2" -ForegroundColor Cyan
 Write-Host "================================================"
 Write-Host ""
 
@@ -114,11 +114,11 @@ foreach ($item in $scripts) {
 }
 
 Write-Host "================================================"
-Write-Host "✅ v1.4.0 Production Prep Complete!" -ForegroundColor Cyan
+Write-Host "✅ v1.4.2 Production Prep Complete!" -ForegroundColor Cyan
 Write-Host "================================================"
 Write-Host ""
 Write-Host "📊 Summary of Changes:"
-Write-Host "   - Updated to v1.4.0 standards"
+Write-Host "   - Updated to v1.4.2 standards"
 Write-Host "   - Fixed Prettier configuration"
 Write-Host "   - Updated dependencies and lockfile"
 Write-Host "   - Applied code formatting and lint fixes"
@@ -129,8 +129,8 @@ Write-Host ""
 Write-Host "🎯 Next Steps:"
 Write-Host "   1. Review any warnings above"
 Write-Host "   2. Test the application: npm run dev"
-Write-Host "   3. Verify PDF viewer works (Check Console for v1.4.0 logs)"
-Write-Host "   4. Commit changes: git add . && git commit -m 'fix: apply v1.4.0 production prep'"
+Write-Host "   3. Verify PDF viewer works (Check Console for v1.4.2 logs)"
+Write-Host "   4. Commit changes: git add . && git commit -m 'fix: apply v1.4.2 production prep'"
 Write-Host ""
 Write-Host "🚀 Your codebase is now fully production-ready!"
 Write-Host "================================================"

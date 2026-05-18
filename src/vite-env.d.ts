@@ -3,7 +3,7 @@
 interface ImportMetaEnv {
   readonly VITE_GEMINI_API_KEY: string;
   readonly VITE_GEMINI_MODEL?: string;
-  readonly VITE_API_TIMEOUT?: string;
+  readonly VITE_API_TIMEOUT_MS?: string;
   readonly VITE_MAX_FILE_SIZE?: string;
   readonly VITE_MAX_FILES?: string;
   readonly VITE_RATE_LIMIT?: string;

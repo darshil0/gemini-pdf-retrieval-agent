@@ -15,7 +15,7 @@
 
 # 7. Project Structure & Aliases
 
-DocuSearch Agent v1.4.0 uses a modular directory structure with path aliasing for better maintainability and cleaner imports.
+DocuSearch Agent v1.4.2 uses a modular directory structure with path aliasing for better maintainability and cleaner imports.
 
 ## Directory Map
 
@@ -46,6 +46,8 @@ src/
 ---
 
 # 1. Agent Architecture Documentation
+
+> **Source of Truth**: The active prompts and protocols are defined in [src/core/architecture/prompts.ts](../src/core/architecture/prompts.ts).
 
 DocuSearch Agent implements a three-layer agent architecture based on the **System-Tool-Protocol** pattern. This architecture ensures consistent, predictable, and robust behavior for document retrieval and analysis.
 
@@ -83,7 +85,7 @@ const AGENT_SYSTEM: AgentSystem = {
     "English language primary support",
     "Client-side processing only"
   ],
-  version: "1.4.0"
+  version: "1.4.2"
 };
 ```
 
@@ -333,21 +335,22 @@ const SEARCH_PROTOCOL: SearchProtocol = {
     }
   ],
   constraints: [
-    "Minimum query length: 3 characters",
+    "Minimum query length: 2 characters",
     "Maximum query length: 500 characters",
     "Rate limit: 10 requests/minute (Persistent)",
-    "Timeout: 60 seconds per search API call",
+    "Timeout: Configurable (default 60s)",
     "Streaming timeout: 30 seconds per file"
   ],
   responseFormat: {
     structure: "JSON",
-    required: ["results", "totalResults", "processingTime"],
+    required: ["results", "summary"],
     resultSchema: {
-      documentName: "string",
+      docIndex: "number",
       pageNumber: "number",
-      content: "string",
-      relevanceScore: "number (0-1)",
-      context: "string"
+      contextSnippet: "string",
+      matchedTerm: "string",
+      relevanceExplanation: "string",
+      relevanceScore: "number (0.75-1.0)"
     }
   }
 };
@@ -610,97 +613,9 @@ See `src/__tests__/Architecture.test.ts` for validation tests ensuring complianc
 
 This section provides complete API documentation for DocuSearch Agent's services, methods, types, and interfaces.
 
-## 📦 Core Services
+## 📦 Gemini Service API
 
-### GeminiService
-
-Main service for AI-powered document processing and search.
-
-#### Constructor
-
-```typescript
-constructor(apiKey: string, options?: GeminiServiceOptions)
-```
-
-**Parameters**:
-
-- `apiKey` (string, required): Google Gemini API key
-- `options` (GeminiServiceOptions, optional): Configuration options
-
-**Example**:
-
-```typescript
-const service = new GeminiService("AIzaSyB...", {
-  model: "gemini-1.5-flash",
-  timeout: 30000,
-  maxRetries: 3,
-});
-```
-
----
-
-#### uploadDocument()
-
-Processes and indexes a PDF document for search.
-
-```typescript
-async uploadDocument(file: File): Promise<Document>
-```
-
-**Parameters**:
-
-- `file` (File): PDF file to process (max 200MB)
-
-**Returns**: `Promise<Document>`
-
-- Processed document with metadata and index
-
-**Throws**:
-
-- `InvalidFileError`: File type not supported or too large
-- `ProcessingError`: AI processing failed
-- `APIError`: Gemini API request failed
-
-**Example**:
-
-```typescript
-try {
-  const file = new File([pdfBuffer], "report.pdf", { type: "application/pdf" });
-  const document = await service.uploadDocument(file);
-
-  console.log(`Processed ${document.pageCount} pages`);
-  console.log(`Document ID: ${document.id}`);
-} catch (error) {
-  if (error instanceof InvalidFileError) {
-    console.error("Invalid file:", error.message);
-  }
-}
-```
-
-**Response Structure**:
-
-```typescript
-interface Document {
-  id: string; // Unique identifier
-  name: string; // Original filename
-  pageCount: number; // Total pages
-  size: number; // File size in bytes
-  uploadedAt: Date; // Upload timestamp
-  processedAt: Date; // Processing completion time
-  metadata: {
-    title?: string; // PDF title metadata
-    author?: string; // PDF author
-    subject?: string; // PDF subject
-    keywords?: string[]; // PDF keywords
-    createdDate?: Date; // PDF creation date
-  };
-  index: DocumentIndex; // Internal search index
-}
-```
-
----
-
-#### searchInDocuments()
+### searchInDocuments()
 
 Searches documents using natural language query via Gemini 1.5 Flash.
 
@@ -713,7 +628,7 @@ async searchInDocuments(
 
 **Parameters**:
 
-- `files` (File[]): Array of PDF files to search
+- `files` (File[]): Array of PDF files to search (max 10)
 - `keyword` (string): Search term or phrase
 
 **Returns**: `Promise<SearchResponse>`
@@ -722,8 +637,8 @@ async searchInDocuments(
 
 **Security & Reliability**:
 
-- **Timeouts**: API calls time out after 60 seconds.
-- **Validation**: Responses are validated at runtime against the expected schema.
+- **Timeouts**: API calls time out after 60 seconds (configurable via `VITE_API_TIMEOUT_MS`).
+- **Validation**: Responses are validated at runtime using `validateSearchResponse`.
 - **Streaming**: Files are read as streams with a 30-second timeout.
 
 **Example**:
@@ -731,44 +646,41 @@ async searchInDocuments(
 ```typescript
 const response = await searchInDocuments(files, "revenue");
 console.log(response.summary);
-```
-
-**SearchOptions**:
-
-```typescript
-interface SearchOptions {
-  maxResults?: number; // Max results per document (default: 5)
-  fuzzyMatch?: boolean; // Enable fuzzy matching (default: true)
-  semanticSearch?: boolean; // Enable semantic search (default: true)
-  minConfidence?: number; // Minimum confidence score (0-1, default: 0.5)
-  includeContext?: boolean; // Include surrounding text (default: true)
-  contextRange?: number; // Sentences around match (default: 2)
-}
+response.results.forEach(r => console.log(r.contextSnippet));
 ```
 
 **Response Structure**:
 
 ```typescript
-interface SearchResult {
-  id: string; // Unique result ID
-  document: Document; // Source document
-  pageNumber: number; // Page where found (1-indexed)
-  snippet: string; // Text excerpt with match
-  highlightedSnippet: string; // HTML with highlights
-  confidence: number; // Relevance score (0-1)
-  context: string; // Surrounding text
-  matches: Match[]; // Individual term matches
-  semanticScore: number; // Semantic relevance (0-1)
-  fuzzyScore: number; // Fuzzy match score (0-1)
+interface SearchResponse {
+  summary: string;
+  results: SearchResult[];
 }
 
-interface Match {
-  term: string; // Matched term
-  found: string; // Actual text found
-  start: number; // Character offset
-  end: number; // Character offset
-  type: "exact" | "fuzzy" | "semantic";
+interface SearchResult {
+  docIndex: number;
+  pageNumber: number;
+  contextSnippet: string;
+  matchedTerm: string;
+  relevanceExplanation: string;
+  relevanceScore: number;
 }
+```
+
+---
+
+## 📦 Core Services
+
+### ValidationService
+
+Provides runtime type safety and sanitization.
+
+#### validateSearchResponse()
+
+Validates and sanitizes raw API response.
+
+```typescript
+function validateSearchResponse(data: unknown): SearchResponse
 ```
 
 ---
@@ -910,311 +822,57 @@ if (doc) {
 
 ---
 
-### SearchService
+### KeywordSearchService
 
-Implements fuzzy and semantic search algorithms.
+Provides local keyword search and matching utilities.
 
-#### fuzzySearch()
+#### searchKeyword()
 
-Performs fuzzy matching on text.
+Searches for a keyword across all pages of all provided documents.
 
 ```typescript
-fuzzySearch(
-  query: string,
+searchKeyword(
+  keyword: string,
   documents: Document[],
-  options?: FuzzyOptions
-): FuzzyResult[]
+  options: SearchOptions = {},
+): KeywordMatch[]
 ```
 
 **Parameters**:
 
-- `query` (string): Search query
-- `documents` (Document[]): Documents to search
-- `options` (FuzzyOptions, optional): Fuzzy search configuration
+- `keyword` (string): The search term to find
+- `documents` (Document[]): Array of parsed documents
+- `options` (SearchOptions): Optional search configuration
 
-**Returns**: `FuzzyResult[]`
-
-```typescript
-interface FuzzyResult {
-  item: Document;
-  score: number; // 0-1, higher is better
-  matches: FuzzyMatch[];
-}
-
-interface FuzzyMatch {
-  indices: [number, number][];
-  value: string;
-  key: string;
-}
-```
-
-**FuzzyOptions**:
-
-```typescript
-interface FuzzyOptions {
-  threshold?: number; // 0-1, lower is stricter (default: 0.3)
-  distance?: number; // Max distance to search (default: 100)
-  ignoreLocation?: boolean; // Ignore location (default: true)
-  keys?: string[]; // Fields to search (default: ['content'])
-}
-```
+**Returns**: `KeywordMatch[]`
 
 **Example**:
 
 ```typescript
-const results = searchService.fuzzySearch(
-  "behavoir", // Typo
-  documents,
-  {
-    threshold: 0.3,
-    keys: ["content", "metadata.title"],
-  },
-);
-
-// Finds "behavior", "behavioral", etc.
+const matches = KeywordSearchService.searchKeyword("revenue", docs, { caseSensitive: false });
 ```
 
 ---
 
-#### highlightText()
+#### getMatchStatistics()
 
-Highlights search terms in text.
-
-```typescript
-highlightText(
-  text: string,
-  terms: string[],
-  options?: HighlightOptions
-): HighlightedText
-```
-
-**Parameters**:
-
-- `text` (string): Original text
-- `terms` (string[]): Terms to highlight
-- `options` (HighlightOptions, optional): Highlighting options
-
-**Returns**: `HighlightedText`
+Calculates aggregate statistics for a set of keyword matches.
 
 ```typescript
-interface HighlightedText {
-  text: string; // Original text
-  html: string; // HTML with <mark> tags
-  highlights: Highlight[]; // Highlight positions
-}
-
-interface Highlight {
-  start: number;
-  end: number;
-  term: string;
-  found: string;
-}
+getMatchStatistics(matches: KeywordMatch[]): MatchStatistics
 ```
+
+**Returns**: `MatchStatistics`
 
 **Example**:
 
 ```typescript
-const highlighted = searchService.highlightText(
-  "The behavior of users...",
-  ["behavoir"], // Typo
-  {
-    caseSensitive: false,
-    matchWhole: false,
-  },
-);
-
-console.log(highlighted.html);
-// "The <mark>behavior</mark> of users..."
+const stats = KeywordSearchService.getMatchStatistics(matches);
+console.log(`Found ${stats.totalMatches} in ${stats.documentsWithMatches} docs`);
 ```
 
 ---
 
-## 🎣 Custom Hooks
-
-### useDocuments()
-
-Hook for accessing document state.
-
-```typescript
-function useDocuments(): UseDocumentsReturn;
-```
-
-**Returns**:
-
-```typescript
-interface UseDocumentsReturn {
-  documents: Document[];
-  isUploading: boolean;
-  uploadProgress: Map<string, number>;
-  uploadDocument: (file: File) => Promise<void>;
-  removeDocument: (id: string) => void;
-  error: Error | null;
-}
-```
-
-**Example**:
-
-```typescript
-function DocumentList() {
-  const {
-    documents,
-    isUploading,
-    uploadDocument,
-    removeDocument
-  } = useDocuments();
-
-  const handleUpload = async (file: File) => {
-    try {
-      await uploadDocument(file);
-    } catch (error) {
-      console.error('Upload failed:', error);
-    }
-  };
-
-  return (
-    <div>
-      {documents.map(doc => (
-        <div key={doc.id}>
-          {doc.name}
-          <button onClick={() => removeDocument(doc.id)}>Remove</button>
-        </div>
-      ))}
-    </div>
-  );
-}
-```
-
----
-
-### useSearch()
-
-Hook for search functionality.
-
-```typescript
-function useSearch(): UseSearchReturn;
-```
-
-**Returns**:
-
-```typescript
-interface UseSearchReturn {
-  query: string;
-  results: SearchResult[];
-  isSearching: boolean;
-  setQuery: (query: string) => void;
-  search: (query?: string) => Promise<void>;
-  clearResults: () => void;
-  error: Error | null;
-}
-```
-
-**Example**:
-
-```typescript
-function SearchBox() {
-  const {
-    query,
-    results,
-    isSearching,
-    setQuery,
-    search
-  } = useSearch();
-
-  const handleSubmit = async (e: FormEvent) => {
-    e.preventDefault();
-    await search();
-  };
-
-  return (
-    <form onSubmit={handleSubmit}>
-      <input
-        value={query}
-        onChange={(e) => setQuery(e.target.value)}
-        disabled={isSearching}
-      />
-      <button type="submit" disabled={isSearching || query.length < 3}>
-        {isSearching ? 'Searching...' : 'Search'}
-      </button>
-    </form>
-  );
-}
-```
-
----
-
-### usePDFViewer()
-
-Hook for PDF viewer state and controls.
-
-```typescript
-function usePDFViewer(document: Document | null): UsePDFViewerReturn;
-```
-
-**Parameters**:
-
-- `document` (Document | null): Document to view
-
-**Returns**:
-
-```typescript
-interface UsePDFViewerReturn {
-  numPages: number;
-  currentPage: number;
-  zoom: number;
-  rotation: number;
-  isLoading: boolean;
-  error: Error | null;
-
-  // Navigation
-  nextPage: () => void;
-  prevPage: () => void;
-  goToPage: (page: number) => void;
-
-  // Controls
-  zoomIn: () => void;
-  zoomOut: () => void;
-  setZoom: (zoom: number) => void;
-  rotate: () => void;
-  resetView: () => void;
-}
-```
-
-**Example**:
-
-```typescript
-function PDFViewer({ document }: { document: Document }) {
-  const {
-    currentPage,
-    numPages,
-    zoom,
-    rotation,
-    nextPage,
-    prevPage,
-    zoomIn,
-    zoomOut,
-    rotate
-  } = usePDFViewer(document);
-
-  return (
-    <div>
-      <div>Page {currentPage} of {numPages}</div>
-
-      <button onClick={prevPage} disabled={currentPage === 1}>
-        Previous
-      </button>
-      <button onClick={nextPage} disabled={currentPage === numPages}>
-        Next
-      </button>
-
-      <button onClick={zoomIn}>Zoom In</button>
-      <button onClick={zoomOut}>Zoom Out</button>
-      <button onClick={rotate}>Rotate</button>
-
-      {/* PDF rendering */}
-    </div>
-  );
-}
-```
 
 ---
 
@@ -1290,84 +948,31 @@ debouncedSearch("abc"); // Only this executes after 300ms
 ### Core Types
 
 ```typescript
-// Document types
-type DocumentId = string;
-type DocumentStatus = "uploading" | "processing" | "ready" | "error";
-
-interface Document {
-  id: DocumentId;
-  name: string;
-  pageCount: number;
-  size: number;
-  status: DocumentStatus;
-  uploadedAt: Date;
-  processedAt: Date;
-  metadata: DocumentMetadata;
-  index: DocumentIndex;
-}
-
-interface DocumentMetadata {
-  title?: string;
-  author?: string;
-  subject?: string;
-  keywords?: string[];
-  createdDate?: Date;
-  modifiedDate?: Date;
-  producer?: string;
-  version?: string;
-}
-
-// Search types
-interface SearchResult {
-  id: string;
-  document: Document;
+export interface SearchResult {
+  docIndex: number;
   pageNumber: number;
-  snippet: string;
-  highlightedSnippet: string;
-  confidence: number;
-  context: string;
-  matches: Match[];
-  semanticScore: number;
-  fuzzyScore: number;
+  contextSnippet: string;
+  relevanceExplanation: string;
+  relevanceScore: number;
+  matchedTerm: string;
 }
 
-interface Match {
-  term: string;
-  found: string;
-  start: number;
-  end: number;
-  type: MatchType;
+export interface SearchResponse {
+  results: SearchResult[];
+  summary: string;
 }
 
-type MatchType = "exact" | "fuzzy" | "semantic";
-
-// Error types
-class InvalidFileError extends Error {
-  constructor(message: string) {
-    super(message);
-    this.name = "InvalidFileError";
-  }
+export interface UploadedFile {
+  file: File;
+  id: string;
+  previewUrl: string;
 }
 
-class ProcessingError extends Error {
-  constructor(
-    message: string,
-    public readonly originalError?: Error,
-  ) {
-    super(message);
-    this.name = "ProcessingError";
-  }
-}
-
-class APIError extends Error {
-  constructor(
-    message: string,
-    public readonly statusCode?: number,
-    public readonly response?: any,
-  ) {
-    super(message);
-    this.name = "APIError";
-  }
+export enum AppStatus {
+  IDLE = "IDLE",
+  ANALYZING = "ANALYZING",
+  COMPLETE = "COMPLETE",
+  ERROR = "ERROR",
 }
 ```
 
@@ -1516,45 +1121,33 @@ function createMockPDF(sizeInMB = 1): File {
 ### Complete Integration Example
 
 ```typescript
-import { GeminiService, DocumentService, SearchService } from "./services";
-
-// Initialize services
-const apiKey = import.meta.env.VITE_GEMINI_API_KEY;
-const gemini = new GeminiService(apiKey);
-const docService = new DocumentService();
-const searchService = new SearchService();
+import { searchInDocuments } from "@api/gemini";
+import { SecurityService } from "@core/services/securityService";
 
 // Upload and search workflow
-async function completeWorkflow(file: File, query: string) {
+async function completeWorkflow(files: File[], query: string) {
   try {
-    // 1. Validate file
-    const validation = docService.validateFile(file);
+    // 1. Validate query
+    const validation = SecurityService.validateSearchQuery(query);
     if (!validation.valid) {
-      throw new Error(validation.errors.join(", "));
+      throw new Error(validation.reason);
     }
 
-    // 2. Upload document
-    console.log("Uploading document...");
-    const document = await gemini.uploadDocument(file);
-    docService.add(document);
-    console.log(`Document uploaded: ${document.name}`);
+    // 2. Search (Includes internal file processing)
+    console.log("Searching documents...");
+    const response = await searchInDocuments(files, query);
 
-    // 3. Search
-    console.log("Searching...");
-    const results = await gemini.search(query, [document]);
-    console.log(`Found ${results.length} results`);
+    console.log(`Summary: ${response.summary}`);
+    console.log(`Found ${response.results.length} matches`);
 
-    // 4. Process results
-    for (const result of results) {
-      // Highlight text
-      const highlighted = searchService.highlightText(result.snippet, [query]);
-
-      console.log(`Page ${result.pageNumber}:`);
-      console.log(highlighted.html);
-      console.log(`Confidence: ${result.confidence.toFixed(2)}`);
+    // 3. Process results
+    for (const result of response.results) {
+      console.log(`Document Index ${result.docIndex}, Page ${result.pageNumber}:`);
+      console.log(`Snippet: ${result.contextSnippet}`);
+      console.log(`Relevance: ${result.relevanceScore} (${result.relevanceExplanation})`);
     }
 
-    return results;
+    return response;
   } catch (error) {
     console.error("Workflow failed:", error);
     throw error;
@@ -1562,8 +1155,8 @@ async function completeWorkflow(file: File, query: string) {
 }
 
 // Usage
-const file = await selectPDFFile();
-const results = await completeWorkflow(file, "revenue Q4");
+const files = [/* PDF File objects */];
+const results = await completeWorkflow(files, "revenue Q4");
 ```
 
 ---
@@ -1579,14 +1172,14 @@ For API questions or issues:
 
 ---
 
-**Version**: 1.4.0  
-**Last Updated**: May 14, 2026  
+**Version**: 1.4.2
+**Last Updated**: May 18, 2026
 **Maintained By**: Darshil
 ---
 
 # 3. Security Policy
 
-DocuSearch Agent v1.4.0 implements comprehensive security measures to protect users and data. This document outlines our security features, vulnerability reporting process, and best practices.
+DocuSearch Agent v1.4.2 implements comprehensive security measures to protect users and data. This document outlines our security features, vulnerability reporting process, and best practices.
 
 ## Security Features
 
@@ -1897,12 +1490,13 @@ describe("Security", () => {
 
 ### Version History
 
-**v1.4.0 (2026-05-14)**
+**v1.4.2 (2026-05-18)**
 
 - ✅ Added runtime response validation service
 - ✅ Implemented persistent rate limiting (localStorage)
 - ✅ Added fail-fast API key format validation
 - ✅ Centralized error messaging for consistent security UX
+- ✅ Restored critical application files and standardized aliases
 
 **v1.3.1 (2026-04-19)**
 
@@ -2205,7 +1799,7 @@ VITE_GEMINI_API_KEY=your_api_key_here
 
 # Optional: AI Configuration
 VITE_GEMINI_MODEL=gemini-1.5-flash
-VITE_API_TIMEOUT=60000
+VITE_API_TIMEOUT_MS=60000
 
 # Optional: Feature Flags
 VITE_MAX_FILE_SIZE=209715200  # 200MB in bytes
@@ -2236,7 +1830,7 @@ VITE_PDF_WORKER_SRC=          # Custom PDF worker CDN URL
 ```json
 {
   "name": "gemini-pdf-retrieval-agent",
-  "version": "1.4.0",
+  "version": "1.4.2",
   "scripts": {
     "dev": "vite",
     "build": "tsc && vite build",
@@ -2352,7 +1946,7 @@ The DocuSearch Agent includes automated utilities to maintain code quality and p
 
 ### Production Checklist
 
-To maintain v1.4.0 standards, ensure the following before deployment:
+To maintain v1.4.2 standards, ensure the following before deployment:
 1. **Zero Errors**: `npm run type-check` and `npm run lint` must pass with 0 warnings.
 2. **Coverage**: Unit tests must maintain ≥70% coverage (100% for `ValidationService`).
 3. **Logs**: Structured logging must be used via `LoggerService` instead of `console.log`.
@@ -2941,15 +2535,15 @@ npm run deploy           # Deploy to GitHub Pages
 | --------------------- | -------- | ---------------------- | --------------------- |
 | `VITE_GEMINI_API_KEY` | Yes      | -                      | Google Gemini API key |
 | `VITE_GEMINI_MODEL`   | No       | `gemini-1.5-flash`     | AI model to use       |
-| `VITE_API_TIMEOUT`    | No       | `60000`                | API timeout (ms)      |
+| `VITE_API_TIMEOUT_MS` | No       | `60000`                | API timeout (ms)      |
 | `VITE_MAX_FILE_SIZE`  | No       | `209715200`            | Max file size (bytes) |
 | `VITE_MAX_FILES`      | No       | `10`                   | Maximum files allowed |
 | `VITE_ENABLE_DEBUG`   | No       | `false`                | Enable debug logging  |
 
 ---
 
-**Version**: 1.4.0  
-**Last Updated**: May 14, 2026  
+**Version**: 1.4.2
+**Last Updated**: May 18, 2026
 **Status**: Production Ready ✅
 ---
 
@@ -3265,10 +2859,11 @@ describe("Edge Cases", () => {
 5. **Mock External Dependencies**
 
 ```typescript
-vi.mock("../services/geminiService", () => ({
-  GeminiService: {
-    search: vi.fn().mockResolvedValue([]),
-  },
+vi.mock("@api/gemini", () => ({
+  searchInDocuments: vi.fn().mockResolvedValue({
+    summary: "Mock summary",
+    results: []
+  }),
 }));
 ```
 
@@ -3408,11 +3003,11 @@ npm test -- --run
 **Test**: Search for "revenue" in financial report
 
 ```typescript
-✅ Finds 15 exact matches
+✅ Finds matches and synonyms (e.g., "sales")
 ✅ Shows page numbers: 1, 5, 7, 12, 14
-✅ Displays line numbers for each match
-✅ Highlights keyword in yellow
-✅ Provides surrounding context
+✅ Displays relevance score and explanation
+✅ Highlights keyword in snippets
+✅ Provides surrounding context (20-40 words)
 ```
 
 **Test**: Navigate between matches
@@ -3548,8 +3143,8 @@ describe("Performance", () => {
 
 ---
 
-**Last Updated**: 2026-05-14
-**Version**: 1.4.0
+**Last Updated**: 2026-05-18
+**Version**: 1.4.2
 ---
 
 # 6. Remaining Issues & Future Enhancements
@@ -3698,7 +3293,7 @@ Users cannot easily access their previous searches within a session.
 
 ---
 
-**Status**: ✅ Completed (v1.4.0)
+**Status**: ✅ Completed (v1.4.2)
 **Severity**: Low
 **Feature Request**: Yes
 
@@ -3904,7 +3499,7 @@ Gemini 1.5 Flash has context limits. Very long documents may need chunking, pote
 
 ---
 
-### v1.4.0 (Q2 2026)
+### Future Enhancements
 
 #### Export & Sharing
 
@@ -4129,7 +3724,7 @@ Found something not listed here?
 ---
 
 Q2 2026
-└── v1.4.0 ✅ (Refactoring & Stability)
+└── v1.4.2 ✅ (Refactoring & Stability)
     ├── Structured logging
     ├── Persistent rate limiting
     ├── Runtime validation
