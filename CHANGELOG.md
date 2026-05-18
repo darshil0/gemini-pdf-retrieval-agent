@@ -123,22 +123,6 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 - **Organization**: Standardized test suite location by moving `App.test.tsx` to `src/tests/`.
 - **Logic**: Refactored `GeminiService` to use environment-driven model selection and request timeouts.
 
-
-## [1.3.1] - 2026-04-19
-
-### Added
-- **Performance**: Implemented streaming for large file uploads to reduce memory overhead.
-- **Performance**: Added lazy-loading for PDF pages to optimize browser memory usage.
-- **Search**: Enhanced the search prompt with relevance scoring for higher precision.
-- **UI/UX**: Enabled the text layer in the PDF viewer to allow for text selection and copying.
-- **UI/UX**: Added a search history feature to track previous queries.
-- **UI/UX**: Implemented search results export to CSV.
-- **UI/UX**: Added a dark mode toggle to the main interface.
-
-### Fixed
-- **Critical**: Fixed a bug in the PDF viewer that caused rendering failures when lazy loading was enabled.
-- **Tests**: Polyfilled `DOMMatrix` and improved the `File` mock in the test environment for better CI/CD stability.
-
 ## [1.3.1] - 2026-04-18
 
 ### Fixed
@@ -146,6 +130,17 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 - **Security**: Addressed vulnerabilities via `npm audit fix`, reducing identified issues from 23 to 17.
 - **Consistency**: Standardized configuration filenames (e.g., renamed `prettierrc.json` to `.prettierrc.json`).
 - **Cleanup**: Removed duplicate root-level assets to maintain project structure integrity.
+- **Critical**: Fixed a bug in the PDF viewer that caused rendering failures when lazy loading was enabled.
+- **Tests**: Polyfilled `DOMMatrix` and improved the `File` mock in the test environment for better CI/CD stability. 
+ 
+ ### Added
+- **Performance**: Implemented streaming for large file uploads to reduce memory overhead.
+- **Performance**: Added lazy-loading for PDF pages to optimize browser memory usage.
+- **Search**: Enhanced the search prompt with relevance scoring for higher precision.
+- **UI/UX**: Enabled the text layer in the PDF viewer to allow for text selection and copying.
+- **UI/UX**: Added a search history feature to track previous queries.
+- **UI/UX**: Implemented search results export to CSV.
+- **UI/UX**: Added a dark mode toggle to the main interface.
 
 ## [1.2.3] - 2025-12-12
 
