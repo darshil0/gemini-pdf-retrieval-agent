@@ -854,6 +854,25 @@ const matches = KeywordSearchService.searchKeyword("revenue", docs, { caseSensit
 
 ---
 
+#### getMatchStatistics()
+
+Calculates aggregate statistics for a set of keyword matches.
+
+```typescript
+getMatchStatistics(matches: KeywordMatch[]): MatchStatistics
+```
+
+**Returns**: `MatchStatistics`
+
+**Example**:
+
+```typescript
+const stats = KeywordSearchService.getMatchStatistics(matches);
+console.log(`Found ${stats.totalMatches} in ${stats.documentsWithMatches} docs`);
+```
+
+---
+
 
 ---
 
@@ -1154,7 +1173,7 @@ For API questions or issues:
 ---
 
 **Version**: 1.4.2  
-**Last Updated**: May 16, 2026  
+**Last Updated**: May 18, 2026  
 **Maintained By**: Darshil
 ---
 
@@ -1471,7 +1490,7 @@ describe("Security", () => {
 
 ### Version History
 
-**v1.4.2 (2026-05-16)**
+**v1.4.2 (2026-05-18)**
 
 - ✅ Added runtime response validation service
 - ✅ Implemented persistent rate limiting (localStorage)
@@ -2524,7 +2543,7 @@ npm run deploy           # Deploy to GitHub Pages
 ---
 
 **Version**: 1.4.2  
-**Last Updated**: May 16, 2026  
+**Last Updated**: May 18, 2026  
 **Status**: Production Ready ✅
 ---
 
@@ -3124,7 +3143,7 @@ describe("Performance", () => {
 
 ---
 
-**Last Updated**: 2026-05-16
+**Last Updated**: 2026-05-18
 **Version**: 1.4.2
 ---
 
