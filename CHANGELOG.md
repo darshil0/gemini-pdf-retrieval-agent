@@ -4,7 +4,15 @@ All notable changes to DocuSearch Agent are documented in this file. The project
 
 ---
 
-## [1.4.2] - 2026-05-16
+## [1.4.2] - 2026-05-18
+
+### Changed
+
+- Comprehensive documentation overhaul and synchronization.
+- Updated `README.md`, `DOCUMENTATION.md`, and `CONTRIBUTING.md` to reflect current architectural patterns (v1.4.2).
+- Standardized environment variable naming convention to `VITE_API_TIMEOUT_MS` across all documentation and type definitions.
+- Synchronized version displays in the UI (`src/App.tsx`) and Agent Architecture specifications (`docs/agent_architecture/`).
+- Refined API Reference in `DOCUMENTATION.md` to match the functional implementation in `src/api/gemini.ts`.
 
 ### Fixed
 
