@@ -15,7 +15,7 @@
 
 # 7. Project Structure & Aliases
 
-DocuSearch Agent v1.4.0 uses a modular directory structure with path aliasing for better maintainability and cleaner imports.
+DocuSearch Agent v1.4.2 uses a modular directory structure with path aliasing for better maintainability and cleaner imports.
 
 ## Directory Map
 
@@ -83,7 +83,7 @@ const AGENT_SYSTEM: AgentSystem = {
     "English language primary support",
     "Client-side processing only"
   ],
-  version: "1.4.0"
+  version: "1.4.2"
 };
 ```
 
@@ -610,97 +610,9 @@ See `src/__tests__/Architecture.test.ts` for validation tests ensuring complianc
 
 This section provides complete API documentation for DocuSearch Agent's services, methods, types, and interfaces.
 
-## 📦 Core Services
+## 📦 Gemini Service API
 
-### GeminiService
-
-Main service for AI-powered document processing and search.
-
-#### Constructor
-
-```typescript
-constructor(apiKey: string, options?: GeminiServiceOptions)
-```
-
-**Parameters**:
-
-- `apiKey` (string, required): Google Gemini API key
-- `options` (GeminiServiceOptions, optional): Configuration options
-
-**Example**:
-
-```typescript
-const service = new GeminiService("AIzaSyB...", {
-  model: "gemini-1.5-flash",
-  timeout: 30000,
-  maxRetries: 3,
-});
-```
-
----
-
-#### uploadDocument()
-
-Processes and indexes a PDF document for search.
-
-```typescript
-async uploadDocument(file: File): Promise<Document>
-```
-
-**Parameters**:
-
-- `file` (File): PDF file to process (max 200MB)
-
-**Returns**: `Promise<Document>`
-
-- Processed document with metadata and index
-
-**Throws**:
-
-- `InvalidFileError`: File type not supported or too large
-- `ProcessingError`: AI processing failed
-- `APIError`: Gemini API request failed
-
-**Example**:
-
-```typescript
-try {
-  const file = new File([pdfBuffer], "report.pdf", { type: "application/pdf" });
-  const document = await service.uploadDocument(file);
-
-  console.log(`Processed ${document.pageCount} pages`);
-  console.log(`Document ID: ${document.id}`);
-} catch (error) {
-  if (error instanceof InvalidFileError) {
-    console.error("Invalid file:", error.message);
-  }
-}
-```
-
-**Response Structure**:
-
-```typescript
-interface Document {
-  id: string; // Unique identifier
-  name: string; // Original filename
-  pageCount: number; // Total pages
-  size: number; // File size in bytes
-  uploadedAt: Date; // Upload timestamp
-  processedAt: Date; // Processing completion time
-  metadata: {
-    title?: string; // PDF title metadata
-    author?: string; // PDF author
-    subject?: string; // PDF subject
-    keywords?: string[]; // PDF keywords
-    createdDate?: Date; // PDF creation date
-  };
-  index: DocumentIndex; // Internal search index
-}
-```
-
----
-
-#### searchInDocuments()
+### searchInDocuments()
 
 Searches documents using natural language query via Gemini 1.5 Flash.
 
@@ -713,7 +625,7 @@ async searchInDocuments(
 
 **Parameters**:
 
-- `files` (File[]): Array of PDF files to search
+- `files` (File[]): Array of PDF files to search (max 10)
 - `keyword` (string): Search term or phrase
 
 **Returns**: `Promise<SearchResponse>`
@@ -722,8 +634,8 @@ async searchInDocuments(
 
 **Security & Reliability**:
 
-- **Timeouts**: API calls time out after 60 seconds.
-- **Validation**: Responses are validated at runtime against the expected schema.
+- **Timeouts**: API calls time out after 60 seconds (configurable via `VITE_API_TIMEOUT_MS`).
+- **Validation**: Responses are validated at runtime using `validateSearchResponse`.
 - **Streaming**: Files are read as streams with a 30-second timeout.
 
 **Example**:
@@ -731,44 +643,41 @@ async searchInDocuments(
 ```typescript
 const response = await searchInDocuments(files, "revenue");
 console.log(response.summary);
-```
-
-**SearchOptions**:
-
-```typescript
-interface SearchOptions {
-  maxResults?: number; // Max results per document (default: 5)
-  fuzzyMatch?: boolean; // Enable fuzzy matching (default: true)
-  semanticSearch?: boolean; // Enable semantic search (default: true)
-  minConfidence?: number; // Minimum confidence score (0-1, default: 0.5)
-  includeContext?: boolean; // Include surrounding text (default: true)
-  contextRange?: number; // Sentences around match (default: 2)
-}
+response.results.forEach(r => console.log(r.contextSnippet));
 ```
 
 **Response Structure**:
 
 ```typescript
-interface SearchResult {
-  id: string; // Unique result ID
-  document: Document; // Source document
-  pageNumber: number; // Page where found (1-indexed)
-  snippet: string; // Text excerpt with match
-  highlightedSnippet: string; // HTML with highlights
-  confidence: number; // Relevance score (0-1)
-  context: string; // Surrounding text
-  matches: Match[]; // Individual term matches
-  semanticScore: number; // Semantic relevance (0-1)
-  fuzzyScore: number; // Fuzzy match score (0-1)
+interface SearchResponse {
+  summary: string;
+  results: SearchResult[];
 }
 
-interface Match {
-  term: string; // Matched term
-  found: string; // Actual text found
-  start: number; // Character offset
-  end: number; // Character offset
-  type: "exact" | "fuzzy" | "semantic";
+interface SearchResult {
+  docIndex: number;
+  pageNumber: number;
+  contextSnippet: string;
+  matchedTerm: string;
+  relevanceExplanation: string;
+  relevanceScore: number;
 }
+```
+
+---
+
+## 📦 Core Services
+
+### ValidationService
+
+Provides runtime type safety and sanitization.
+
+#### validateSearchResponse()
+
+Validates and sanitizes raw API response.
+
+```typescript
+function validateSearchResponse(data: unknown): SearchResponse
 ```
 
 ---
@@ -1579,14 +1488,14 @@ For API questions or issues:
 
 ---
 
-**Version**: 1.4.0  
-**Last Updated**: May 14, 2026  
+**Version**: 1.4.2  
+**Last Updated**: May 16, 2026  
 **Maintained By**: Darshil
 ---
 
 # 3. Security Policy
 
-DocuSearch Agent v1.4.0 implements comprehensive security measures to protect users and data. This document outlines our security features, vulnerability reporting process, and best practices.
+DocuSearch Agent v1.4.2 implements comprehensive security measures to protect users and data. This document outlines our security features, vulnerability reporting process, and best practices.
 
 ## Security Features
 
@@ -1897,12 +1806,13 @@ describe("Security", () => {
 
 ### Version History
 
-**v1.4.0 (2026-05-14)**
+**v1.4.2 (2026-05-16)**
 
 - ✅ Added runtime response validation service
 - ✅ Implemented persistent rate limiting (localStorage)
 - ✅ Added fail-fast API key format validation
 - ✅ Centralized error messaging for consistent security UX
+- ✅ Restored critical application files and standardized aliases
 
 **v1.3.1 (2026-04-19)**
 
@@ -2205,7 +2115,7 @@ VITE_GEMINI_API_KEY=your_api_key_here
 
 # Optional: AI Configuration
 VITE_GEMINI_MODEL=gemini-1.5-flash
-VITE_API_TIMEOUT=60000
+VITE_API_TIMEOUT_MS=60000
 
 # Optional: Feature Flags
 VITE_MAX_FILE_SIZE=209715200  # 200MB in bytes
@@ -2236,7 +2146,7 @@ VITE_PDF_WORKER_SRC=          # Custom PDF worker CDN URL
 ```json
 {
   "name": "gemini-pdf-retrieval-agent",
-  "version": "1.4.0",
+  "version": "1.4.2",
   "scripts": {
     "dev": "vite",
     "build": "tsc && vite build",
@@ -2352,7 +2262,7 @@ The DocuSearch Agent includes automated utilities to maintain code quality and p
 
 ### Production Checklist
 
-To maintain v1.4.0 standards, ensure the following before deployment:
+To maintain v1.4.2 standards, ensure the following before deployment:
 1. **Zero Errors**: `npm run type-check` and `npm run lint` must pass with 0 warnings.
 2. **Coverage**: Unit tests must maintain ≥70% coverage (100% for `ValidationService`).
 3. **Logs**: Structured logging must be used via `LoggerService` instead of `console.log`.
@@ -2941,15 +2851,15 @@ npm run deploy           # Deploy to GitHub Pages
 | --------------------- | -------- | ---------------------- | --------------------- |
 | `VITE_GEMINI_API_KEY` | Yes      | -                      | Google Gemini API key |
 | `VITE_GEMINI_MODEL`   | No       | `gemini-1.5-flash`     | AI model to use       |
-| `VITE_API_TIMEOUT`    | No       | `60000`                | API timeout (ms)      |
+| `VITE_API_TIMEOUT_MS` | No       | `60000`                | API timeout (ms)      |
 | `VITE_MAX_FILE_SIZE`  | No       | `209715200`            | Max file size (bytes) |
 | `VITE_MAX_FILES`      | No       | `10`                   | Maximum files allowed |
 | `VITE_ENABLE_DEBUG`   | No       | `false`                | Enable debug logging  |
 
 ---
 
-**Version**: 1.4.0  
-**Last Updated**: May 14, 2026  
+**Version**: 1.4.2  
+**Last Updated**: May 16, 2026  
 **Status**: Production Ready ✅
 ---
 
@@ -3548,8 +3458,8 @@ describe("Performance", () => {
 
 ---
 
-**Last Updated**: 2026-05-14
-**Version**: 1.4.0
+**Last Updated**: 2026-05-16
+**Version**: 1.4.2
 ---
 
 # 6. Remaining Issues & Future Enhancements
@@ -3698,7 +3608,7 @@ Users cannot easily access their previous searches within a session.
 
 ---
 
-**Status**: ✅ Completed (v1.4.0)
+**Status**: ✅ Completed (v1.4.2)
 **Severity**: Low
 **Feature Request**: Yes
 
@@ -3904,7 +3814,7 @@ Gemini 1.5 Flash has context limits. Very long documents may need chunking, pote
 
 ---
 
-### v1.4.0 (Q2 2026)
+### Future Enhancements
 
 #### Export & Sharing
 
@@ -4129,7 +4039,7 @@ Found something not listed here?
 ---
 
 Q2 2026
-└── v1.4.0 ✅ (Refactoring & Stability)
+└── v1.4.2 ✅ (Refactoring & Stability)
     ├── Structured logging
     ├── Persistent rate limiting
     ├── Runtime validation
