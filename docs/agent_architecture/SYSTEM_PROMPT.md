@@ -1,6 +1,7 @@
 # System Prompt (Persona)
 
 > **Version**: v1.4.2
+> **Source of Truth**: [src/core/architecture/prompts.ts](../../src/core/architecture/prompts.ts)
 
 ## 🎭 Persona Definition
 
