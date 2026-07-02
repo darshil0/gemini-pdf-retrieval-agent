@@ -1,6 +1,7 @@
 // src/components/FileUpload.tsx
 import { useCallback, useState } from 'react';
-import { Upload, X, FileText, AlertCircle } from 'lucide-react';
+import { Upload, X, FileText, AlertCircle, Loader2 } from 'lucide-react';
+import { SecurityService } from '@core/services/securityService';
 
 const MAX_FILES = parseInt(import.meta.env.VITE_MAX_FILES || '10');
 const MAX_FILE_SIZE_BYTES = parseInt(
@@ -29,32 +30,47 @@ export const FileUpload = ({
   isProcessing = false,
 }: FileUploadProps): React.ReactElement => {
   const [dragActive, setDragActive] = useState(false);
+  const [isValidating, setIsValidating] = useState(false);
   const [errors, setErrors] = useState<FileValidationError[]>([]);
 
   const validateFiles = useCallback(
-    (files: File[]): { valid: File[]; errors: FileValidationError[] } => {
+    async (
+      files: File[],
+    ): Promise<{ valid: File[]; errors: FileValidationError[] }> => {
       const validFiles: File[] = [];
       const validationErrors: FileValidationError[] = [];
 
-      files.forEach((file) => {
-        // Check file type
+      for (const file of files) {
+        // Check file type (MIME)
         if (!ALLOWED_MIME_TYPES.includes(file.type)) {
           validationErrors.push({
             id: `${file.name}-type-${Date.now()}`,
             file: file.name,
-            error: 'Only PDF files are allowed',
+            error: 'Only PDF files are allowed (detected by MIME)',
           });
-          return;
+          continue;
+        }
+
+        // Deep check: %PDF magic bytes
+        const hasCorrectMagicBytes =
+          await SecurityService.validateFileType(file);
+        if (!hasCorrectMagicBytes) {
+          validationErrors.push({
+            id: `${file.name}-magic-${Date.now()}`,
+            file: file.name,
+            error: 'Invalid PDF content (magic bytes mismatch)',
+          });
+          continue;
         }
 
         // Check file size
-        if (file.size > MAX_FILE_SIZE_BYTES) {
+        if (!SecurityService.validateFileSize(file)) {
           validationErrors.push({
             id: `${file.name}-size-${Date.now()}`,
             file: file.name,
             error: `File size exceeds ${MAX_FILE_SIZE_MB}MB limit`,
           });
-          return;
+          continue;
         }
 
         // Check for duplicates
@@ -68,11 +84,11 @@ export const FileUpload = ({
             file: file.name,
             error: 'File already uploaded',
           });
-          return;
+          continue;
         }
 
         validFiles.push(file);
-      });
+      }
 
       return { valid: validFiles, errors: validationErrors };
     },
@@ -80,7 +96,7 @@ export const FileUpload = ({
   );
 
   const handleFiles = useCallback(
-    (files: FileList | null) => {
+    async (files: FileList | null) => {
       if (!files || files.length === 0) return;
 
       const fileArray = Array.from(files);
@@ -98,16 +114,22 @@ export const FileUpload = ({
         return;
       }
 
-      const { valid, errors: validationErrors } = validateFiles(fileArray);
+      setIsValidating(true);
+      try {
+        const { valid, errors: validationErrors } =
+          await validateFiles(fileArray);
 
-      if (validationErrors.length > 0) {
-        setErrors(validationErrors);
-      } else {
-        setErrors([]);
-      }
+        if (validationErrors.length > 0) {
+          setErrors(validationErrors);
+        } else {
+          setErrors([]);
+        }
 
-      if (valid.length > 0) {
-        onFilesSelected(valid);
+        if (valid.length > 0) {
+          onFilesSelected(valid);
+        }
+      } finally {
+        setIsValidating(false);
       }
     },
     [uploadedFiles, onFilesSelected, validateFiles],
@@ -128,7 +150,7 @@ export const FileUpload = ({
       e.preventDefault();
       e.stopPropagation();
       setDragActive(false);
-      handleFiles(e.dataTransfer.files);
+      void handleFiles(e.dataTransfer.files);
     },
     [handleFiles],
   );
@@ -136,7 +158,7 @@ export const FileUpload = ({
   const handleChange = useCallback(
     (e: React.ChangeEvent<HTMLInputElement>) => {
       e.preventDefault();
-      handleFiles(e.target.files);
+      void handleFiles(e.target.files);
     },
     [handleFiles],
   );
@@ -205,7 +227,11 @@ export const FileUpload = ({
           className="absolute inset-0 w-full h-full opacity-0 cursor-pointer disabled:cursor-not-allowed"
           aria-label="Upload PDF files"
         />
-        <Upload className="w-12 h-12 mx-auto mb-4 text-slate-400" />
+        {isValidating ? (
+          <Loader2 className="w-12 h-12 mx-auto mb-4 text-blue-400 animate-spin" />
+        ) : (
+          <Upload className="w-12 h-12 mx-auto mb-4 text-slate-400" />
+        )}
         <p className="text-lg font-medium text-slate-200 mb-2">
           {uploadedFiles.length >= MAX_FILES
             ? 'Maximum files reached'
