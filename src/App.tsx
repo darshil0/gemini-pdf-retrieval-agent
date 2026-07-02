@@ -15,12 +15,15 @@ import {
   Download,
   Sun,
   Moon,
+  ZoomIn,
+  ZoomOut,
 } from 'lucide-react';
 import { FileUpload } from '@components/FileUpload';
 import { SearchResultCard } from '@components/SearchResultCard';
 import { searchInDocuments, GEMINI_MODEL_NAME } from '@api/gemini';
 import { UploadedFile, AppStatus, SearchResponse } from '@core/types';
 import { escapeCSVField } from '@core/services/validation';
+import { SecurityService } from '@core/services/securityService';
 import { Document, Page, pdfjs } from 'react-pdf';
 import { InView } from 'react-intersection-observer';
 
@@ -46,7 +49,7 @@ export default function App(): React.ReactElement {
   const [rotation, setRotation] = useState(0);
   const [numPages, setNumPages] = useState<number | null>(null);
   const [currentPage, setCurrentPage] = useState<number>(1);
-  const [pdfScale] = useState(1.0);
+  const [pdfScale, setPdfScale] = useState(1.0);
   const [theme, setTheme] = useState<'light' | 'dark'>('dark');
   const [minRelevance, setMinRelevance] = useState(0.75);
   const [sortBy, setSortBy] = useState<'relevance' | 'page'>('relevance');
@@ -88,6 +91,7 @@ export default function App(): React.ReactElement {
       setCurrentPage(viewingResult.page);
       setRotation(0);
       setNumPages(null);
+      setPdfScale(1.0);
     }
   }, [viewingResult]);
 
@@ -132,20 +136,43 @@ export default function App(): React.ReactElement {
     });
   }, []);
 
+  const clearRecentSearches = useCallback((): void => {
+    setRecentSearches([]);
+    localStorage.removeItem('docuSearch_recent');
+  }, []);
+
   const executeSearch = async (term: string): Promise<void> => {
     if (files.length === 0 || !term.trim()) {
       return Promise.resolve();
     }
 
-    setKeyword(term);
-    updateRecentSearches(term);
+    // Security: Check rate limit (10 searches per minute)
+    if (!SecurityService.checkRateLimit('search', 10, 60000)) {
+      setError('Rate limit exceeded. Please wait a moment before searching again.');
+      setStatus(AppStatus.ERROR);
+      return Promise.resolve();
+    }
+
+    // Security: Validate query
+    const validation = SecurityService.validateSearchQuery(term);
+    if (!validation.valid) {
+      setError(validation.reason ?? 'Invalid search query.');
+      setStatus(AppStatus.ERROR);
+      return Promise.resolve();
+    }
+
+    // Security: Sanitize input
+    const sanitizedTerm = SecurityService.sanitizeInput(term);
+
+    setKeyword(sanitizedTerm);
+    updateRecentSearches(sanitizedTerm);
     setStatus(AppStatus.ANALYZING);
     setError(null);
     setData(null);
 
     try {
       const fileObjects = files.map((f) => f.file);
-      const response = await searchInDocuments(fileObjects, term);
+      const response = await searchInDocuments(fileObjects, sanitizedTerm);
       setData(response);
       setStatus(AppStatus.COMPLETE);
       return Promise.resolve();
@@ -301,7 +328,7 @@ export default function App(): React.ReactElement {
               </button>
             )}
             <div className="px-3 py-1 rounded-full bg-slate-800 border border-slate-700 text-xs font-mono text-slate-400 capitalize">
-              {GEMINI_MODEL_NAME.replace(/-/g, ' ')} • v1.4.3
+              {GEMINI_MODEL_NAME.replace(/-/g, ' ')} • v1.4.4
             </div>
             <button
               onClick={() => setTheme(theme === 'dark' ? 'light' : 'dark')}
@@ -410,12 +437,21 @@ export default function App(): React.ReactElement {
                   </button>
 
                   {/* Recent Searches and Export */}
-                  <div className="flex justify-between items-center pt-2">
+                  <div className="flex justify-between items-start pt-2">
                     {recentSearches.length > 0 && (
-                      <div className="animate-fade-in">
-                        <div className="flex items-center text-xs font-semibold text-slate-500 mb-3 uppercase tracking-wider">
-                          <History className="w-3 h-3 mr-1.5" />
-                          Recent Searches
+                      <div className="animate-fade-in flex-1 mr-4">
+                        <div className="flex items-center justify-between mb-3">
+                          <div className="flex items-center text-xs font-semibold text-slate-500 uppercase tracking-wider">
+                            <History className="w-3 h-3 mr-1.5" />
+                            Recent Searches
+                          </div>
+                          <button
+                            type="button"
+                            onClick={clearRecentSearches}
+                            className="text-[10px] text-slate-500 hover:text-red-400 transition-colors uppercase tracking-tight"
+                          >
+                            Clear History
+                          </button>
                         </div>
                         <ul className="flex flex-wrap gap-2">
                           {recentSearches.map((term, i) => (
@@ -621,6 +657,31 @@ export default function App(): React.ReactElement {
                     aria-label="Next page"
                   >
                     <ChevronRight size={18} />
+                  </button>
+                </div>
+
+                {/* Zoom Controls */}
+                <div className="flex items-center space-x-1 bg-slate-900/50 rounded-lg p-1 border border-slate-700">
+                  <button
+                    onClick={() => setPdfScale((prev) => Math.max(prev - 0.2, 0.4))}
+                    className="p-1.5 hover:bg-slate-700 rounded-md text-slate-400 hover:text-white transition-colors"
+                    aria-label="Zoom out"
+                  >
+                    <ZoomOut size={18} />
+                  </button>
+                  <button
+                    onClick={() => setPdfScale(1.0)}
+                    className="p-1.5 hover:bg-slate-700 rounded-md text-slate-400 hover:text-white transition-colors flex items-center"
+                    aria-label="Reset zoom"
+                  >
+                    <span className="text-[10px] font-mono w-8 text-center">{Math.round(pdfScale * 100)}%</span>
+                  </button>
+                  <button
+                    onClick={() => setPdfScale((prev) => Math.min(prev + 0.2, 3.0))}
+                    className="p-1.5 hover:bg-slate-700 rounded-md text-slate-400 hover:text-white transition-colors"
+                    aria-label="Zoom in"
+                  >
+                    <ZoomIn size={18} />
                   </button>
                 </div>
 
