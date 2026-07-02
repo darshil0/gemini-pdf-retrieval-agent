@@ -1,5 +1,5 @@
 # DocuSearch Agent - Apply Current Verification Workflow (Windows PowerShell)
-# Version: 1.4.3
+# Version: 1.4.4
 
 $ErrorActionPreference = "Stop"
 
