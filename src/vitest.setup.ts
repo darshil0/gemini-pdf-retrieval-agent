@@ -130,16 +130,6 @@ if (typeof window.URL.revokeObjectURL === 'undefined') {
   });
 }
 
-// Mock SecurityService for tests that don't want to deal with magic bytes/rate limits
-vi.mock('@core/services/securityService', () => ({
-  SecurityService: {
-    validateFileType: vi.fn().mockResolvedValue(true),
-    validateFileSize: vi.fn().mockReturnValue(true),
-    sanitizeInput: vi.fn((input: string) => input),
-    validateSearchQuery: vi.fn().mockReturnValue({ valid: true }),
-    checkRateLimit: vi.fn().mockReturnValue(true),
-  },
-}));
 
 // Mock IntersectionObserver
 class MockIntersectionObserver implements IntersectionObserver {
