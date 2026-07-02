@@ -1,6 +1,6 @@
 # Protocols
 
-> Version: v1.4.3
+> Version: v1.4.4
 > Source of truth: [src/core/architecture/prompts.ts](../../src/core/architecture/prompts.ts)
 
 The protocol layer defines how the model should behave when generating search results. It is responsible for matching strategy, response shape, and handling of empty results.
