@@ -2,6 +2,16 @@ import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import App from '../App';
 import { vi, expect, it, describe, beforeEach } from 'vitest';
 import * as geminiService from '@api/gemini';
+
+vi.mock('@core/services/securityService', () => ({
+  SecurityService: {
+    validateFileType: vi.fn().mockResolvedValue(true),
+    validateFileSize: vi.fn().mockReturnValue(true),
+    sanitizeInput: vi.fn((input: string) => input),
+    validateSearchQuery: vi.fn().mockReturnValue({ valid: true }),
+    checkRateLimit: vi.fn().mockReturnValue(true),
+  },
+}));
 import { SearchResponse } from '@core/types/index';
 
 // Mock the gemini service
@@ -98,7 +108,7 @@ describe('Integration Tests', () => {
 
     // 3. Verify empty state
     await waitFor(() => {
-      expect(screen.getByText('No matches found.')).toBeInTheDocument();
+      expect(screen.getByText(/No matches found for/i)).toBeInTheDocument();
       expect(screen.queryByText('View Page')).not.toBeInTheDocument();
     });
   });
