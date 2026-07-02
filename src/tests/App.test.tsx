@@ -4,6 +4,16 @@ import { vi, expect, it, describe, beforeEach } from 'vitest';
 import * as geminiService from '@api/gemini';
 import { SearchResponse } from '@core/types/index';
 
+vi.mock('@core/services/securityService', () => ({
+  SecurityService: {
+    validateFileType: vi.fn().mockResolvedValue(true),
+    validateFileSize: vi.fn().mockReturnValue(true),
+    sanitizeInput: vi.fn((input: string) => input),
+    validateSearchQuery: vi.fn().mockReturnValue({ valid: true }),
+    checkRateLimit: vi.fn().mockReturnValue(true),
+  },
+}));
+
 // Mock the gemini service
 vi.mock('@api/gemini', () => ({
   searchInDocuments: vi.fn(),
@@ -142,6 +152,11 @@ describe('App Component', () => {
     fireEvent.change(screen.getByLabelText(/upload pdf files/i), {
       target: { files: [file] },
     });
+
+    await waitFor(() => {
+      expect(screen.getByText('test.pdf')).toBeInTheDocument();
+    });
+
     fireEvent.change(
       screen.getByPlaceholderText(/e.g., 'Financial Q3 results'/i),
       {
@@ -155,7 +170,7 @@ describe('App Component', () => {
     });
 
     fireEvent.change(screen.getByLabelText(/minimum relevance/i), {
-      target: { value: '0.8' },
+      target: { value: '0.9' },
     });
     fireEvent.change(screen.getByLabelText(/sort results by/i), {
       target: { value: 'page' },
@@ -180,6 +195,10 @@ describe('App Component', () => {
     });
     const input = screen.getByLabelText(/upload pdf files/i);
     fireEvent.change(input, { target: { files: [file] } });
+
+    await waitFor(() => {
+      expect(screen.getByText('test.pdf')).toBeInTheDocument();
+    });
 
     // Search
     const searchInput = screen.getByPlaceholderText(
@@ -219,6 +238,11 @@ describe('App Component', () => {
     fireEvent.change(screen.getByLabelText(/upload pdf files/i), {
       target: { files: [file] },
     });
+
+    await waitFor(() => {
+      expect(screen.getByText('test.pdf')).toBeInTheDocument();
+    });
+
     fireEvent.change(
       screen.getByPlaceholderText(/e.g., 'Financial Q3 results'/i),
       {
@@ -249,6 +273,11 @@ describe('App Component', () => {
     fireEvent.change(screen.getByLabelText(/upload pdf files/i), {
       target: { files: [file] },
     });
+
+    await waitFor(() => {
+      expect(screen.getByText('test.pdf')).toBeInTheDocument();
+    });
+
     fireEvent.change(
       screen.getByPlaceholderText(/e.g., 'Financial Q3 results'/i),
       {

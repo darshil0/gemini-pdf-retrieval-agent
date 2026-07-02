@@ -106,13 +106,14 @@ flowchart TD
 
 ## Status
 
-Version: 1.4.3
-Last reviewed: 2026-07-01
+Version: 1.4.4
+Last reviewed: 2026-07-02
 Status: production-ready for local development and static deployment.
 Verified checks: `npm test`, `npm run build`, and `npm run lint`.
 
 ## Release highlights
 
-- Updated the search experience with relevance filtering and page-based sorting.
+- Integrated SecurityService for deep PDF magic bytes validation and search rate limiting.
+- Enhanced PDF viewer with zoom controls (In/Out/Reset).
+- Added ability to clear recent search history.
 - Refreshed the docs and architecture notes to match the current implementation.
-- Aligned the Vite and React toolchain configuration with the current project setup.

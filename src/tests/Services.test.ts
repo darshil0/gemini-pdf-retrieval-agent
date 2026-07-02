@@ -9,6 +9,8 @@ import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { SecurityService } from '@core/services/securityService';
 import { searchInDocuments } from '@api/gemini';
 
+vi.unmock('@core/services/securityService');
+
 // Mock the Gemini API but keep the service logic
 vi.mock('@google/generative-ai', () => {
   return {

@@ -1,6 +1,8 @@
 // src/__tests__/security.test.ts
-import { describe, it, expect } from 'vitest';
+import { describe, it, expect, vi } from 'vitest';
 import { SecurityService } from '@core/services/securityService';
+
+vi.unmock('@core/services/securityService');
 
 describe('SecurityService', () => {
   it('validates PDF file type', async () => {
