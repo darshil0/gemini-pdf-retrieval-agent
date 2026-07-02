@@ -1,6 +1,6 @@
 # Tool prompts
 
-> Version: v1.4.3
+> Version: v1.4.4
 > Source of truth: [src/core/architecture/prompts.ts](../../src/core/architecture/prompts.ts)
 
 The tool prompt defines the task the model should perform during a search. In the current implementation, it instructs the model to scan all uploaded documents, find relevant matches, and return them in a structured JSON object.
