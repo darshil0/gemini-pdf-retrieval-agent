@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # DocuSearch Agent - Apply Current Verification Workflow
-# Version: 1.4.3
+# Version: 1.4.4
 # Run this script to refresh dependencies and verify the project state
 
 set -e
