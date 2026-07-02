@@ -4,6 +4,16 @@ import { vi, expect, it, describe, beforeEach } from 'vitest';
 import * as geminiService from '@api/gemini';
 import { SearchResponse } from '@core/types/index';
 
+vi.mock('@core/services/securityService', () => ({
+  SecurityService: {
+    validateFileType: vi.fn().mockResolvedValue(true),
+    validateFileSize: vi.fn().mockReturnValue(true),
+    sanitizeInput: vi.fn((input: string) => input),
+    validateSearchQuery: vi.fn().mockReturnValue({ valid: true }),
+    checkRateLimit: vi.fn().mockReturnValue(true),
+  },
+}));
+
 // Mock the gemini service
 vi.mock('@api/gemini', () => ({
   searchInDocuments: vi.fn(),
@@ -155,7 +165,7 @@ describe('App Component', () => {
     });
 
     fireEvent.change(screen.getByLabelText(/minimum relevance/i), {
-      target: { value: '0.8' },
+      target: { value: '0.96' },
     });
     fireEvent.change(screen.getByLabelText(/sort results by/i), {
       target: { value: 'page' },
