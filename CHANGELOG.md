@@ -9,6 +9,10 @@ All notable changes to DocuSearch Agent are documented in this file. The project
 - Enhanced PDF viewer with zoom controls (In/Out/Reset).
 - Added ability to clear recent search history.
 
+### Added
+- Enhanced PDF viewer with zoom controls (In/Out/Reset).
+- Added ability to clear recent search history.
+
 ### Changed
 - Integrated SecurityService for deep PDF magic bytes validation in `FileUpload`.
 - Integrated SecurityService for search rate limiting, query validation, and input sanitization in `App`.

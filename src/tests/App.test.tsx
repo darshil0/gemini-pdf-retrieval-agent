@@ -152,6 +152,11 @@ describe('App Component', () => {
     fireEvent.change(screen.getByLabelText(/upload pdf files/i), {
       target: { files: [file] },
     });
+
+    await waitFor(() => {
+      expect(screen.getByText('test.pdf')).toBeInTheDocument();
+    });
+
     fireEvent.change(
       screen.getByPlaceholderText(/e.g., 'Financial Q3 results'/i),
       {
@@ -191,6 +196,10 @@ describe('App Component', () => {
     const input = screen.getByLabelText(/upload pdf files/i);
     fireEvent.change(input, { target: { files: [file] } });
 
+    await waitFor(() => {
+      expect(screen.getByText('test.pdf')).toBeInTheDocument();
+    });
+
     // Search
     const searchInput = screen.getByPlaceholderText(
       /e.g., 'Financial Q3 results'/i,
@@ -229,6 +238,11 @@ describe('App Component', () => {
     fireEvent.change(screen.getByLabelText(/upload pdf files/i), {
       target: { files: [file] },
     });
+
+    await waitFor(() => {
+      expect(screen.getByText('test.pdf')).toBeInTheDocument();
+    });
+
     fireEvent.change(
       screen.getByPlaceholderText(/e.g., 'Financial Q3 results'/i),
       {
@@ -259,6 +273,11 @@ describe('App Component', () => {
     fireEvent.change(screen.getByLabelText(/upload pdf files/i), {
       target: { files: [file] },
     });
+
+    await waitFor(() => {
+      expect(screen.getByText('test.pdf')).toBeInTheDocument();
+    });
+
     fireEvent.change(
       screen.getByPlaceholderText(/e.g., 'Financial Q3 results'/i),
       {
