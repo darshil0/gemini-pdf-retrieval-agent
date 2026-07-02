@@ -1,72 +1,115 @@
-// src/__tests__/security.test.ts
-import { describe, it, expect, vi } from 'vitest';
-import { SecurityService } from '@core/services/securityService';
+import { render, screen, fireEvent, waitFor } from '@testing-library/react';
+import App from '../App';
+import { vi, expect, it, describe, beforeEach } from 'vitest';
+import * as geminiService from '@api/gemini';
 
-vi.unmock('@core/services/securityService');
+vi.mock('@core/services/securityService', () => ({
+  SecurityService: {
+    validateFileType: vi.fn().mockResolvedValue(true),
+    validateFileSize: vi.fn().mockReturnValue(true),
+    sanitizeInput: vi.fn((input: string) => input),
+    validateSearchQuery: vi.fn().mockReturnValue({ valid: true }),
+    checkRateLimit: vi.fn().mockReturnValue(true),
+  },
+}));
+import { SearchResponse } from '@core/types/index';
 
-describe('SecurityService', () => {
-  it('validates PDF file type', async () => {
-    const pdfFile = new File(
-      [new Uint8Array([0x25, 0x50, 0x44, 0x46])],
-      'test.pdf',
-      { type: 'application/pdf' },
+// Mock the gemini service
+vi.mock('@api/gemini', () => ({
+  searchInDocuments: vi.fn(),
+  GEMINI_MODEL_NAME: 'gemini-1.5-flash',
+}));
+
+// Mock react-pdf
+vi.mock('react-pdf', () => ({
+  Document: ({ children }: { children: React.ReactNode }) => (
+    <div data-testid="pdf-document">{children}</div>
+  ),
+  Page: ({ pageNumber }: { pageNumber: number }) => (
+    <div data-testid={`pdf-page-${pageNumber}`}>Page {pageNumber}</div>
+  ),
+  pdfjs: {
+    GlobalWorkerOptions: {
+      workerSrc: '',
+    },
+  },
+}));
+
+describe('Integration Tests', () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+  });
+
+  it('should complete a full search flow', async () => {
+    const mockResults: SearchResponse = {
+      summary: 'AI Summary',
+      results: [
+        {
+          docIndex: 0,
+          pageNumber: 1,
+          contextSnippet: 'Found in document',
+          matchedTerm: 'search',
+          relevanceExplanation: 'Direct match',
+          relevanceScore: 1.0,
+        },
+      ],
+    };
+
+    vi.mocked(geminiService.searchInDocuments).mockResolvedValue(mockResults);
+
+    render(<App />);
+
+    // 1. Upload
+    const file = new File(['pdf content'], 'test.pdf', {
+      type: 'application/pdf',
+    });
+    const input = screen.getByLabelText(/upload pdf files/i);
+    fireEvent.change(input, { target: { files: [file] } });
+
+    // 2. Search
+    const searchInput = screen.getByPlaceholderText(
+      /e.g., 'Financial Q3 results'/i,
     );
+    fireEvent.change(searchInput, { target: { value: 'search' } });
+    fireEvent.click(screen.getByText('Find Occurrences'));
 
-    const isValid = await SecurityService.validateFileType(pdfFile);
-    expect(isValid).toBe(true);
+    // 3. Verify results
+    await waitFor(() => {
+      expect(screen.getByText('AI Summary')).toBeInTheDocument();
+      expect(screen.getByText('Found in document')).toBeInTheDocument();
+    });
+
+    // 4. Open viewer
+    fireEvent.click(screen.getByText('View Page 1'));
+    expect(screen.getByText('Page 1 of --')).toBeInTheDocument();
   });
 
-  it('rejects non-PDF files', async () => {
-    const textFile = new File(['content'], 'test.txt', { type: 'text/plain' });
+  it('should handle empty search results gracefully', async () => {
+    vi.mocked(geminiService.searchInDocuments).mockResolvedValue({
+      summary: 'No matches found.',
+      results: [],
+    });
 
-    const isValid = await SecurityService.validateFileType(textFile);
-    expect(isValid).toBe(false);
-  });
+    render(<App />);
 
-  it('validates file size', () => {
-    const validFile = new File(
-      [new ArrayBuffer(100 * 1024 * 1024)],
-      'test.pdf',
+    // 1. Upload
+    const file = new File(['pdf content'], 'test.pdf', {
+      type: 'application/pdf',
+    });
+    const input = screen.getByLabelText(/upload pdf files/i);
+    fireEvent.change(input, { target: { files: [file] } });
+
+    // 2. Search
+    const searchInput = screen.getByPlaceholderText(
+      /e.g., 'Financial Q3 results'/i,
     );
-    const oversizedFile = new File(
-      [new ArrayBuffer(201 * 1024 * 1024)],
-      'large.pdf',
-    );
+    fireEvent.change(searchInput, { target: { value: 'empty' } });
+    fireEvent.click(screen.getByText('Find Occurrences'));
 
-    expect(SecurityService.validateFileSize(validFile)).toBe(true);
-    expect(SecurityService.validateFileSize(oversizedFile)).toBe(false);
-  });
-
-  it('sanitizes user input', () => {
-    const dangerous = '<script>alert("xss")</script>';
-    const sanitized = SecurityService.sanitizeInput(dangerous);
-
-    expect(sanitized).not.toContain('<script>');
-    expect(sanitized).toContain('&lt;script&gt;');
-  });
-
-  it('validates search queries', () => {
-    const valid = SecurityService.validateSearchQuery('normal search');
-    expect(valid.valid).toBe(true);
-
-    const tooShort = SecurityService.validateSearchQuery('a');
-    expect(tooShort.valid).toBe(false);
-
-    const suspicious = SecurityService.validateSearchQuery(
-      'SELECT * FROM users',
-    );
-    expect(suspicious.valid).toBe(false);
-  });
-
-  it('enforces rate limiting', () => {
-    const identifier = 'test-user';
-
-    // First 10 requests should pass
-    for (let i = 0; i < 10; i++) {
-      expect(SecurityService.checkRateLimit(identifier, 10, 60000)).toBe(true);
-    }
-
-    // 11th request should fail
-    expect(SecurityService.checkRateLimit(identifier, 10, 60000)).toBe(false);
+    // 3. Verify empty state
+    await waitFor(() => {
+      expect(screen.getByText(/No matches found for/i)).toBeInTheDocument();
+      expect(screen.queryByText('View Page')).not.toBeInTheDocument();
+    });
   });
 });

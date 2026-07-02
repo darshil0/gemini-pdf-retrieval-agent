@@ -135,7 +135,7 @@ The app is configured through environment variables defined in [.env.example](..
 
 Use the standard scripts from the repository root:
 
-> Current release: 1.4.3
+> Current release: 1.4.4
 
 ```bash
 npm install
