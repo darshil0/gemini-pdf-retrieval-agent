@@ -107,7 +107,7 @@ flowchart TD
 ## Status
 
 Version: 1.4.4
-Last reviewed: 2026-07-02
+Last reviewed: 2026-07-07
 Status: production-ready for local development and static deployment.
 Verified checks: `npm test`, `npm run build`, and `npm run lint`.
 
