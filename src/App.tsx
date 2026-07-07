@@ -1,458 +1,793 @@
-import React, { useState, useEffect, useMemo, useCallback } from 'react';
-import { Search, Download, Loader2, BarChart3, Globe2, Clock, Terminal, History as HistoryIcon, Bookmark, Trash2, Filter } from 'lucide-react';
-import { researchFinancialNews } from './services/geminiService';
-import { NewsTable } from './components/NewsTable';
-import { AnalyticsDashboard } from './components/AnalyticsDashboard';
-import { NewsItem, SortConfig, ResearchHistoryItem } from './types';
-import { motion, AnimatePresence } from 'motion/react';
-import Papa from 'papaparse';
-import { cn } from './lib/utils';
+import { useState, useEffect, useRef, useCallback, useMemo } from 'react';
+import {
+  Search,
+  Loader2,
+  Sparkles,
+  BookOpen,
+  Trash2,
+  X,
+  FileText,
+  RotateCw,
+  RotateCcw,
+  ChevronLeft,
+  ChevronRight,
+  History,
+  Download,
+  Sun,
+  Moon,
+  ZoomIn,
+  ZoomOut,
+} from 'lucide-react';
+import { FileUpload } from '@components/FileUpload';
+import { SearchResultCard } from '@components/SearchResultCard';
+import { searchInDocuments, GEMINI_MODEL_NAME } from '@api/gemini';
+import { UploadedFile, AppStatus, SearchResponse } from '@core/types';
+import { escapeCSVField } from '@core/services/validation';
+import { SecurityService } from '@core/services/securityService';
+import { Document, Page, pdfjs } from 'react-pdf';
+import { InView } from 'react-intersection-observer';
 
-export default function App() {
-  const [query, setQuery] = useState('Get all legit financial news about global tech markets');
-  const [startDate, setStartDate] = useState('');
-  const [endDate, setEndDate] = useState('');
-  const [isLoading, setIsLoading] = useState(false);
-  const [results, setResults] = useState<NewsItem[] | null>(null);
-  const [filterText, setFilterText] = useState('');
+// FIXED: Use local worker from node_modules for version safety and offline support,
+// or fallback to custom worker URL from environment variables.
+pdfjs.GlobalWorkerOptions.workerSrc =
+  import.meta.env.VITE_PDF_WORKER_SRC ||
+  new URL("pdfjs-dist/build/pdf.worker.min.mjs", import.meta.url).toString();
+
+export default function App(): React.ReactElement {
+  const [files, setFiles] = useState<UploadedFile[]>([]);
+  const [keyword, setKeyword] = useState('');
+  const [status, setStatus] = useState<AppStatus>(AppStatus.IDLE);
+  const [data, setData] = useState<SearchResponse | null>(null);
   const [error, setError] = useState<string | null>(null);
-  const [sortConfig, setSortConfig] = useState<SortConfig>({ key: 'Date', direction: 'desc' });
-  const [history, setHistory] = useState<ResearchHistoryItem[]>(() => {
-    const saved = localStorage.getItem('finpulse_history');
-    return saved ? JSON.parse(saved) : [];
-  });
-  const [showHistory, setShowHistory] = useState(false);
+  const [viewingResult, setViewingResult] = useState<{
+    file: UploadedFile;
+    page: number;
+  } | null>(null);
+  const [recentSearches, setRecentSearches] = useState<string[]>([]);
 
-  useEffect(() => {
-    localStorage.setItem('finpulse_history', JSON.stringify(history));
-  }, [history]);
+  // PDF Viewer State
+  const [rotation, setRotation] = useState(0);
+  const [numPages, setNumPages] = useState<number | null>(null);
+  const [currentPage, setCurrentPage] = useState<number>(1);
+  const [pdfScale, setPdfScale] = useState(1.0);
+  const [theme, setTheme] = useState<'light' | 'dark'>('dark');
+  const [minRelevance, setMinRelevance] = useState(0.75);
+  const [sortBy, setSortBy] = useState<'relevance' | 'page'>('relevance');
 
-  const performResearch = async (searchQuery: string, sDate: string, eDate: string) => {
-    if (!searchQuery.trim()) return;
+  // Refs for cleanup and stable callbacks
+  const urlRefs = useRef<string[]>([]);
 
-    if (sDate && eDate && new Date(sDate) > new Date(eDate)) {
-      setError('Start date cannot be after end date.');
+  // FIXED: Proper cleanup with revokeObjectURL tracking
+  useEffect((): (() => void) => {
+    return () => {
+      urlRefs.current.forEach((url) => URL.revokeObjectURL(url));
+      urlRefs.current = [];
+    };
+  }, []);
+
+  // FIXED: Track created URLs for proper cleanup
+  const createPreviewUrl = useCallback((file: File): string => {
+    const url = URL.createObjectURL(file);
+    urlRefs.current.push(url);
+    return url;
+  }, []);
+
+  // Load recent searches from local storage on mount
+  useEffect((): void => {
+    const saved = localStorage.getItem('docuSearch_recent');
+    if (saved) {
+      try {
+        const parsed = JSON.parse(saved) as string[];
+        setRecentSearches(Array.isArray(parsed) ? parsed : []);
+      } catch {
+        localStorage.removeItem('docuSearch_recent');
+      }
+    }
+  }, []);
+
+  // FIXED: Initialize viewer state when opening a file
+  useEffect((): void => {
+    if (viewingResult) {
+      setCurrentPage(viewingResult.page);
+      setRotation(0);
+      setNumPages(null);
+      setPdfScale(1.0);
+    }
+  }, [viewingResult]);
+
+  // FIXED: Proper keyboard event handling with cleanup
+  useEffect((): (() => void) | undefined => {
+    const handleKeyDown = (e: KeyboardEvent): void => {
+      if (e.key === 'Escape' && viewingResult) {
+        e.preventDefault();
+        setViewingResult(null);
+      }
+    };
+
+    if (viewingResult) {
+      document.addEventListener('keydown', handleKeyDown);
+      return () => {
+        document.removeEventListener('keydown', handleKeyDown);
+      };
+    }
+    return undefined;
+  }, [viewingResult]);
+
+  useEffect((): void => {
+    if (theme === 'dark') {
+      document.documentElement.classList.add('dark');
+    } else {
+      document.documentElement.classList.remove('dark');
+    }
+  }, [theme]);
+
+  const updateRecentSearches = useCallback((term: string): void => {
+    if (!term.trim()) {
       return;
     }
 
-    setIsLoading(true);
+    setRecentSearches((prev) => {
+      const filtered = prev.filter(
+        (t) => t.toLowerCase() !== term.toLowerCase(),
+      );
+      const updated = [term, ...filtered].slice(0, 5);
+      localStorage.setItem('docuSearch_recent', JSON.stringify(updated));
+      return updated;
+    });
+  }, []);
+
+  const clearRecentSearches = useCallback((): void => {
+    setRecentSearches([]);
+    localStorage.removeItem('docuSearch_recent');
+  }, []);
+
+  const executeSearch = async (term: string): Promise<void> => {
+    if (files.length === 0 || !term.trim()) {
+      return Promise.resolve();
+    }
+
+    // Security: Check rate limit (10 searches per minute)
+    if (!SecurityService.checkRateLimit('search', 10, 60000)) {
+      setError('Rate limit exceeded. Please wait a moment before searching again.');
+      setStatus(AppStatus.ERROR);
+      return Promise.resolve();
+    }
+
+    // Security: Validate query
+    const validation = SecurityService.validateSearchQuery(term);
+    if (!validation.valid) {
+      setError(validation.reason ?? 'Invalid search query.');
+      setStatus(AppStatus.ERROR);
+      return Promise.resolve();
+    }
+
+    // Security: Sanitize input
+    const sanitizedTerm = SecurityService.sanitizeInput(term);
+
+    setKeyword(sanitizedTerm);
+    updateRecentSearches(sanitizedTerm);
+    setStatus(AppStatus.ANALYZING);
     setError(null);
-    setResults(null);
-    
+    setData(null);
+
     try {
-      const data = await researchFinancialNews(searchQuery, sDate, eDate);
-      setResults(data);
-      
-      // Save to history
-      const newHistoryItem: ResearchHistoryItem = {
-        id: crypto.randomUUID(),
-        query: searchQuery,
-        timestamp: Date.now(),
-        startDate: sDate,
-        endDate: eDate,
-        itemCount: data.length
-      };
-      setHistory(prev => {
-        // Avoid duplicate recent identical searches
-        const filtered = prev.filter(h => h.query !== searchQuery || h.startDate !== sDate || h.endDate !== eDate);
-        return [newHistoryItem, ...filtered].slice(0, 10);
-      });
-    } catch (err: any) {
-      console.error(err);
-      setError(err.message || 'Failed to fetch financial news. Please check your API key and try again.');
-    } finally {
-      setIsLoading(false);
+      const fileObjects = files.map((f) => f.file);
+      const response = await searchInDocuments(fileObjects, sanitizedTerm);
+      setData(response);
+      setStatus(AppStatus.COMPLETE);
+      return Promise.resolve();
+    } catch (err: unknown) {
+      const errorMessage =
+        err instanceof Error ? err.message : 'Search failed.';
+      setError(errorMessage);
+      setStatus(AppStatus.ERROR);
+      return Promise.resolve();
     }
   };
 
-  const handleResearch = async (e: React.FormEvent) => {
-    e.preventDefault();
-    await performResearch(query, startDate, endDate);
-  };
+  // FIXED: Proper reset with URL cleanup
+  const handleReset = useCallback((): void => {
+    // Clean up all tracked URLs
+    urlRefs.current.forEach((url) => URL.revokeObjectURL(url));
+    urlRefs.current = [];
 
-  const onSort = useCallback((key: keyof NewsItem) => {
-    setSortConfig(prev => ({
-      key,
-      direction: prev.key === key && prev.direction === 'asc' ? 'desc' : 'asc'
-    }));
+    setData(null);
+    setStatus(AppStatus.IDLE);
+    setKeyword('');
+    setViewingResult(null);
+    setFiles([]);
+    setError(null);
+    return;
   }, []);
 
+  const onDocumentLoadSuccess = ({
+    numPages: count,
+  }: {
+    numPages: number;
+  }): void => {
+    setNumPages(count);
+  };
+
+  const changePage = useCallback(
+    (offset: number): void => {
+      setCurrentPage((prev) => {
+        const newPage = prev + offset;
+        return numPages && newPage >= 1 && newPage <= numPages ? newPage : prev;
+      });
+      return;
+    },
+    [numPages],
+  );
+
+  // FIXED: File upload handler with proper URL management
+  const handleFilesSelected = useCallback(
+    (selectedFiles: File[]): void => {
+      const newFiles = selectedFiles.map((file) => ({
+        file,
+        id: `${file.name}-${file.size}-${Date.now()}`,
+        previewUrl: createPreviewUrl(file),
+      }));
+      setFiles((prev) => [...prev, ...newFiles]);
+    },
+    [createPreviewUrl],
+  );
+
+  // FIXED: File removal with URL cleanup
+  const handleRemoveFile = useCallback(
+    (index: number): void => {
+      const fileToRemove = files[index];
+      if (fileToRemove?.previewUrl) {
+        const urlIndex = urlRefs.current.indexOf(fileToRemove.previewUrl);
+        if (urlIndex > -1) {
+          URL.revokeObjectURL(fileToRemove.previewUrl);
+          urlRefs.current.splice(urlIndex, 1);
+        }
+      }
+      setFiles((prev) => prev.filter((_, i) => i !== index));
+    },
+    [files],
+  );
+
   const filteredResults = useMemo(() => {
-    if (!results) return null;
-    if (!filterText.trim()) return results;
-    
-    const search = filterText.toLowerCase();
-    return results.filter(item => 
-      item.Headline.toLowerCase().includes(search) ||
-      item.Primary_Ticker_or_Entity.toLowerCase().includes(search) ||
-      item.Short_Summary.toLowerCase().includes(search) ||
-      item.Category.toLowerCase().includes(search)
+    if (!data) {
+      return [];
+    }
+
+    const nextResults = data.results.filter(
+      (result) => result.relevanceScore >= minRelevance,
     );
-  }, [results, filterText]);
 
-  const sortedResults = useMemo(() => {
-    if (!filteredResults || !sortConfig.key) return filteredResults;
-
-    return [...filteredResults].sort((a, b) => {
-      const aValue = a[sortConfig.key!];
-      const bValue = b[sortConfig.key!];
-
-      if (aValue < bValue) return sortConfig.direction === 'asc' ? -1 : 1;
-      if (aValue > bValue) return sortConfig.direction === 'asc' ? 1 : -1;
-      return 0;
+    return [...nextResults].sort((left, right) => {
+      if (sortBy === 'page') {
+        return left.pageNumber - right.pageNumber;
+      }
+      return right.relevanceScore - left.relevanceScore;
     });
-  }, [results, sortConfig]);
+  }, [data, minRelevance, sortBy]);
 
-  const clearHistory = () => {
-    setHistory([]);
-    localStorage.removeItem('finpulse_history');
-  };
+  const exportResults = (): void => {
+    if (!data) {
+      return;
+    }
 
-  const runHistoryQuery = (item: ResearchHistoryItem) => {
-    const sDate = item.startDate || '';
-    const eDate = item.endDate || '';
-    setQuery(item.query);
-    setStartDate(sDate);
-    setEndDate(eDate);
-    setShowHistory(false);
-    performResearch(item.query, sDate, eDate);
-  };
+    const headers = [
+      'Document Name',
+      'Page Number',
+      'Matched Term',
+      'Context Snippet',
+      'Relevance Score',
+      'Relevance Explanation',
+    ];
+    const rows = filteredResults.map((result) => {
+      const file = files[result.docIndex];
+      const fileName = file ? file.file.name : 'Unknown';
+      return [
+        escapeCSVField(fileName),
+        escapeCSVField(result.pageNumber),
+        escapeCSVField(result.matchedTerm),
+        escapeCSVField(result.contextSnippet),
+        escapeCSVField(result.relevanceScore),
+        escapeCSVField(result.relevanceExplanation),
+      ];
+    });
 
-  const downloadCSV = () => {
-    if (!results) return;
-    const csv = Papa.unparse(results);
-    const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+    const csvContent =
+      'data:text/csv;charset=utf-8,' +
+      [headers.join(','), ...rows.map((e) => e.join(','))].join('\n');
+
     const link = document.createElement('a');
-    const url = URL.createObjectURL(blob);
-    link.setAttribute('href', url);
-    link.setAttribute('download', `finpulse_research_${new Date().toISOString().split('T')[0]}.csv`);
-    link.style.visibility = 'hidden';
+    link.setAttribute('href', encodeURI(csvContent));
+    link.setAttribute('download', 'search_results.csv');
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
+    return;
   };
 
   return (
-    <div className="min-h-screen bg-[#F8FAFC] text-slate-900 font-sans selection:bg-indigo-100 selection:text-indigo-900">
-      {/* Header */}
-      <header className="border-b border-slate-200 bg-white/80 backdrop-blur-md sticky top-0 z-10">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
-          <div className="flex items-center gap-2.5">
-            <div className="w-8 h-8 bg-indigo-600 rounded-lg flex items-center justify-center text-white shadow-lg shadow-indigo-200">
-              <BarChart3 size={18} />
+    <div className="min-h-screen bg-gradient-to-br from-slate-900 via-slate-900 to-slate-800 text-slate-200">
+      <header className="sticky top-0 z-40 glass-panel border-b border-slate-700/50">
+        <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
+          <div className="flex items-center space-x-3">
+            <div className="bg-blue-600 p-2 rounded-lg">
+              <BookOpen className="w-5 h-5 text-white" />
             </div>
-            <h1 className="text-lg font-bold tracking-tight text-slate-900">
-              FinPulse <span className="text-indigo-600">AI</span>
+            <h1 className="text-xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-blue-400 to-emerald-400">
+              DocuSearch Agent
             </h1>
           </div>
-          <div className="flex items-center gap-6">
-            <div className="hidden md:flex items-center gap-4 text-xs font-medium text-slate-500 uppercase tracking-widest">
-              <div className="flex items-center gap-1.5">
-                <Globe2 size={14} /> Global Coverage
-              </div>
-              <div className="flex items-center gap-1.5">
-                <Clock size={14} /> Real-time
-              </div>
+          <div className="flex items-center space-x-4">
+            {status === AppStatus.COMPLETE && (
+              <button
+                onClick={handleReset}
+                className="text-sm text-slate-400 hover:text-white flex items-center space-x-2 transition-colors"
+                aria-label="Clear all results and files"
+              >
+                <Trash2 size={16} />
+                <span>Clear Results</span>
+              </button>
+            )}
+            <div className="px-3 py-1 rounded-full bg-slate-800 border border-slate-700 text-xs font-mono text-slate-400 capitalize">
+              {GEMINI_MODEL_NAME.replace(/-/g, ' ')} • v1.4.4
             </div>
-            
-            <button 
-              onClick={() => setShowHistory(!showHistory)}
-              className={cn(
-                "p-2 rounded-lg transition-colors relative",
-                showHistory ? "bg-indigo-50 text-indigo-600" : "hover:bg-slate-100 text-slate-500"
-              )}
-              title="Recent Research"
+            <button
+              onClick={() => setTheme(theme === 'dark' ? 'light' : 'dark')}
+              className="p-2 rounded-full bg-slate-800 border border-slate-700 text-slate-400 hover:text-white hover:border-slate-600 transition-colors"
+              aria-label="Toggle dark mode"
             >
-              <HistoryIcon size={20} />
-              {history.length > 0 && (
-                <span className="absolute top-1 right-1 w-2 h-2 bg-indigo-500 rounded-full border-2 border-white"></span>
-              )}
+              {theme === 'dark' ? <Sun size={16} /> : <Moon size={16} />}
             </button>
           </div>
         </div>
-
-        {/* History Panel */}
-        <AnimatePresence>
-          {showHistory && (
-            <motion.div
-              initial={{ height: 0, opacity: 0 }}
-              animate={{ height: 'auto', opacity: 1 }}
-              exit={{ height: 0, opacity: 0 }}
-              className="bg-slate-50 border-t border-slate-200 overflow-hidden"
-            >
-              <div className="max-w-7xl mx-auto px-4 md:px-8 py-6">
-                <div className="flex items-center justify-between mb-4">
-                  <h3 className="text-sm font-bold text-slate-700 uppercase tracking-wider flex items-center gap-2">
-                    <HistoryIcon size={16} /> Recent Research
-                  </h3>
-                  <button onClick={clearHistory} className="text-xs text-rose-500 hover:text-rose-600 font-medium flex items-center gap-1">
-                    <Trash2 size={12} /> Clear History
-                  </button>
-                </div>
-                
-                {history.length === 0 ? (
-                  <p className="text-sm text-slate-400 italic">No recent searches found.</p>
-                ) : (
-                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
-                    {history.map(item => (
-                      <div 
-                        key={item.id}
-                        onClick={() => runHistoryQuery(item)}
-                        className="bg-white p-3 rounded-xl border border-slate-200 hover:border-indigo-300 transition-colors cursor-pointer group shadow-sm"
-                      >
-                        <div className="text-xs font-semibold text-slate-700 line-clamp-1 mb-1 group-hover:text-indigo-600">
-                          {item.query}
-                        </div>
-                        <div className="flex items-center justify-between text-[10px] text-slate-400">
-                          <span>{new Date(item.timestamp).toLocaleString()}</span>
-                          <span className="bg-slate-50 px-1.5 py-0.5 rounded border border-slate-100">{item.itemCount} results</span>
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                )}
-              </div>
-            </motion.div>
-          )}
-        </AnimatePresence>
       </header>
 
-      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        {/* Hero Section */}
-        <div className="mb-12">
-          <motion.div 
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            className="max-w-3xl"
-          >
-            <h2 className="text-4xl font-extrabold text-slate-900 tracking-tight mb-4">
-              Institutional-grade financial research, <span className="text-indigo-600 italic">automated.</span>
-            </h2>
-            <p className="text-lg text-slate-600 leading-relaxed">
-              Extract credible news, sentiment, and market impact data from across the web into structured formats ready for analysis.
-            </p>
-          </motion.div>
-        </div>
-
-        {/* Search Bar */}
-        <motion.div 
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.1 }}
-          className="mb-12"
-        >
-          <form onSubmit={handleResearch} className="relative group">
-            <div className="absolute inset-y-0 left-4 flex items-center pointer-events-none text-slate-400 group-focus-within:text-indigo-500 transition-colors">
-              <Search size={20} />
-            </div>
-            <input
-              type="text"
-              value={query}
-              onChange={(e) => setQuery(e.target.value)}
-              placeholder="e.g., Get all legit financial news about US semiconductor stocks..."
-              className="w-full pl-12 pr-32 py-4 bg-white border border-slate-200 rounded-2xl shadow-sm focus:ring-4 focus:ring-indigo-500/10 focus:border-indigo-500 outline-none transition-all text-slate-800 placeholder:text-slate-400"
-            />
-            <button
-              type="submit"
-              disabled={isLoading}
-              className="absolute right-2 top-2 bottom-2 px-6 bg-slate-900 hover:bg-slate-800 text-white rounded-xl font-semibold text-sm flex items-center gap-2 transition-all disabled:opacity-50 disabled:cursor-not-allowed active:scale-95"
-            >
-              {isLoading ? (
-                <>
-                  <Loader2 size={16} className="animate-spin" />
-                  Researching...
-                </>
-              ) : (
-                <>
-                  <Terminal size={16} />
-                  Run Agent
-                </>
-              )}
-            </button>
-          </form>
-          
-          <div className="mt-4 flex flex-wrap items-center gap-4">
-            <div className="flex items-center gap-2">
-              <label htmlFor="startDate" className="text-xs font-bold text-slate-500 uppercase tracking-wider">Start Date</label>
-              <input 
-                type="date" 
-                id="startDate"
-                value={startDate}
-                onChange={(e) => setStartDate(e.target.value)}
-                className={`px-3 py-1.5 bg-white border ${startDate ? 'border-indigo-500 ring-1 ring-indigo-500/20' : 'border-slate-200'} rounded-lg text-sm text-slate-700 outline-none focus:border-indigo-500 transition-colors`}
-              />
-            </div>
-            <div className="flex items-center gap-2">
-              <label htmlFor="endDate" className="text-xs font-bold text-slate-500 uppercase tracking-wider">End Date</label>
-              <input 
-                type="date" 
-                id="endDate"
-                value={endDate}
-                onChange={(e) => setEndDate(e.target.value)}
-                className={`px-3 py-1.5 bg-white border ${endDate ? 'border-indigo-500 ring-1 ring-indigo-500/20' : 'border-slate-200'} rounded-lg text-sm text-slate-700 outline-none focus:border-indigo-500 transition-colors`}
-              />
-            </div>
-            {(startDate || endDate) && (
-              <div className="flex items-center gap-3">
-                <span className="flex items-center gap-1 px-2 py-1 bg-indigo-50 text-indigo-700 rounded text-[10px] font-bold uppercase tracking-wider border border-indigo-100">
-                  <Clock size={10} /> Historical Mode
-                </span>
-                <button 
-                  type="button"
-                  onClick={() => { setStartDate(''); setEndDate(''); }}
-                  className="text-xs font-medium text-slate-400 hover:text-rose-500 transition-colors flex items-center gap-1"
-                >
-                  Clear Range
-                </button>
-              </div>
-            )}
-          </div>
-
-          <div className="mt-3 flex gap-2 overflow-x-auto pb-2 no-scrollbar">
-            {['US Tech Earnings', 'Crypto Regulation', 'Macro Outlook', 'M&A Deals'].map((tag) => (
-              <button
-                key={tag}
-                onClick={() => {
-                  const q = `Get all legit financial news about ${tag}`;
-                  setQuery(q);
-                  performResearch(q, startDate, endDate);
-                }}
-                className="px-3 py-1 bg-white border border-slate-200 rounded-full text-xs font-medium text-slate-600 hover:border-indigo-300 hover:text-indigo-600 transition-colors whitespace-nowrap"
-              >
-                {tag}
-              </button>
-            ))}
-          </div>
-        </motion.div>
-
-        {/* Results Section */}
-        <AnimatePresence mode="wait">
-          {error && (
-            <motion.div 
-              initial={{ opacity: 0, scale: 0.95 }}
-              animate={{ opacity: 1, scale: 1 }}
-              exit={{ opacity: 0, scale: 0.95 }}
-              className="p-4 bg-rose-50 border border-rose-200 rounded-xl text-rose-700 text-sm font-medium mb-8"
-            >
-              {error}
-            </motion.div>
-          )}
-
-          {results && (
-            <motion.div
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              className="space-y-6"
-            >
-              <div className="flex items-center justify-between">
-                <div>
-                  <h3 className="text-lg font-bold text-slate-900">Research Summary</h3>
-                  <p className="text-sm text-slate-500">{results.length} credible items extracted • Sorted by {sortConfig.key}</p>
-                </div>
-                <div className="flex items-center gap-3">
-                  <button
-                    onClick={() => {
-                      setResults(null);
-                      setFilterText('');
-                    }}
-                    className="flex items-center gap-2 px-4 py-2 bg-white border border-slate-200 rounded-lg text-sm font-semibold text-slate-500 hover:text-rose-600 hover:bg-rose-50 hover:border-rose-200 transition-colors shadow-sm active:scale-95"
-                  >
-                    <Trash2 size={16} />
-                    Clear Results
-                  </button>
-                  <button
-                    onClick={downloadCSV}
-                    className="flex items-center gap-2 px-4 py-2 bg-white border border-slate-200 rounded-lg text-sm font-semibold text-slate-700 hover:bg-slate-50 transition-colors shadow-sm active:scale-95"
-                  >
-                    <Download size={16} />
-                    Export to Excel (CSV)
-                  </button>
-                </div>
-              </div>
-
-              <AnalyticsDashboard items={results} />
-              
-              <div className="pt-4">
-                <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-4">
-                  <div className="flex items-center gap-2">
-                    <Filter size={16} className="text-slate-400" />
-                    <h4 className="text-sm font-bold text-slate-700 uppercase tracking-wider">Detailed Data Grid</h4>
-                  </div>
-                  <div className="relative max-w-xs w-full">
-                    <div className="absolute inset-y-0 left-3 flex items-center pointer-events-none text-slate-400">
-                      <Search size={14} />
-                    </div>
-                    <input
-                      type="text"
-                      value={filterText}
-                      onChange={(e) => setFilterText(e.target.value)}
-                      placeholder="Filter results..."
-                      className="w-full pl-9 pr-4 py-2 bg-white border border-slate-200 rounded-lg text-sm focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 outline-none transition-all"
-                    />
-                  </div>
-                </div>
-                <NewsTable 
-                  items={sortedResults || []} 
-                  sortConfig={sortConfig}
-                  onSort={onSort}
+      <main className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-8">
+        {/* Input Section */}
+        <section className="space-y-6">
+          <div className="bg-slate-800/50 rounded-2xl p-1 border border-slate-700">
+            <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 p-6">
+              {/* File Upload Column */}
+              <div className="lg:col-span-5 space-y-4">
+                <h2 className="text-lg font-semibold text-white flex items-center">
+                  <span className="w-6 h-6 rounded-full bg-slate-700 flex items-center justify-center text-xs mr-2">
+                    1
+                  </span>
+                  Upload Documents
+                </h2>
+                <FileUpload
+                  uploadedFiles={files.map((f) => f.file)}
+                  onFilesSelected={handleFilesSelected}
+                  onRemoveFile={handleRemoveFile}
+                  isProcessing={status === AppStatus.ANALYZING}
                 />
               </div>
-            </motion.div>
-          )}
 
-          {isLoading && !results && (
-            <motion.div 
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              className="flex flex-col items-center justify-center py-24 text-center"
-            >
-              <div className="relative mb-6">
-                <div className="w-16 h-16 border-4 border-indigo-100 border-t-indigo-600 rounded-full animate-spin"></div>
-                <div className="absolute inset-0 flex items-center justify-center text-indigo-600">
-                  <BarChart3 size={24} />
+              {/* Vertical Divider */}
+              <div className="hidden lg:block w-px bg-slate-700/50 mx-auto h-full"></div>
+
+              {/* Search Column */}
+              <form
+                onSubmit={(e) => {
+                  e.preventDefault();
+                  void executeSearch(keyword);
+                }}
+                className="lg:col-span-6 space-y-4 flex flex-col"
+              >
+                <h2 className="text-lg font-semibold text-white flex items-center">
+                  <span className="w-6 h-6 rounded-full bg-slate-700 flex items-center justify-center text-xs mr-2">
+                    2
+                  </span>
+                  Define Search Criteria
+                </h2>
+
+                <div className="flex-1 flex flex-col justify-center space-y-6">
+                  <div>
+                    <label
+                      htmlFor="keyword"
+                      className="block text-sm font-medium text-slate-400 mb-2"
+                    >
+                      Target Keyword or Phrase
+                    </label>
+                    <div className="relative">
+                      <input
+                        id="keyword"
+                        type="search"
+                        value={keyword}
+                        onChange={(e) => setKeyword(e.target.value)}
+                        placeholder="e.g., 'Financial Q3 results', 'Safety Protocols', 'Project Alpha'"
+                        className="w-full bg-slate-900 border border-slate-700 rounded-xl py-4 pl-4 pr-12 text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
+                        disabled={status === AppStatus.ANALYZING}
+                        aria-describedby="search-help"
+                      />
+                      <Search className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-500 w-5 h-5" />
+                    </div>
+                    <p id="search-help" className="mt-1 text-xs text-slate-500">
+                      Press Enter to search or click &quot;Find
+                      Occurrences&quot;
+                    </p>
+                  </div>
+
+                  <button
+                    type="submit"
+                    disabled={
+                      status === AppStatus.ANALYZING ||
+                      files.length === 0 ||
+                      !keyword.trim()
+                    }
+                    className={`w-full py-4 rounded-xl font-bold text-lg shadow-lg flex items-center justify-center space-x-2 transition-all transform active:scale-95
+                      ${
+                        status === AppStatus.ANALYZING ||
+                        files.length === 0 ||
+                        !keyword.trim()
+                          ? 'bg-slate-700 text-slate-500 cursor-not-allowed'
+                          : 'bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 text-white shadow-blue-900/20'
+                      }`}
+                  >
+                    {status === AppStatus.ANALYZING ? (
+                      <>
+                        <Loader2 className="animate-spin w-5 h-5" />
+                        <span>Analyzing Documents...</span>
+                      </>
+                    ) : (
+                      <>
+                        <Sparkles className="w-5 h-5" />
+                        <span>Find Occurrences</span>
+                      </>
+                    )}
+                  </button>
+
+                  {/* Recent Searches and Export */}
+                  <div className="flex justify-between items-start pt-2">
+                    {recentSearches.length > 0 && (
+                      <div className="animate-fade-in flex-1 mr-4">
+                        <div className="flex items-center justify-between mb-3">
+                          <div className="flex items-center text-xs font-semibold text-slate-500 uppercase tracking-wider">
+                            <History className="w-3 h-3 mr-1.5" />
+                            Recent Searches
+                          </div>
+                          <button
+                            type="button"
+                            onClick={clearRecentSearches}
+                            className="text-[10px] text-slate-500 hover:text-red-400 transition-colors uppercase tracking-tight"
+                          >
+                            Clear History
+                          </button>
+                        </div>
+                        <ul className="flex flex-wrap gap-2">
+                          {recentSearches.map((term, i) => (
+                            <li key={i}>
+                              <button
+                                type="button"
+                                onClick={() => {
+                                  void executeSearch(term);
+                                }}
+                                disabled={
+                                  status === AppStatus.ANALYZING ||
+                                  files.length === 0
+                                }
+                                className="px-3 py-1.5 rounded-lg bg-slate-800 border border-slate-700 hover:border-blue-500/50 hover:bg-slate-700 text-sm text-slate-300 transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center group"
+                                aria-label={`Search for "${term}"`}
+                              >
+                                <span>{term}</span>
+                                <Search className="w-3 h-3 ml-2 opacity-0 group-hover:opacity-100 transition-opacity text-blue-400" />
+                              </button>
+                            </li>
+                          ))}
+                        </ul>
+                      </div>
+                    )}
+                    {data && data.results.length > 0 && (
+                      <button
+                        type="button"
+                        onClick={exportResults}
+                        className="flex items-center text-sm text-slate-400 hover:text-white transition-colors"
+                      >
+                        <Download className="w-4 h-4 mr-2" />
+                        Export Results
+                      </button>
+                    )}
+                  </div>
                 </div>
-              </div>
-              <h3 className="text-xl font-bold text-slate-900 mb-2">
-                {isLoading && (startDate || endDate) 
-                  ? `Researching from ${startDate || 'earliest'} to ${endDate || 'now'}...`
-                  : 'Agent is researching...'}
-              </h3>
-              <p className="text-slate-500 max-w-sm">
-                Scanning credible financial sources, deduplicating stories, and performing sentiment analysis.
-              </p>
-            </motion.div>
-          )}
+              </form>
+            </div>
+          </div>
+        </section>
 
-          {!isLoading && !results && (
-            <motion.div 
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              className="flex flex-col items-center justify-center py-24 text-center border-2 border-dashed border-slate-200 rounded-3xl bg-white/50"
-            >
-              <div className="w-16 h-16 bg-slate-100 rounded-2xl flex items-center justify-center text-slate-400 mb-6">
-                <Terminal size={32} />
+        {/* Error Display */}
+        {error && (
+          <div
+            className="bg-red-500/10 border border-red-500/20 rounded-xl p-6 text-red-400 text-center animate-fade-in"
+            role="alert"
+            aria-live="assertive"
+          >
+            <p className="font-medium mb-2">Error Encountered</p>
+            <p className="text-sm opacity-80">{error}</p>
+          </div>
+        )}
+
+        {/* Results Section */}
+        {status === AppStatus.COMPLETE && data && (
+          <section className="space-y-6 animate-fade-in-up pb-12">
+            <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
+              <div>
+                <h3 className="text-2xl font-bold text-white">Search Results</h3>
+                <p className="text-sm text-slate-400 mt-1">
+                  Showing {filteredResults.length} of {data.results.length} matches
+                </p>
               </div>
-              <h3 className="text-xl font-bold text-slate-900 mb-2">Ready for Research</h3>
-              <p className="text-slate-500 max-w-sm">
-                Enter a query above to start the AI agent. It will search the web for the latest financial news and provide a structured analysis.
-              </p>
-            </motion.div>
-          )}
-        </AnimatePresence>
+              <div className="flex flex-wrap items-center gap-3">
+                <label className="flex items-center gap-2 text-sm text-slate-300">
+                  <span>Minimum relevance</span>
+                  <input
+                    aria-label="Minimum relevance"
+                    type="range"
+                    min="0.5"
+                    max="1"
+                    step="0.05"
+                    value={minRelevance}
+                    onChange={(event) => setMinRelevance(Number(event.target.value))}
+                    className="accent-blue-500"
+                  />
+                  <span className="font-mono text-slate-400">{minRelevance.toFixed(2)}</span>
+                </label>
+                <label className="flex items-center gap-2 text-sm text-slate-300">
+                  <span>Sort results by</span>
+                  <select
+                    aria-label="Sort results by"
+                    value={sortBy}
+                    onChange={(event) => setSortBy(event.target.value as 'relevance' | 'page')}
+                    className="rounded-lg border border-slate-700 bg-slate-900 px-2 py-1 text-slate-200"
+                  >
+                    <option value="relevance">Relevance</option>
+                    <option value="page">Page</option>
+                  </select>
+                </label>
+              </div>
+            </div>
+
+            {/* AI Summary */}
+            <div className="bg-gradient-to-r from-slate-800 to-slate-800/50 p-6 rounded-xl border border-blue-500/20 relative overflow-hidden">
+              <div className="absolute top-0 right-0 w-32 h-32 bg-blue-500/10 blur-3xl rounded-full pointer-events-none"></div>
+              <h4 className="text-blue-400 font-semibold mb-2 flex items-center">
+                <Sparkles className="w-4 h-4 mr-2" />
+                Analysis Summary
+              </h4>
+              <p className="text-slate-300 leading-relaxed">{data.summary}</p>
+            </div>
+
+            {/* Results Grid */}
+            {filteredResults.length > 0 ? (
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                {filteredResults.map((result, idx) => {
+                  const file = files[result.docIndex];
+                  if (!file) return null;
+                  return (
+                    <SearchResultCard
+                      key={`${file.id}-${result.pageNumber}-${idx}`}
+                      result={result}
+                      fileName={file.file.name}
+                      keyword={keyword}
+                      onView={() =>
+                        setViewingResult({ file, page: result.pageNumber })
+                      }
+                    />
+                  );
+                })}
+              </div>
+            ) : (
+              <div
+                className="text-center py-12 text-slate-500 bg-slate-800/30 rounded-xl border border-slate-700 border-dashed"
+                role="status"
+              >
+                <Search className="w-12 h-12 mx-auto mb-4 opacity-50" />
+                <p className="text-lg">
+                  No matches found for &quot;{keyword}&quot; at the current threshold.
+                </p>
+                <p className="text-sm">Try broadening your search term.</p>
+              </div>
+            )}
+          </section>
+        )}
       </main>
 
-      {/* Footer */}
-      <footer className="mt-auto border-t border-slate-200 py-8 bg-white">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col md:flex-row items-center justify-between gap-4">
-          <div className="flex items-center gap-2 text-slate-400">
-            <BarChart3 size={16} />
-            <span className="text-xs font-medium uppercase tracking-widest">FinPulse AI Researcher v1.0</span>
-          </div>
-          <div className="text-xs text-slate-400">
-            Powered by Gemini 3 Flash & Google Search Grounding
+      {/* PDF Viewer Modal - FIXED: Better accessibility and cleanup */}
+      {viewingResult && (
+        <div
+          className="fixed inset-0 z-[100] flex items-center justify-center p-4 sm:p-6"
+          role="dialog"
+          aria-modal="true"
+          aria-labelledby="pdf-viewer-title"
+        >
+          {/* Backdrop */}
+          <div
+            className="absolute inset-0 bg-black/80 backdrop-blur-sm transition-opacity"
+            onClick={() => setViewingResult(null)}
+            onKeyDown={(e) => {
+              if (e.key === 'Enter') {
+                setViewingResult(null);
+              }
+            }}
+            role="button"
+            tabIndex={0}
+            aria-label="Close viewer"
+          />
+
+          {/* Modal Content */}
+          <div className="relative w-full h-full max-w-6xl max-h-[95vh] bg-slate-900 rounded-2xl shadow-2xl flex flex-col border border-slate-700 overflow-hidden animate-fade-in-up">
+            {/* Header */}
+            <div className="flex items-center justify-between px-6 py-4 border-b border-slate-700 bg-slate-800/90 z-10">
+              <div className="flex items-center space-x-3 overflow-hidden">
+                <div className="flex-shrink-0 p-2 bg-red-500/10 rounded-lg text-red-500">
+                  <FileText size={20} />
+                </div>
+                <div className="min-w-0">
+                  <h3
+                    id="pdf-viewer-title"
+                    className="font-medium text-white truncate"
+                  >
+                    {viewingResult.file.file.name}
+                  </h3>
+                  <p className="text-sm text-slate-400" aria-live="polite">
+                    Page {currentPage} of {numPages || '--'}
+                  </p>
+                </div>
+              </div>
+
+              <div className="flex items-center space-x-4">
+                {/* Page Navigation */}
+                <div className="flex items-center space-x-1 bg-slate-900/50 rounded-lg p-1 border border-slate-700">
+                  <button
+                    onClick={() => changePage(-1)}
+                    disabled={currentPage <= 1}
+                    className="p-1.5 hover:bg-slate-700 rounded-md text-slate-400 hover:text-white transition-colors disabled:opacity-30"
+                    aria-label="Previous page"
+                  >
+                    <ChevronLeft size={18} />
+                  </button>
+                  <span
+                    className="px-2 text-xs font-mono text-slate-400 w-12 text-center"
+                    aria-live="polite"
+                  >
+                    {currentPage} / {numPages || '-'}
+                  </span>
+                  <button
+                    onClick={() => changePage(1)}
+                    disabled={!numPages || currentPage >= numPages}
+                    className="p-1.5 hover:bg-slate-700 rounded-md text-slate-400 hover:text-white transition-colors disabled:opacity-30"
+                    aria-label="Next page"
+                  >
+                    <ChevronRight size={18} />
+                  </button>
+                </div>
+
+                {/* Zoom Controls */}
+                <div className="flex items-center space-x-1 bg-slate-900/50 rounded-lg p-1 border border-slate-700">
+                  <button
+                    onClick={() => setPdfScale((prev) => Math.max(prev - 0.2, 0.4))}
+                    className="p-1.5 hover:bg-slate-700 rounded-md text-slate-400 hover:text-white transition-colors"
+                    aria-label="Zoom out"
+                  >
+                    <ZoomOut size={18} />
+                  </button>
+                  <button
+                    onClick={() => setPdfScale(1.0)}
+                    className="p-1.5 hover:bg-slate-700 rounded-md text-slate-400 hover:text-white transition-colors flex items-center"
+                    aria-label="Reset zoom"
+                  >
+                    <span className="text-[10px] font-mono w-8 text-center">{Math.round(pdfScale * 100)}%</span>
+                  </button>
+                  <button
+                    onClick={() => setPdfScale((prev) => Math.min(prev + 0.2, 3.0))}
+                    className="p-1.5 hover:bg-slate-700 rounded-md text-slate-400 hover:text-white transition-colors"
+                    aria-label="Zoom in"
+                  >
+                    <ZoomIn size={18} />
+                  </button>
+                </div>
+
+                {/* Rotation */}
+                <div className="flex items-center space-x-1 bg-slate-900/50 rounded-lg p-1 border border-slate-700">
+                  <button
+                    onClick={() =>
+                      setRotation((prev) => (prev - 90 + 360) % 360)
+                    }
+                    className="p-1.5 hover:bg-slate-700 rounded-md text-slate-400 hover:text-white transition-colors"
+                    aria-label="Rotate counter-clockwise"
+                  >
+                    <RotateCcw size={18} />
+                  </button>
+                  <button
+                    onClick={() => setRotation((prev) => (prev + 90) % 360)}
+                    className="p-1.5 hover:bg-slate-700 rounded-md text-slate-400 hover:text-white transition-colors"
+                    aria-label="Rotate clockwise"
+                  >
+                    <RotateCw size={18} />
+                  </button>
+                </div>
+
+                <a
+                  href={viewingResult.file.previewUrl}
+                  download={viewingResult.file.file.name}
+                  className="p-2 hover:bg-slate-700 rounded-lg text-slate-400 hover:text-white transition-colors flex items-center justify-center border border-transparent hover:border-slate-600"
+                  aria-label={`Download ${viewingResult.file.file.name}`}
+                >
+                  <Download size={20} />
+                </a>
+
+                <button
+                  onClick={() => setViewingResult(null)}
+                  className="p-2 hover:bg-slate-700 rounded-full text-slate-400 hover:text-white transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  aria-label="Close viewer"
+                >
+                  <X size={24} />
+                </button>
+              </div>
+            </div>
+
+            {/* PDF Viewer */}
+            <div className="flex-1 bg-slate-800 relative overflow-auto flex justify-center p-8 min-h-[400px]">
+              <Document
+                file={viewingResult.file.file}
+                onLoadSuccess={onDocumentLoadSuccess}
+                loading={
+                  <div
+                    className="flex flex-col items-center justify-center h-full w-full animate-fade-in"
+                    role="status"
+                  >
+                    <div className="relative mb-6">
+                      <div className="w-20 h-20 border-4 border-slate-700 border-t-blue-500 rounded-full animate-spin"></div>
+                      <div className="absolute inset-0 flex items-center justify-center">
+                        <FileText className="w-8 h-8 text-slate-600" />
+                      </div>
+                    </div>
+                    <h4 className="text-xl font-semibold text-white mb-2">
+                      Loading Document
+                    </h4>
+                    <p className="text-slate-400">
+                      Rendering page {currentPage}...
+                    </p>
+                  </div>
+                }
+                error={
+                  <div
+                    className="flex items-center justify-center h-full text-red-400"
+                    role="alert"
+                  >
+                    <p>Failed to load PDF document.</p>
+                  </div>
+                }
+              >
+                {Array.from(
+                  new Array(numPages ?? 0),
+                  (_: unknown, index: number) => {
+                    return (
+                      <InView key={`page_${index + 1}`}>
+                        {({ inView, ref }) => {
+                          return (
+                            <div ref={ref}>
+                              {inView ? (
+                                <Page
+                                  pageNumber={index + 1}
+                                  rotate={rotation}
+                                  renderTextLayer={true}
+                                  renderAnnotationLayer={false}
+                                  scale={pdfScale}
+                                />
+                              ) : (
+                                <div style={{ height: '842px' }} />
+                              )}
+                            </div>
+                          );
+                        }}
+                      </InView>
+                    );
+                  },
+                )}
+              </Document>
+            </div>
           </div>
         </div>
-      </footer>
+      )}
     </div>
   );
 }

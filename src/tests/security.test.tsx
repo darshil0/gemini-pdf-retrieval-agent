@@ -66,6 +66,10 @@ describe('Integration Tests', () => {
     const input = screen.getByLabelText(/upload pdf files/i);
     fireEvent.change(input, { target: { files: [file] } });
 
+    await waitFor(() => {
+      expect(screen.getByText('test.pdf')).toBeInTheDocument();
+    });
+
     // 2. Search
     const searchInput = screen.getByPlaceholderText(
       /e.g., 'Financial Q3 results'/i,
@@ -98,6 +102,10 @@ describe('Integration Tests', () => {
     });
     const input = screen.getByLabelText(/upload pdf files/i);
     fireEvent.change(input, { target: { files: [file] } });
+
+    await waitFor(() => {
+      expect(screen.getByText('test.pdf')).toBeInTheDocument();
+    });
 
     // 2. Search
     const searchInput = screen.getByPlaceholderText(

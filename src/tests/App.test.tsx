@@ -170,7 +170,7 @@ describe('App Component', () => {
     });
 
     fireEvent.change(screen.getByLabelText(/minimum relevance/i), {
-      target: { value: '0.96' },
+      target: { value: '0.80' },
     });
     fireEvent.change(screen.getByLabelText(/sort results by/i), {
       target: { value: 'page' },
