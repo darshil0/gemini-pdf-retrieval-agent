@@ -3,7 +3,7 @@
 All notable changes to DocuSearch Agent are documented in this file. The project follows semantic versioning and maintains backward compatibility except where explicitly noted.
 
 ---
-## [1.4.4] - 2026-07-02
+## [1.4.4] - 2026-07-07
 
 ### Added
 - Enhanced PDF viewer with zoom controls (In/Out/Reset).
