@@ -29,7 +29,7 @@ vi.mock('@core/services/securityService', () => ({
 // Mock the gemini service
 vi.mock('@api/gemini', () => ({
   searchInDocuments: vi.fn(),
-  GEMINI_MODEL_NAME: 'gemini-1.5-flash',
+  GEMINI_MODEL_NAME: 'gemini-2.5-flash',
   isApiKeyConfigured: vi.fn().mockReturnValue(true),
   getGeminiApiKey: vi.fn().mockReturnValue('AIzaTestKey_12345'),
 }));

@@ -7,7 +7,7 @@ import { SecurityService } from '@core/services/securityService';
 // Mock the gemini service
 vi.mock('@api/gemini', () => ({
   searchInDocuments: vi.fn(),
-  GEMINI_MODEL_NAME: 'gemini-1.5-flash',
+  GEMINI_MODEL_NAME: 'gemini-2.5-flash',
   isApiKeyConfigured: vi.fn().mockReturnValue(true),
   getGeminiApiKey: vi.fn().mockReturnValue('AIzaTestKey_12345'),
 }));
@@ -33,7 +33,7 @@ describe('Security & Input Validation Tests', () => {
     localStorage.clear();
   });
 
-  it('sanitizes user search query to prevent XSS script injection', async () => {
+  it('sanitizes user search query whitespace and control chars without mangling search terms', async () => {
     const sanitizeSpy = vi.spyOn(SecurityService, 'sanitizeInput');
     vi.mocked(geminiService.searchInDocuments).mockResolvedValue({
       summary: 'Safe Summary',
@@ -57,23 +57,23 @@ describe('Security & Input Validation Tests', () => {
       expect(screen.getByText('test.pdf')).toBeInTheDocument();
     });
 
-    const xssPayload = '<script>alert("xss")</script>';
+    const queryWithOperator = '  Sales < 5000\x00  ';
     const searchInput = screen.getByPlaceholderText(
       /e.g., 'Financial Q3 results'/i,
     );
-    fireEvent.change(searchInput, { target: { value: xssPayload } });
+    fireEvent.change(searchInput, { target: { value: queryWithOperator } });
     fireEvent.click(screen.getByText('Find Occurrences'));
 
     await waitFor(() => {
-      expect(sanitizeSpy).toHaveBeenCalledWith(xssPayload);
+      expect(sanitizeSpy).toHaveBeenCalledWith(queryWithOperator);
       expect(geminiService.searchInDocuments).toHaveBeenCalledWith(
         expect.any(Array),
-        '&lt;script&gt;alert("xss")&lt;/script&gt;',
+        'Sales < 5000',
       );
     });
   });
 
-  it('rejects queries containing malicious SQL injection patterns', async () => {
+  it('rejects queries that are too short and allows natural language queries', async () => {
     render(<App />);
 
     const file = new File(
@@ -90,17 +90,15 @@ describe('Security & Input Validation Tests', () => {
       expect(screen.getByText('test.pdf')).toBeInTheDocument();
     });
 
-    const sqliPayload = 'SELECT * FROM users';
+    const shortPayload = ' a ';
     const searchInput = screen.getByPlaceholderText(
       /e.g., 'Financial Q3 results'/i,
     );
-    fireEvent.change(searchInput, { target: { value: sqliPayload } });
+    fireEvent.change(searchInput, { target: { value: shortPayload } });
     fireEvent.click(screen.getByText('Find Occurrences'));
 
     await waitFor(() => {
-      expect(
-        screen.getByText('Potential SQL injection detected.'),
-      ).toBeInTheDocument();
+      expect(screen.getByText('Query too short.')).toBeInTheDocument();
       expect(geminiService.searchInDocuments).not.toHaveBeenCalled();
     });
   });

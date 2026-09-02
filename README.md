@@ -46,17 +46,17 @@ DocuSearch Agent is a React, Vite, and TypeScript application for uploading PDF 
 
 ## Environment variables
 
-| Variable              | Required | Description                                            |
-| :-------------------- | :------- | :----------------------------------------------------- |
-| `VITE_GEMINI_API_KEY` | Yes      | Google Gemini API key.                                 |
-| `VITE_GEMINI_MODEL`   | No       | Gemini model name. Defaults to `gemini-1.5-flash`.     |
-| `VITE_API_TIMEOUT_MS` | No       | Request timeout in milliseconds. Defaults to `60000`.  |
-| `VITE_MAX_FILE_SIZE`  | No       | Maximum upload size in bytes. Defaults to `209715200`. |
-| `VITE_MAX_FILES`      | No       | Maximum number of uploaded files. Defaults to `10`.    |
-| `VITE_RATE_LIMIT`     | No       | Search rate limit per minute. Defaults to `10`.        |
+| Variable              | Required | Description                                                          |
+| :-------------------- | :------- | :------------------------------------------------------------------- |
+| `VITE_GEMINI_API_KEY` | Yes      | Google Gemini API key.                                               |
+| `VITE_GEMINI_MODEL`   | No       | Gemini model name. Defaults to `gemini-2.5-flash`.                   |
+| `VITE_API_TIMEOUT_MS` | No       | Request timeout in milliseconds. Defaults to `60000`.                |
+| `VITE_MAX_FILE_SIZE`  | No       | Maximum upload size in bytes. Defaults to `209715200`.               |
+| `VITE_MAX_FILES`      | No       | Maximum number of uploaded files. Defaults to `10`.                  |
+| `VITE_RATE_LIMIT`     | No       | Search rate limit per minute. Defaults to `10`.                      |
 | `VITE_PDF_WORKER_SRC` | No       | Optional custom PDF.js worker URL. Defaults to local bundled worker. |
-| `VITE_DEBUG`          | No       | Enables verbose logging when set to `true`.            |
-| `VITE_PORT`           | No       | Local dev server port. Defaults to `5173`.             |
+| `VITE_DEBUG`          | No       | Enables verbose logging when set to `true`.                          |
+| `VITE_PORT`           | No       | Local dev server port. Defaults to `5173`.                           |
 
 ## Project structure
 

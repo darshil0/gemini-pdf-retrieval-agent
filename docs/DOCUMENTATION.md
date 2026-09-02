@@ -112,13 +112,17 @@ When a result is opened, the app loads the source PDF and displays the target pa
 
 ## 5. Security and reliability
 
-The application includes the following safeguards:
+The application includes the following safeguards and security design considerations:
 
-- Input sanitization for basic HTML escaping.
-- File type and file size validation before upload is processed.
-- Query validation to reject suspicious patterns.
-- Persistent client-side rate limiting for repeated interactions.
-- Structured logging for operational diagnostics.
+- **Input Sanitization & Boundary Handling**: Trims search query whitespace and strips non-printable control characters without entity-mangling operators (such as `<` or `>`), preserving raw search keywords.
+- **CSV Formula Injection Prevention**: Neutralizes spreadsheet formula injection in CSV export (`escapeCSVField`) by prefixing formula characters (`=`, `+`, `-`, `@`, `\t`, `\r`) with a single quote (`'`).
+- **File Type & Magic Byte Validation**: Validates file magic bytes (`%PDF` header) before processing, preventing non-PDF files or zero-byte empty files from being uploaded.
+- **File Size Validation**: Enforces maximum upload file size (`VITE_MAX_FILE_SIZE`, defaulting to 200MB per file).
+- **Prompt Injection Defense**: Encapsulates search keywords in explicit instruction boundaries (`<<<TARGET SEARCH KEYWORD START>>>`) with instructions instructing the model to treat the query strictly as string data.
+- **Client-Side Rate Limiting**: Tracks search frequency in `localStorage` to prevent accidental rapid search submissions (default 10 searches per minute).
+- **Gated Test API Key Format Bypass**: Format validation bypasses for synthetic test keys (`AIzaTestKey`) are disabled in production builds (`!import.meta.env.PROD`).
+- **Production Sourcemap Disabling**: Production builds disable sourcemap generation (`sourcemap: mode === 'development'`) in `vite.config.ts`.
+- **Structured Logging**: Contextual structured logging (`createLogger`) for operational diagnostics.
 
 ## 6. Configuration
 

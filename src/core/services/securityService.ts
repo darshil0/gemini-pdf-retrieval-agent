@@ -128,29 +128,30 @@ export const SecurityService = {
   },
 
   /**
-   * Sanitizes user input by escaping HTML angle brackets to prevent XSS.
+   * Sanitizes user input by trimming whitespace and removing non-printable control characters.
+   * Preserves search terms containing operators like '<' or '>' without entity-mangling.
    *
    * @param input - The raw user input string
-   * @returns The sanitized string with HTML entities escaped
+   * @returns The sanitized input string
    */
   sanitizeInput(input: string): string {
-    return input.replace(/</g, '&lt;').replace(/>/g, '&gt;');
+    return Array.from(input.trim())
+      .filter((char) => {
+        const code = char.charCodeAt(0);
+        return code >= 32 && code !== 127;
+      })
+      .join('');
   },
 
   /**
-   * Validates a search query for minimum length and suspicious patterns.
+   * Validates a search query for minimum length.
    *
    * @param query - The search query to validate
    * @returns An object indicating validity and optional failure reason
    */
   validateSearchQuery(query: string): { valid: boolean; reason?: string } {
-    if (query.length < 2) {
+    if (query.trim().length < 2) {
       return { valid: false, reason: 'Query too short.' };
-    }
-    const sqlInjectionPattern =
-      /\b(SELECT\b[\s\S]*?\bFROM|INSERT\b[\s\S]*?\bINTO|UPDATE\b[\s\S]*?\bSET|DELETE\b[\s\S]*?\bFROM|DROP\b[\s\S]*?\bTABLE|UNION\b[\s\S]*?\bSELECT)\b/i;
-    if (sqlInjectionPattern.test(query)) {
-      return { valid: false, reason: 'Potential SQL injection detected.' };
     }
     return { valid: true };
   },
