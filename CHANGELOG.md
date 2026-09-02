@@ -3,16 +3,46 @@
 All notable changes to DocuSearch Agent are documented in this file. The project follows semantic versioning and maintains backward compatibility except where explicitly noted.
 
 ---
-## [1.4.4] - 2026-07-07
+
+## [1.4.4] - 2026-09-02
 
 ### Added
-- Enhanced PDF viewer with zoom controls (In/Out/Reset).
-- Added ability to clear recent search history.
+
+- **API key configuration banner** — the UI now shows an amber notice when `VITE_GEMINI_API_KEY` is absent or malformed, guiding the user to configure `.env` instead of presenting a blank white screen.
+- **`public/vite.svg` favicon** — added the missing SVG favicon referenced in `index.html`; eliminates the 404 error on startup.
+- Exported `isApiKeyConfigured()` and `isValidApiKeyFormat()` from `src/api/gemini.ts` so UI components can query key presence reactively.
+- New security integration tests covering rate limit blocking, SQL injection rejection, XSS sanitization, and magic-byte file rejection.
+- New viewer modal tests covering zoom in/out/reset, rotation, next/prev page navigation, close via button, backdrop click, and Escape key.
+- Logger tests for all four severity levels and `LogLevel` enum values.
+- `SearchResultCard` tests for empty highlight and regex-special-character highlighting.
+- `FileUpload` tests for duplicate file rejection, error-badge dismiss button, and drag-and-drop events.
+
+### Fixed
+
+- **Lazy API key initialization** (`src/api/gemini.ts`) — replaced the module-level `GoogleGenerativeAI` instantiation (which threw on import) with a `getGenAI()` factory called lazily at search time; the app now boots without crashing when the key is unconfigured.
+- **Specific API-key error re-throw** — `API_KEY_MISSING` and `API_KEY_INVALID_FORMAT` errors are now preserved through the catch block instead of being swallowed into the generic communication error.
+- **Empty file security bypass** (`src/core/services/securityService.ts`) — `validateFileType` now returns `false` for files with fewer than 4 bytes, fixing a JS `Array.every` edge case where an empty iterable returned `true`.
+- **SQL injection false positives** (`src/core/services/securityService.ts`) — replaced the overly broad `/SELECT|INSERT|UPDATE|DELETE|FROM/i` regex with structured SQL pattern matching so ordinary queries such as "report from Q3" or "update status" are no longer blocked.
+- **Multi-document page sort** (`src/App.tsx`) — the `page` sort mode now compares `docIndex` first and `pageNumber` second, producing a stable cross-document ordering.
+- **Stale results on file removal** (`src/App.tsx`) — `handleRemoveFile` now clears `data` and resets `status` to `IDLE`, preventing orphaned result cards after a file is deleted.
+- **Missing key in vitest mock** (`src/tests/App.test.tsx`, `src/tests/integration.test.tsx`, `src/tests/security.test.tsx`) — added `isApiKeyConfigured: vi.fn().mockReturnValue(true)` to every `@api/gemini` mock that rendered `<App />`, fixing the `No "isApiKeyConfigured" export is defined on the mock` runtime error.
+- **Read-only env var assignment** (`src/tests/Services.test.ts`) — replaced direct `import.meta.env.VITE_GEMINI_API_KEY = ''` assignment (TypeScript error TS2540) with `vi.stubEnv` / `vi.unstubAllEnvs`.
+- **Duplicate CSS rule** (`src/styles/index.css`) — removed the duplicate `body` block.
 
 ### Changed
-- Integrated SecurityService for deep PDF magic bytes validation in `FileUpload`.
-- Integrated SecurityService for search rate limiting, query validation, and input sanitization in `App`.
-- Bumped project version to 1.4.4 and updated documentation.
+
+- `src/core/types/index.ts` — added full JSDoc to all interfaces, fields, and the `AppStatus` enum.
+- `src/core/constants/errors.ts` — added per-constant JSDoc to all error message strings.
+- `src/core/services/logger.ts` — documented `LogLevel` enum variants, `LogEntry` interface fields, and `Logger` interface methods.
+- `src/api/gemini.ts` — added JSDoc to `getApiKey`, `isApiKeyConfigured`, and `getGenAI`.
+- `src/core/architecture/prompts.ts` — added `@module` / `@since` tags and JSDoc to all exported constants and `buildSearchPrompt`.
+- `README.md` — updated status date, verified check results, project-structure map, scripts table, architecture diagram, and release highlights.
+- `CHANGELOG.md` — this entry.
+
+### Security
+
+- `js-yaml` upgraded from `5.2.0` to `5.4.1` (removes known parse vulnerability).
+- `minimatch` ReDoS vulnerability in `@typescript-eslint/typescript-estree` addressed via scoped `overrides` in `package.json`; `npm audit` now reports **0 vulnerabilities**.
 
 ---
 
