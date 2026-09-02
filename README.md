@@ -2,7 +2,7 @@
 
 DocuSearch Agent is a React, Vite, and TypeScript application for uploading PDF documents, asking natural-language questions against them, and reviewing ranked evidence with page-level context from the Gemini API.
 
-## What the app does
+## What the app does?
 
 - Upload one or more PDF files (up to 10 by default).
 - Run semantic document search with a keyword or natural-language query.
