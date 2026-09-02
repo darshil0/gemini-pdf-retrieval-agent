@@ -52,17 +52,38 @@ export function isValidApiKeyFormat(key: string): boolean {
   return /^AIza[A-Za-z0-9_-]{35,}$/.test(normalizedKey);
 }
 
-export function getGeminiApiKey(): string | undefined {
+/**
+ * Returns the raw API key string from environment variables.
+ *
+ * @returns The value of `VITE_GEMINI_API_KEY`, or `undefined` if not set.
+ */
+export function getApiKey(): string | undefined {
   return import.meta.env.VITE_GEMINI_API_KEY;
 }
 
+/**
+ * Returns `true` when a valid Gemini API key is configured in the environment.
+ * Combines a presence check with format validation.
+ *
+ * @returns `true` if the API key is present and passes format validation.
+ */
 export function isApiKeyConfigured(): boolean {
-  const apiKey = getGeminiApiKey();
-  return Boolean(apiKey && isValidApiKeyFormat(apiKey));
+  const key = getApiKey();
+  return Boolean(key && isValidApiKeyFormat(key));
 }
 
-function getGenAI(): GoogleGenerativeAI {
-  const apiKey = getGeminiApiKey();
+/**
+ * Creates and returns a configured `GoogleGenerativeAI` client instance.
+ * Performs lazy initialization — the client is created on each call rather
+ * than at module load time, so a missing key does not crash the app on start.
+ *
+ * @returns A ready-to-use `GoogleGenerativeAI` instance.
+ * @throws {Error} `ErrorMessages.API_KEY_MISSING` if the key env var is empty.
+ * @throws {Error} `ErrorMessages.API_KEY_INVALID_FORMAT` if the key fails format checks.
+ */
+export function getGenAI(): GoogleGenerativeAI {
+  const apiKey = getApiKey();
+
   if (!apiKey) {
     throw new Error(ErrorMessages.API_KEY_MISSING);
   }
@@ -293,6 +314,8 @@ export async function searchInDocuments(
     // Re-throw specific errors as-is
     if (error instanceof Error) {
       const messages = [
+        ErrorMessages.API_KEY_MISSING,
+        ErrorMessages.API_KEY_INVALID_FORMAT,
         ErrorMessages.SEARCH_TIMEOUT,
         ErrorMessages.FILE_READ_FAILED,
         ErrorMessages.FILE_STREAM_TIMEOUT,

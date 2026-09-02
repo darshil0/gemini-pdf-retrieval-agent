@@ -17,6 +17,7 @@ import {
   Moon,
   ZoomIn,
   ZoomOut,
+  AlertCircle,
 } from 'lucide-react';
 import { FileUpload } from '@components/FileUpload';
 import { SearchResultCard } from '@components/SearchResultCard';
@@ -353,23 +354,22 @@ export default function App(): React.ReactElement {
       </header>
 
       <main className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-8">
-        {/* API Key Missing Warning */}
         {!isApiKeyConfigured() && (
           <div
-            className="bg-amber-500/10 border border-amber-500/20 rounded-xl p-4 text-amber-400 text-center animate-fade-in"
-            role="alert"
+            className="bg-amber-500/10 border border-amber-500/20 rounded-xl p-4 text-amber-300 text-sm flex items-center space-x-3 animate-fade-in"
+            role="status"
           >
-            <p className="font-semibold">Gemini API Key Required</p>
-            <p className="text-sm opacity-90">
-              Please configure{' '}
-              <code className="bg-amber-900/40 px-1.5 py-0.5 rounded text-amber-200">
+            <AlertCircle className="w-5 h-5 text-amber-400 flex-shrink-0" />
+            <p>
+              Gemini API key is not configured. Please set{' '}
+              <code className="bg-slate-800 px-1.5 py-0.5 rounded text-amber-200 font-mono">
                 VITE_GEMINI_API_KEY
               </code>{' '}
-              in your environment file (
-              <code className="bg-amber-900/40 px-1.5 py-0.5 rounded text-amber-200">
+              in your{' '}
+              <code className="bg-slate-800 px-1.5 py-0.5 rounded text-amber-200 font-mono">
                 .env
-              </code>
-              ) to enable AI document analysis.
+              </code>{' '}
+              file.
             </p>
           </div>
         )}

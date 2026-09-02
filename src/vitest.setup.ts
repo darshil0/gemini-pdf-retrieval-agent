@@ -81,11 +81,10 @@ vi.mock('@google/generative-ai', () => ({
     getGenerativeModel: vi.fn().mockReturnValue({
       generateContent: vi.fn().mockResolvedValue({
         response: {
-          text: vi.fn().mockResolvedValue(
+          text: vi.fn().mockReturnValue(
             JSON.stringify({
+              summary: 'Mock search summary',
               results: [],
-              totalResults: 0,
-              processingTime: 0,
             }),
           ),
         },
@@ -272,9 +271,9 @@ afterAll(() => {
 ).createMockSearchResult = (overrides = {}) => ({
   docIndex: 0,
   pageNumber: 1,
-  contextSnippet: 'Test content',
+  contextSnippet: 'Test context snippet',
   matchedTerm: 'test',
-  relevanceExplanation: 'Test context',
+  relevanceExplanation: 'Direct match',
   relevanceScore: 0.9,
   ...(overrides as object),
 });
