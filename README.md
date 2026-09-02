@@ -127,7 +127,7 @@ flowchart TD
 Version: 1.4.4  
 Last reviewed: 2026-09-02  
 Status: production-ready for local development and static deployment.  
-Verified checks: `npm test` (52 tests, 8 suites), `npm run test:coverage` (statements 86 %, branches 68 %, functions 86 %, lines 87 %), `npm run build`, `npm run lint`, `npm run type-check`, `npm audit` (0 vulnerabilities).
+Verified checks: `npm test` (53 tests, 8 suites), `npm run test:coverage` (statements 86 %, branches 68 %, functions 86 %, lines 87 %), `npm run build`, `npm run lint`, `npm run type-check`, `npm audit` (0 vulnerabilities).
 
 ## Release highlights — v1.4.4
 

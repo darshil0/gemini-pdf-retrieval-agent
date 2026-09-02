@@ -1,3 +1,12 @@
+/**
+ * Agent Architecture Tests
+ *
+ * Validates the 3-layer prompt structure (persona, tool instructions, protocol)
+ * and variable injection in buildSearchPrompt.
+ *
+ * @module Architecture.test
+ */
+
 import { describe, it, expect } from 'vitest';
 import {
   buildSearchPrompt,

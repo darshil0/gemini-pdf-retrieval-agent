@@ -31,12 +31,14 @@ All notable changes to DocuSearch Agent are documented in this file. The project
 
 ### Changed
 
+- `src/App.tsx` — added module-level JSDoc header and component JSDoc for the root `App` export.
 - `src/core/types/index.ts` — added full JSDoc to all interfaces, fields, and the `AppStatus` enum.
 - `src/core/constants/errors.ts` — added per-constant JSDoc to all error message strings.
 - `src/core/services/logger.ts` — documented `LogLevel` enum variants, `LogEntry` interface fields, and `Logger` interface methods.
 - `src/api/gemini.ts` — added JSDoc to `getApiKey`, `isApiKeyConfigured`, and `getGenAI`.
 - `src/core/architecture/prompts.ts` — added `@module` / `@since` tags and JSDoc to all exported constants and `buildSearchPrompt`.
-- `README.md` — updated status date, verified check results, project-structure map, scripts table, architecture diagram, and release highlights.
+- `src/tests/` — added module-level JSDoc header comments to all test files in the automated test suite.
+- `README.md` — updated status date, verified check results (53 tests across 8 suites), project-structure map, scripts table, architecture diagram, and release highlights.
 - `CHANGELOG.md` — this entry.
 
 ### Security
