@@ -39,7 +39,7 @@ const FILE_STREAM_TIMEOUT_MS = 30_000;
  * @param key - The API key string to validate
  * @returns true if the key has a valid format
  */
-function isValidApiKeyFormat(key: string): boolean {
+export function isValidApiKeyFormat(key: string): boolean {
   if (!key || key.trim().length < 10) {
     return false;
   }
@@ -52,18 +52,28 @@ function isValidApiKeyFormat(key: string): boolean {
   return /^AIza[A-Za-z0-9_-]{35,}$/.test(normalizedKey);
 }
 
-const API_KEY = import.meta.env.VITE_GEMINI_API_KEY;
-
-if (!API_KEY) {
-  throw new Error(ErrorMessages.API_KEY_MISSING);
+export function getGeminiApiKey(): string | undefined {
+  return import.meta.env.VITE_GEMINI_API_KEY;
 }
 
-if (!isValidApiKeyFormat(API_KEY)) {
-  log.warn('API key format validation failed', { keyLength: API_KEY.length });
-  throw new Error(ErrorMessages.API_KEY_INVALID_FORMAT);
+export function isApiKeyConfigured(): boolean {
+  const apiKey = getGeminiApiKey();
+  return Boolean(apiKey && isValidApiKeyFormat(apiKey));
 }
 
-const genAI = new GoogleGenerativeAI(API_KEY);
+function getGenAI(): GoogleGenerativeAI {
+  const apiKey = getGeminiApiKey();
+  if (!apiKey) {
+    throw new Error(ErrorMessages.API_KEY_MISSING);
+  }
+
+  if (!isValidApiKeyFormat(apiKey)) {
+    log.warn('API key format validation failed', { keyLength: apiKey.length });
+    throw new Error(ErrorMessages.API_KEY_INVALID_FORMAT);
+  }
+
+  return new GoogleGenerativeAI(apiKey);
+}
 
 /**
  * Converts a File object into a Gemini-compatible inline data part.
@@ -130,9 +140,7 @@ const fileToGenerativePart = async (
         }
       };
       fileReader.onerror = (): void =>
-        reject(
-          fileReader.error ?? new Error(ErrorMessages.FILE_READ_FAILED),
-        );
+        reject(fileReader.error ?? new Error(ErrorMessages.FILE_READ_FAILED));
       fileReader.readAsDataURL(blob);
     },
   );
@@ -194,6 +202,7 @@ export async function searchInDocuments(
 ): Promise<SearchResponse> {
   log.info('Search started', { keyword, fileCount: files.length });
 
+  const genAI = getGenAI();
   const model = genAI.getGenerativeModel({
     model: GEMINI_MODEL_NAME,
   });
@@ -270,7 +279,10 @@ export async function searchInDocuments(
       error instanceof Error ? error : undefined,
     );
 
-    if (error instanceof Error && error.message === ErrorMessages.SEARCH_PARSE_FAILED) {
+    if (
+      error instanceof Error &&
+      error.message === ErrorMessages.SEARCH_PARSE_FAILED
+    ) {
       throw error;
     }
 

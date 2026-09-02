@@ -45,16 +45,16 @@ DocuSearch Agent is a React, Vite, and TypeScript application for uploading PDF 
 
 ## Environment variables
 
-| Variable | Required | Description |
-| :--- | :--- | :--- |
-| `VITE_GEMINI_API_KEY` | Yes | Google Gemini API key. |
-| `VITE_GEMINI_MODEL` | No | Gemini model name. Defaults to `gemini-1.5-flash`. |
-| `VITE_API_TIMEOUT_MS` | No | Request timeout in milliseconds. Defaults to `60000`. |
-| `VITE_MAX_FILE_SIZE` | No | Maximum upload size in bytes. Defaults to `209715200`. |
-| `VITE_MAX_FILES` | No | Maximum number of uploaded files. Defaults to `10`. |
-| `VITE_PDF_WORKER_SRC` | No | Optional custom PDF.js worker URL. |
-| `VITE_DEBUG` | No | Enables verbose logging when set to `true`. |
-| `VITE_PORT` | No | Local dev server port. Defaults to `5173`. |
+| Variable              | Required | Description                                            |
+| :-------------------- | :------- | :----------------------------------------------------- |
+| `VITE_GEMINI_API_KEY` | Yes      | Google Gemini API key.                                 |
+| `VITE_GEMINI_MODEL`   | No       | Gemini model name. Defaults to `gemini-1.5-flash`.     |
+| `VITE_API_TIMEOUT_MS` | No       | Request timeout in milliseconds. Defaults to `60000`.  |
+| `VITE_MAX_FILE_SIZE`  | No       | Maximum upload size in bytes. Defaults to `209715200`. |
+| `VITE_MAX_FILES`      | No       | Maximum number of uploaded files. Defaults to `10`.    |
+| `VITE_PDF_WORKER_SRC` | No       | Optional custom PDF.js worker URL.                     |
+| `VITE_DEBUG`          | No       | Enables verbose logging when set to `true`.            |
+| `VITE_PORT`           | No       | Local dev server port. Defaults to `5173`.             |
 
 ## Project structure
 
@@ -66,14 +66,14 @@ DocuSearch Agent is a React, Vite, and TypeScript application for uploading PDF 
 
 ## Scripts
 
-| Command | Purpose |
-| :--- | :--- |
-| `npm run dev` | Start the local Vite development server. |
-| `npm run build` | Build the production bundle. |
-| `npm test` | Run the Vitest suite. |
-| `npm run lint` | Run ESLint with zero warnings enforced. |
-| `npm run type-check` | Run TypeScript without emitting files. |
-| `npm run format` | Format the source files with Prettier. |
+| Command              | Purpose                                  |
+| :------------------- | :--------------------------------------- |
+| `npm run dev`        | Start the local Vite development server. |
+| `npm run build`      | Build the production bundle.             |
+| `npm test`           | Run the Vitest suite.                    |
+| `npm run lint`       | Run ESLint with zero warnings enforced.  |
+| `npm run type-check` | Run TypeScript without emitting files.   |
+| `npm run format`     | Format the source files with Prettier.   |
 
 ## Architecture overview
 

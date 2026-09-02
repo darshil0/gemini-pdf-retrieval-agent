@@ -130,7 +130,6 @@ if (typeof window.URL.revokeObjectURL === 'undefined') {
   });
 }
 
-
 // Mock IntersectionObserver
 class MockIntersectionObserver implements IntersectionObserver {
   readonly root: Element | Document | null = null;
@@ -271,11 +270,12 @@ afterAll(() => {
 (
   globalThis as unknown as { createMockSearchResult: unknown }
 ).createMockSearchResult = (overrides = {}) => ({
-  documentName: 'test.pdf',
+  docIndex: 0,
   pageNumber: 1,
-  content: 'Test content',
+  contextSnippet: 'Test content',
+  matchedTerm: 'test',
+  relevanceExplanation: 'Test context',
   relevanceScore: 0.9,
-  context: 'Test context',
   ...(overrides as object),
 });
 
@@ -294,18 +294,20 @@ declare global {
 
   function createMockSearchResult(
     overrides?: Partial<{
-      documentName: string;
+      docIndex: number;
       pageNumber: number;
-      content: string;
+      contextSnippet: string;
+      matchedTerm: string;
+      relevanceExplanation: string;
       relevanceScore: number;
-      context: string;
     }>,
   ): {
-    documentName: string;
+    docIndex: number;
     pageNumber: number;
-    content: string;
+    contextSnippet: string;
+    matchedTerm: string;
+    relevanceExplanation: string;
     relevanceScore: number;
-    context: string;
   };
 
   function createMockDocument(

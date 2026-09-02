@@ -6,7 +6,7 @@
 
 set -e
 
-echo "🔧 DocuSearch Agent - Applying Verification Workflow v1.4.3"
+echo "🔧 DocuSearch Agent - Applying Verification Workflow v1.4.4"
 echo "================================================"
 echo ""
 
@@ -131,11 +131,11 @@ echo ""
 
 # Summary
 echo "================================================"
-echo "✅ v1.4.3 verification workflow complete!"
+echo "✅ v1.4.4 verification workflow complete!"
 echo "================================================"
 echo ""
 echo "📊 Summary of Changes:"
-echo "   - Updated to v1.4.3 standards"
+echo "   - Updated to v1.4.4 standards"
 echo "   - Verified the current Vite/React toolchain"
 echo "   - Applied formatting and lint fixes"
 echo "   - Confirmed the test and build workflow"

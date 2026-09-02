@@ -3,13 +3,16 @@
 All notable changes to DocuSearch Agent are documented in this file. The project follows semantic versioning and maintains backward compatibility except where explicitly noted.
 
 ---
+
 ## [1.4.4] - 2026-07-07
 
 ### Added
+
 - Enhanced PDF viewer with zoom controls (In/Out/Reset).
 - Added ability to clear recent search history.
 
 ### Changed
+
 - Integrated SecurityService for deep PDF magic bytes validation in `FileUpload`.
 - Integrated SecurityService for search rate limiting, query validation, and input sanitization in `App`.
 - Bumped project version to 1.4.4 and updated documentation.

@@ -25,6 +25,9 @@
     "react-intersection-observer": "10.0.3",
     "react-pdf": "^10.2.0"
   },
+  "overrides": {
+    "minimatch": "$minimatch"
+  },
   "devDependencies": {
     "@babel/core": "7.29.7",
     "@testing-library/jest-dom": "^6.9.1",

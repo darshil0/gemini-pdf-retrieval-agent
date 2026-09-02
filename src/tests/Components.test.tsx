@@ -38,7 +38,9 @@ describe('Component Tests', () => {
           onRemoveFile={mockOnRemoveFile}
         />,
       );
-      const input = screen.getByLabelText(/Upload PDF files/i) as HTMLInputElement;
+      const input = screen.getByLabelText(
+        /Upload PDF files/i,
+      ) as HTMLInputElement;
       expect(input.accept).toBe('.pdf');
     });
 
@@ -66,7 +68,9 @@ describe('Component Tests', () => {
           isProcessing={true}
         />,
       );
-      const input = screen.getByLabelText(/Upload PDF files/i) as HTMLInputElement;
+      const input = screen.getByLabelText(
+        /Upload PDF files/i,
+      ) as HTMLInputElement;
       expect(input).toBeDisabled();
     });
 

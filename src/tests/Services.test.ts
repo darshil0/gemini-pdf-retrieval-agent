@@ -61,9 +61,11 @@ describe('Service Layer Integration Tests', () => {
         'test.txt',
         { type: 'text/plain' },
       );
+      const emptyFile = new File([], 'empty.pdf', { type: 'application/pdf' });
 
       expect(await SecurityService.validateFileType(validPdf)).toBe(true);
       expect(await SecurityService.validateFileType(invalidPdf)).toBe(false);
+      expect(await SecurityService.validateFileType(emptyFile)).toBe(false);
     });
 
     it('should enforce file size limits', () => {
@@ -82,6 +84,12 @@ describe('Service Layer Integration Tests', () => {
 
     it('should validate search queries correctly', () => {
       expect(SecurityService.validateSearchQuery('valid query').valid).toBe(
+        true,
+      );
+      expect(SecurityService.validateSearchQuery('report from Q3').valid).toBe(
+        true,
+      );
+      expect(SecurityService.validateSearchQuery('status update').valid).toBe(
         true,
       );
       expect(SecurityService.validateSearchQuery('a').valid).toBe(false); // Too short
@@ -119,11 +127,22 @@ describe('Service Layer Integration Tests', () => {
       expect(result.results[0]?.docIndex).toBe(0);
     });
 
-    it('should throw error if API key is missing', async () => {
-      // In vitest, import.meta.env might be tricky to mock directly without re-rendering
-      // But we can test if the service handles the throw from its own initialization logic
-      // if we were to re-import it or mock the env.
-      // For now, we assume the environment is correctly set up as per previous tests.
+    it('should throw error if API key is missing or invalid', async () => {
+      const file = new File(['dummy content'], 'test.pdf', {
+        type: 'application/pdf',
+      });
+
+      vi.stubEnv('VITE_GEMINI_API_KEY', '');
+      await expect(searchInDocuments([file], 'test')).rejects.toThrow(
+        'Gemini API key is not configured',
+      );
+
+      vi.stubEnv('VITE_GEMINI_API_KEY', 'short_invalid_key');
+      await expect(searchInDocuments([file], 'test')).rejects.toThrow(
+        'Gemini API key is invalid',
+      );
+
+      vi.unstubAllEnvs();
     });
   });
 });

@@ -3,7 +3,7 @@
 
 $ErrorActionPreference = "Stop"
 
-Write-Host "🔧 DocuSearch Agent - Applying Verification Workflow v1.4.3" -ForegroundColor Cyan
+Write-Host "🔧 DocuSearch Agent - Applying Verification Workflow v1.4.4" -ForegroundColor Cyan
 Write-Host "================================================"
 Write-Host ""
 
@@ -128,11 +128,11 @@ foreach ($item in $scripts) {
 }
 
 Write-Host "================================================"
-Write-Host "✅ v1.4.3 verification workflow complete!" -ForegroundColor Cyan
+Write-Host "✅ v1.4.4 verification workflow complete!" -ForegroundColor Cyan
 Write-Host "================================================"
 Write-Host ""
 Write-Host "📊 Summary of Changes:"
-Write-Host "   - Updated to v1.4.3 standards"
+Write-Host "   - Updated to v1.4.4 standards"
 Write-Host "   - Verified the current Vite/React toolchain"
 Write-Host "   - Applied formatting and lint fixes"
 Write-Host "   - Confirmed the test and build workflow"

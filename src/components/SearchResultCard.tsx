@@ -24,7 +24,10 @@ export const SearchResultCard = ({
   const termToHighlight = matchedTerm || keyword;
 
   // Highlight logic with regex escaping for special characters
-  const getHighlightedText = (text: string, highlight: string): React.ReactElement => {
+  const getHighlightedText = (
+    text: string,
+    highlight: string,
+  ): React.ReactElement => {
     if (!highlight.trim()) {
       return <span>{text}</span>;
     }
