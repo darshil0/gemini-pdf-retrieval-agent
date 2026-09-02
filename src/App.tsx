@@ -1,3 +1,14 @@
+/**
+ * Main Application Component
+ *
+ * Primary entry point and UI orchestrator for DocuSearch Agent.
+ * Manages PDF document upload state, search workflow execution via Gemini API,
+ * search results filtering and sorting, CSV export, and in-app PDF viewer modal.
+ *
+ * @module App
+ * @since v1.0.0
+ */
+
 import { useState, useEffect, useRef, useCallback, useMemo } from 'react';
 import {
   Search,
@@ -38,6 +49,11 @@ pdfjs.GlobalWorkerOptions.workerSrc =
   import.meta.env.VITE_PDF_WORKER_SRC ||
   new URL('pdfjs-dist/build/pdf.worker.min.mjs', import.meta.url).toString();
 
+/**
+ * DocuSearch Agent root React component.
+ *
+ * @returns React element rendering the complete DocuSearch user interface.
+ */
 export default function App(): React.ReactElement {
   const [files, setFiles] = useState<UploadedFile[]>([]);
   const [keyword, setKeyword] = useState('');

@@ -1,3 +1,12 @@
+/**
+ * End-to-End Search Integration Tests
+ *
+ * Validates complete end-to-end user flows including document upload,
+ * search execution, result rendering, empty state handling, and viewer interaction.
+ *
+ * @module integration.test
+ */
+
 import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import App from '../App';
 import { vi, expect, it, describe, beforeEach } from 'vitest';

@@ -1,3 +1,13 @@
+/**
+ * App Component UI Tests
+ *
+ * Comprehensive tests covering theme toggling, API key configuration warning,
+ * file management, search execution, result sorting, viewer modal controls,
+ * CSV export, and search history clearing.
+ *
+ * @module App.test
+ */
+
 import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import App from '../App';
 import { vi, expect, it, describe, beforeEach } from 'vitest';

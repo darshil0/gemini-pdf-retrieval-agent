@@ -1,3 +1,12 @@
+/**
+ * FileUpload Component Tests
+ *
+ * Validates maximum file limits, remaining slots display, MIME/type validation,
+ * duplicate file detection, drag and drop events, and file removal controls.
+ *
+ * @module FileUpload.test
+ */
+
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import { FileUpload } from '@components/FileUpload';

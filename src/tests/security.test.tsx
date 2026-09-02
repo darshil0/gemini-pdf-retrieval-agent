@@ -1,3 +1,12 @@
+/**
+ * Security & Input Validation Integration Tests
+ *
+ * Validates search query sanitization, minimum length rules, rate limit enforcement,
+ * and invalid file rejection in the UI workflow.
+ *
+ * @module security.test
+ */
+
 import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import App from '../App';
 import { vi, expect, it, describe, beforeEach } from 'vitest';

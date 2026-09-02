@@ -1,3 +1,12 @@
+/**
+ * Validation Service Tests
+ *
+ * Validates runtime API response validation, CSV formula injection defense,
+ * and string array validation.
+ *
+ * @module ValidationService.test
+ */
+
 import { describe, it, expect } from 'vitest';
 import {
   validateSearchResponse,
