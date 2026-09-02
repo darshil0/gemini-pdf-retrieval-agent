@@ -81,11 +81,10 @@ vi.mock('@google/generative-ai', () => ({
     getGenerativeModel: vi.fn().mockReturnValue({
       generateContent: vi.fn().mockResolvedValue({
         response: {
-          text: vi.fn().mockResolvedValue(
+          text: vi.fn().mockReturnValue(
             JSON.stringify({
+              summary: 'Mock search summary',
               results: [],
-              totalResults: 0,
-              processingTime: 0,
             }),
           ),
         },
@@ -129,7 +128,6 @@ if (typeof window.URL.revokeObjectURL === 'undefined') {
     value: vi.fn((): void => {}),
   });
 }
-
 
 // Mock IntersectionObserver
 class MockIntersectionObserver implements IntersectionObserver {
@@ -271,11 +269,12 @@ afterAll(() => {
 (
   globalThis as unknown as { createMockSearchResult: unknown }
 ).createMockSearchResult = (overrides = {}) => ({
-  documentName: 'test.pdf',
+  docIndex: 0,
   pageNumber: 1,
-  content: 'Test content',
+  contextSnippet: 'Test context snippet',
+  matchedTerm: 'test',
+  relevanceExplanation: 'Direct match',
   relevanceScore: 0.9,
-  context: 'Test context',
   ...(overrides as object),
 });
 
@@ -294,18 +293,20 @@ declare global {
 
   function createMockSearchResult(
     overrides?: Partial<{
-      documentName: string;
+      docIndex: number;
       pageNumber: number;
-      content: string;
+      contextSnippet: string;
+      matchedTerm: string;
+      relevanceExplanation: string;
       relevanceScore: number;
-      context: string;
     }>,
   ): {
-    documentName: string;
+    docIndex: number;
     pageNumber: number;
-    content: string;
+    contextSnippet: string;
+    matchedTerm: string;
+    relevanceExplanation: string;
     relevanceScore: number;
-    context: string;
   };
 
   function createMockDocument(

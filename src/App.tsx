@@ -17,10 +17,15 @@ import {
   Moon,
   ZoomIn,
   ZoomOut,
+  AlertCircle,
 } from 'lucide-react';
 import { FileUpload } from '@components/FileUpload';
 import { SearchResultCard } from '@components/SearchResultCard';
-import { searchInDocuments, GEMINI_MODEL_NAME } from '@api/gemini';
+import {
+  searchInDocuments,
+  GEMINI_MODEL_NAME,
+  isApiKeyConfigured,
+} from '@api/gemini';
 import { UploadedFile, AppStatus, SearchResponse } from '@core/types';
 import { escapeCSVField } from '@core/services/validation';
 import { SecurityService } from '@core/services/securityService';
@@ -31,7 +36,7 @@ import { InView } from 'react-intersection-observer';
 // or fallback to custom worker URL from environment variables.
 pdfjs.GlobalWorkerOptions.workerSrc =
   import.meta.env.VITE_PDF_WORKER_SRC ||
-  new URL("pdfjs-dist/build/pdf.worker.min.mjs", import.meta.url).toString();
+  new URL('pdfjs-dist/build/pdf.worker.min.mjs', import.meta.url).toString();
 
 export default function App(): React.ReactElement {
   const [files, setFiles] = useState<UploadedFile[]>([]);
@@ -148,7 +153,9 @@ export default function App(): React.ReactElement {
 
     // Security: Check rate limit (10 searches per minute)
     if (!SecurityService.checkRateLimit('search', 10, 60000)) {
-      setError('Rate limit exceeded. Please wait a moment before searching again.');
+      setError(
+        'Rate limit exceeded. Please wait a moment before searching again.',
+      );
       setStatus(AppStatus.ERROR);
       return Promise.resolve();
     }
@@ -244,6 +251,8 @@ export default function App(): React.ReactElement {
         }
       }
       setFiles((prev) => prev.filter((_, i) => i !== index));
+      setData(null);
+      setStatus(AppStatus.IDLE);
     },
     [files],
   );
@@ -259,6 +268,9 @@ export default function App(): React.ReactElement {
 
     return [...nextResults].sort((left, right) => {
       if (sortBy === 'page') {
+        if (left.docIndex !== right.docIndex) {
+          return left.docIndex - right.docIndex;
+        }
         return left.pageNumber - right.pageNumber;
       }
       return right.relevanceScore - left.relevanceScore;
@@ -342,6 +354,26 @@ export default function App(): React.ReactElement {
       </header>
 
       <main className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-8">
+        {!isApiKeyConfigured() && (
+          <div
+            className="bg-amber-500/10 border border-amber-500/20 rounded-xl p-4 text-amber-300 text-sm flex items-center space-x-3 animate-fade-in"
+            role="status"
+          >
+            <AlertCircle className="w-5 h-5 text-amber-400 flex-shrink-0" />
+            <p>
+              Gemini API key is not configured. Please set{' '}
+              <code className="bg-slate-800 px-1.5 py-0.5 rounded text-amber-200 font-mono">
+                VITE_GEMINI_API_KEY
+              </code>{' '}
+              in your{' '}
+              <code className="bg-slate-800 px-1.5 py-0.5 rounded text-amber-200 font-mono">
+                .env
+              </code>{' '}
+              file.
+            </p>
+          </div>
+        )}
+
         {/* Input Section */}
         <section className="space-y-6">
           <div className="bg-slate-800/50 rounded-2xl p-1 border border-slate-700">
@@ -510,9 +542,12 @@ export default function App(): React.ReactElement {
           <section className="space-y-6 animate-fade-in-up pb-12">
             <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
               <div>
-                <h3 className="text-2xl font-bold text-white">Search Results</h3>
+                <h3 className="text-2xl font-bold text-white">
+                  Search Results
+                </h3>
                 <p className="text-sm text-slate-400 mt-1">
-                  Showing {filteredResults.length} of {data.results.length} matches
+                  Showing {filteredResults.length} of {data.results.length}{' '}
+                  matches
                 </p>
               </div>
               <div className="flex flex-wrap items-center gap-3">
@@ -525,17 +560,23 @@ export default function App(): React.ReactElement {
                     max="1"
                     step="0.05"
                     value={minRelevance}
-                    onChange={(event) => setMinRelevance(Number(event.target.value))}
+                    onChange={(event) =>
+                      setMinRelevance(Number(event.target.value))
+                    }
                     className="accent-blue-500"
                   />
-                  <span className="font-mono text-slate-400">{minRelevance.toFixed(2)}</span>
+                  <span className="font-mono text-slate-400">
+                    {minRelevance.toFixed(2)}
+                  </span>
                 </label>
                 <label className="flex items-center gap-2 text-sm text-slate-300">
                   <span>Sort results by</span>
                   <select
                     aria-label="Sort results by"
                     value={sortBy}
-                    onChange={(event) => setSortBy(event.target.value as 'relevance' | 'page')}
+                    onChange={(event) =>
+                      setSortBy(event.target.value as 'relevance' | 'page')
+                    }
                     className="rounded-lg border border-slate-700 bg-slate-900 px-2 py-1 text-slate-200"
                   >
                     <option value="relevance">Relevance</option>
@@ -581,7 +622,8 @@ export default function App(): React.ReactElement {
               >
                 <Search className="w-12 h-12 mx-auto mb-4 opacity-50" />
                 <p className="text-lg">
-                  No matches found for &quot;{keyword}&quot; at the current threshold.
+                  No matches found for &quot;{keyword}&quot; at the current
+                  threshold.
                 </p>
                 <p className="text-sm">Try broadening your search term.</p>
               </div>
@@ -663,7 +705,9 @@ export default function App(): React.ReactElement {
                 {/* Zoom Controls */}
                 <div className="flex items-center space-x-1 bg-slate-900/50 rounded-lg p-1 border border-slate-700">
                   <button
-                    onClick={() => setPdfScale((prev) => Math.max(prev - 0.2, 0.4))}
+                    onClick={() =>
+                      setPdfScale((prev) => Math.max(prev - 0.2, 0.4))
+                    }
                     className="p-1.5 hover:bg-slate-700 rounded-md text-slate-400 hover:text-white transition-colors"
                     aria-label="Zoom out"
                   >
@@ -674,10 +718,14 @@ export default function App(): React.ReactElement {
                     className="p-1.5 hover:bg-slate-700 rounded-md text-slate-400 hover:text-white transition-colors flex items-center"
                     aria-label="Reset zoom"
                   >
-                    <span className="text-[10px] font-mono w-8 text-center">{Math.round(pdfScale * 100)}%</span>
+                    <span className="text-[10px] font-mono w-8 text-center">
+                      {Math.round(pdfScale * 100)}%
+                    </span>
                   </button>
                   <button
-                    onClick={() => setPdfScale((prev) => Math.min(prev + 0.2, 3.0))}
+                    onClick={() =>
+                      setPdfScale((prev) => Math.min(prev + 0.2, 3.0))
+                    }
                     className="p-1.5 hover:bg-slate-700 rounded-md text-slate-400 hover:text-white transition-colors"
                     aria-label="Zoom in"
                   >
