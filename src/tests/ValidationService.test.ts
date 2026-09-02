@@ -86,6 +86,17 @@ describe('ValidationService', () => {
     it('should handle numbers by converting to string and wrapping', () => {
       expect(escapeCSVField(123.45)).toBe('"123.45"');
     });
+
+    it('should neutralize CSV formula injection triggers (=, +, -, @, tab, CR)', () => {
+      expect(escapeCSVField('=SUM(A1:A10)')).toBe('"\'=SUM(A1:A10)"');
+      expect(escapeCSVField('+100')).toBe('"\'+100"');
+      expect(escapeCSVField('-cmd|"/c calc"!A0')).toBe(
+        '"\'-cmd|""/c calc""!A0"',
+      );
+      expect(escapeCSVField('@SUM(1,2)')).toBe('"\'' + '@SUM(1,2)"');
+      expect(escapeCSVField('\ttabPrefix')).toBe('"\'' + '\ttabPrefix"');
+      expect(escapeCSVField('\rcrPrefix')).toBe('"\'' + '\rcrPrefix"');
+    });
   });
 
   describe('validateStringArray', () => {

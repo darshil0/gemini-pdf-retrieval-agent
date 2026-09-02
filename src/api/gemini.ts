@@ -24,7 +24,7 @@ const log = createLogger('GeminiService');
 
 /** The Gemini model identifier used for requests. */
 export const GEMINI_MODEL_NAME =
-  import.meta.env.VITE_GEMINI_MODEL || 'gemini-1.5-flash';
+  import.meta.env.VITE_GEMINI_MODEL || 'gemini-2.5-flash';
 
 /** Default timeout for API requests in milliseconds. Defaults to 60s if not set in environment. */
 const API_TIMEOUT_MS = parseInt(import.meta.env.VITE_API_TIMEOUT_MS || '60000');
@@ -45,7 +45,7 @@ export function isValidApiKeyFormat(key: string): boolean {
   }
 
   const normalizedKey = key.trim();
-  if (normalizedKey.startsWith('AIzaTestKey')) {
+  if (!import.meta.env.PROD && normalizedKey.startsWith('AIzaTestKey')) {
     return true;
   }
 

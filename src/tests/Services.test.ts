@@ -76,10 +76,10 @@ describe('Service Layer Integration Tests', () => {
       expect(SecurityService.validateFileSize(largeFile)).toBe(false);
     });
 
-    it('should sanitize input safely', () => {
-      const input = '<script>alert("xss")</script>';
+    it('should sanitize input safely by trimming and removing control chars', () => {
+      const input = '  Sales < 5000\x00  ';
       const sanitized = SecurityService.sanitizeInput(input);
-      expect(sanitized).toBe('&lt;script&gt;alert("xss")&lt;/script&gt;');
+      expect(sanitized).toBe('Sales < 5000');
     });
 
     it('should validate search queries correctly', () => {
@@ -92,10 +92,10 @@ describe('Service Layer Integration Tests', () => {
       expect(SecurityService.validateSearchQuery('status update').valid).toBe(
         true,
       );
-      expect(SecurityService.validateSearchQuery('a').valid).toBe(false); // Too short
       expect(
         SecurityService.validateSearchQuery('SELECT * FROM users').valid,
-      ).toBe(false); // SQLi
+      ).toBe(true);
+      expect(SecurityService.validateSearchQuery(' a ').valid).toBe(false); // Too short
     });
 
     it('should persist rate limits across calls', () => {

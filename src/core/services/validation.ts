@@ -85,20 +85,26 @@ export function validateSearchResponse(data: unknown): SearchResponse {
 
 /**
  * Escapes a string value for safe inclusion in a CSV cell.
- * Wraps the value in double quotes and escapes internal quotes.
+ * Neutralizes formula injection by prefixing formula triggers (=, +, -, @, \t, \r)
+ * with a single quote ('), wraps the value in double quotes, and escapes internal quotes.
  *
- * @param value - The string to escape
- * @returns A properly escaped CSV cell value
+ * @param value - The string or number to escape
+ * @returns A properly escaped CSV cell value safe against formula injection
  *
  * @example
  * ```ts
  * escapeCSVField('He said "hello"');
  * // Returns: '"He said ""hello"""'
+ *
+ * escapeCSVField('=1+2');
+ * // Returns: '"\'=1+2"'
  * ```
  */
 export function escapeCSVField(value: string | number): string {
-  const str = String(value);
-  // Always wrap in quotes and escape internal quotes
+  let str = String(value);
+  if (/^[=+\-@\t\r]/.test(str)) {
+    str = "'" + str;
+  }
   return '"' + str.replace(/"/g, '""') + '"';
 }
 
