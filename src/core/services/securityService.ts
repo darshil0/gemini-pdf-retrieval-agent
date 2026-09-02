@@ -108,6 +108,9 @@ export const SecurityService = {
     }
 
     const view = new Uint8Array(buffer);
+    if (view.length < 4) {
+      return false;
+    }
     return view.every((byte, index) => byte === PDF_MAGIC_BYTES[index]);
   },
 
@@ -141,7 +144,9 @@ export const SecurityService = {
     if (query.length < 2) {
       return { valid: false, reason: 'Query too short.' };
     }
-    if (/SELECT|INSERT|UPDATE|DELETE|FROM/i.test(query)) {
+    const sqlInjectionPattern =
+      /\b(SELECT\b[\s\S]*?\bFROM|INSERT\b[\s\S]*?\bINTO|UPDATE\b[\s\S]*?\bSET|DELETE\b[\s\S]*?\bFROM|DROP\b[\s\S]*?\bTABLE|UNION\b[\s\S]*?\bSELECT)\b/i;
+    if (sqlInjectionPattern.test(query)) {
       return { valid: false, reason: 'Potential SQL injection detected.' };
     }
     return { valid: true };

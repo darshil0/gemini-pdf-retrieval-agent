@@ -2,6 +2,7 @@ import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import App from '../App';
 import { vi, expect, it, describe, beforeEach } from 'vitest';
 import * as geminiService from '@api/gemini';
+import { SearchResponse } from '@core/types/index';
 
 vi.mock('@core/services/securityService', () => ({
   SecurityService: {
@@ -12,12 +13,13 @@ vi.mock('@core/services/securityService', () => ({
     checkRateLimit: vi.fn().mockReturnValue(true),
   },
 }));
-import { SearchResponse } from '@core/types/index';
 
 // Mock the gemini service
 vi.mock('@api/gemini', () => ({
   searchInDocuments: vi.fn(),
   GEMINI_MODEL_NAME: 'gemini-1.5-flash',
+  isApiKeyConfigured: vi.fn().mockReturnValue(true),
+  getGeminiApiKey: vi.fn().mockReturnValue('AIzaTestKey_12345'),
 }));
 
 // Mock react-pdf
@@ -60,9 +62,13 @@ describe('Integration Tests', () => {
     render(<App />);
 
     // 1. Upload
-    const file = new File(['pdf content'], 'test.pdf', {
-      type: 'application/pdf',
-    });
+    const file = new File(
+      [new Uint8Array([0x25, 0x50, 0x44, 0x46])],
+      'test.pdf',
+      {
+        type: 'application/pdf',
+      },
+    );
     const input = screen.getByLabelText(/upload pdf files/i);
     fireEvent.change(input, { target: { files: [file] } });
 
@@ -97,9 +103,13 @@ describe('Integration Tests', () => {
     render(<App />);
 
     // 1. Upload
-    const file = new File(['pdf content'], 'test.pdf', {
-      type: 'application/pdf',
-    });
+    const file = new File(
+      [new Uint8Array([0x25, 0x50, 0x44, 0x46])],
+      'test.pdf',
+      {
+        type: 'application/pdf',
+      },
+    );
     const input = screen.getByLabelText(/upload pdf files/i);
     fireEvent.change(input, { target: { files: [file] } });
 

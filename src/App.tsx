@@ -239,7 +239,7 @@ export default function App(): React.ReactElement {
     [createPreviewUrl],
   );
 
-  // FIXED: File removal with URL cleanup
+  // FIXED: File removal with URL cleanup and search result invalidation
   const handleRemoveFile = useCallback(
     (index: number): void => {
       const fileToRemove = files[index];
