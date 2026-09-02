@@ -73,7 +73,9 @@ describe('App Component', () => {
   it('displays warning banner when API key is missing', () => {
     vi.mocked(geminiService.isApiKeyConfigured).mockReturnValue(false);
     render(<App />);
-    expect(screen.getByText('Gemini API Key Required')).toBeInTheDocument();
+    expect(
+      screen.getByText(/Gemini API key is not configured/i),
+    ).toBeInTheDocument();
   });
 
   it('toggles theme between light and dark', () => {
