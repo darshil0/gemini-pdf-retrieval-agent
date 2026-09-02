@@ -83,6 +83,9 @@ function saveRateLimitRecords(records: Map<string, RateLimitRecord>): void {
 // Initialize from localStorage for persistence across reloads
 const rateLimitTracker = loadRateLimitRecords();
 
+/**
+ * Security Service utility containing file, query, and rate-limiting security safeguards.
+ */
 export const SecurityService = {
   /**
    * Validates that a file begins with the PDF magic bytes (%PDF).

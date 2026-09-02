@@ -1,4 +1,14 @@
-// src/components/FileUpload.tsx
+/**
+ * File Upload Component
+ *
+ * Provides drag-and-drop or click file selection for PDF documents with
+ * client-side MIME check, %PDF magic bytes validation, size limit checks,
+ * duplicate detection, and file removal controls.
+ *
+ * @module FileUpload
+ * @since v1.0.0
+ */
+
 import { useCallback, useState } from 'react';
 import { Upload, X, FileText, AlertCircle, Loader2 } from 'lucide-react';
 import { SecurityService } from '@core/services/securityService';
@@ -10,19 +20,31 @@ const MAX_FILE_SIZE_BYTES = parseInt(
 const MAX_FILE_SIZE_MB = Math.round(MAX_FILE_SIZE_BYTES / (1024 * 1024));
 const ALLOWED_MIME_TYPES = ['application/pdf'];
 
+/** Props for the FileUpload component. */
 interface FileUploadProps {
+  /** Callback fired when valid files are selected or dropped. */
   onFilesSelected: (files: File[]) => void;
+  /** Currently uploaded files array. */
   uploadedFiles: File[];
+  /** Callback fired when a file is removed by index. */
   onRemoveFile: (index: number) => void;
+  /** Whether the app is currently processing/analyzing documents. */
   isProcessing?: boolean;
 }
 
+/** Error payload structure for invalid upload attempts. */
 interface FileValidationError {
   id: string;
   file: string;
   error: string;
 }
 
+/**
+ * FileUpload component rendering drop zone, validation errors, and file list.
+ *
+ * @param props - Component props
+ * @returns React element rendering the file upload interface
+ */
 export const FileUpload = ({
   onFilesSelected,
   uploadedFiles,

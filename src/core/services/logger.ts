@@ -10,6 +10,7 @@
  * @since v1.4.0
  */
 
+/** Application log levels ranging from DEBUG (0) to ERROR (3). */
 export enum LogLevel {
   DEBUG = 0,
   INFO = 1,
@@ -74,6 +75,16 @@ function emit(entry: LogEntry): void {
 }
 
 /**
+ * Logger interface providing scoped logging methods.
+ */
+export interface Logger {
+  debug(message: string, data?: Record<string, unknown>): void;
+  info(message: string, data?: Record<string, unknown>): void;
+  warn(message: string, data?: Record<string, unknown>): void;
+  error(message: string, data?: Record<string, unknown>, error?: Error): void;
+}
+
+/**
  * Creates a logger instance scoped to a specific context (module/component).
  *
  * @param context - The name of the module or component using this logger
@@ -86,13 +97,6 @@ function emit(entry: LogEntry): void {
  * log.error("API call failed", { keyword }, error);
  * ```
  */
-export interface Logger {
-  debug(message: string, data?: Record<string, unknown>): void;
-  info(message: string, data?: Record<string, unknown>): void;
-  warn(message: string, data?: Record<string, unknown>): void;
-  error(message: string, data?: Record<string, unknown>, error?: Error): void;
-}
-
 export function createLogger(context: string): Logger {
   const timestamp = (): string => new Date().toISOString();
 
