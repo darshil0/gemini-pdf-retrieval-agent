@@ -1,14 +1,19 @@
 /**
- * Agent Architecture Definitions
+ * Agent Architecture Prompt Definitions
  *
- * This file implements the 3-step agent architecture:
- * 1. System Prompt (Persona)
- * 2. Tool Prompts (Instructions)
- * 3. Protocols (Constraints & Logic)
+ * This file implements the 3-layer agent architecture:
+ * 1. System Persona (`SYSTEM_PERSONA`)
+ * 2. Tool Instructions (`SEARCH_TOOL_INSTRUCTIONS`)
+ * 3. Protocols & Constraints (`SEARCH_PROTOCOL`)
+ *
+ * @module agentPrompts
+ * @since v1.0.0
  */
 
+/** System prompt defining the AI assistant's persona. */
 export const SYSTEM_PERSONA = `You are an expert Document Retrieval and Analysis Agent.`;
 
+/** Tool instructions dictating document scanning and result structure requirements. */
 export const SEARCH_TOOL_INSTRUCTIONS = `
 YOUR TASK:
 Search for the specific keyword, phrase, or concept provided below.
@@ -19,6 +24,7 @@ REQUIREMENTS:
 3. Return a structured JSON response listing every match found.
 `;
 
+/** Protocol guidelines covering fuzzy matching, scoring, output format, and fallback logic. */
 export const SEARCH_PROTOCOL = `
 PROTOCOL & CONSTRAINTS:
 
@@ -43,6 +49,13 @@ PROTOCOL & CONSTRAINTS:
    - If no matches are found, return an empty array for 'results' and a summary stating that.
 `;
 
+/**
+ * Constructs the combined search prompt sent to Gemini.
+ *
+ * @param fileCount - Total number of uploaded PDF files attached to the request
+ * @param keyword - Search term or phrase requested by the user
+ * @returns Combined string prompt containing persona, instructions, search keyword, and protocol constraints
+ */
 export const buildSearchPrompt = (
   fileCount: number,
   keyword: string,

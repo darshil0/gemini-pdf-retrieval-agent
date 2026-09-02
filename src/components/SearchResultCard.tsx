@@ -1,20 +1,42 @@
+/**
+ * Search Result Card Component
+ *
+ * Renders an individual search match card displaying document index,
+ * file name, page badge, context snippet with term highlighting,
+ * relevance explanation, and action button to open the PDF viewer.
+ *
+ * @module SearchResultCard
+ * @since v1.0.0
+ */
+
 import { FileText, Bookmark, Eye } from 'lucide-react';
 import { SearchResult } from '@core/types';
 
+/** Props for the SearchResultCard component. */
 interface SearchResultCardProps {
+  /** The individual search result object from Gemini. */
   result: SearchResult;
+  /** Name of the document matching this result's docIndex. */
   fileName: string;
+  /** Current search keyword used for fallback text highlighting. */
   keyword: string;
+  /** Callback fired when user clicks to open PDF viewer modal. */
   onView: () => void;
 }
 
+/**
+ * SearchResultCard component displaying search hit details and highlights matched terms.
+ *
+ * @param props - Component props
+ * @returns React element rendering result details
+ */
 export const SearchResultCard = ({
   result,
   fileName,
   keyword,
   onView,
 }: SearchResultCardProps): React.ReactElement => {
-  // Issue #12: Defensive checks for result fields
+  // Defensive checks for result fields
   const contextSnippet = result.contextSnippet ?? '';
   const matchedTerm = result.matchedTerm ?? '';
   const relevanceExplanation = result.relevanceExplanation ?? '';

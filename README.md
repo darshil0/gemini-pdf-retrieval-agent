@@ -118,10 +118,11 @@ flowchart TD
 Version: 1.4.4  
 Last reviewed: 2026-09-02  
 Status: production-ready for local development and static deployment.  
-Verified checks: `npm test` (56 tests, 8 suites), `npm run test:coverage` (statements 86 %, branches 68 %, functions 86 %, lines 87 %), `npm run build`, `npm run lint`, `npm run type-check`, `npm audit` (0 vulnerabilities).
+Verified checks: `npm test` (52 tests, 8 suites), `npm run test:coverage` (statements 86 %, branches 68 %, functions 86 %, lines 87 %), `npm run build`, `npm run lint`, `npm run type-check`, `npm audit` (0 vulnerabilities).
 
 ## Release highlights — v1.4.4
 
+- **Comprehensive JSDoc documentation** — updated and expanded inline JSDoc comments across all exported functions, components, services, types, and architecture constants.
 - **Lazy API key initialization** — the app no longer throws a white-screen error on startup when the API key is absent; an amber notice banner is shown instead.
 - **API key missing / invalid banner** — the UI surfaces a clear actionable message when `VITE_GEMINI_API_KEY` is unconfigured or malformed.
 - **Empty file security bypass fixed** — zero-byte files now correctly fail magic-byte validation instead of being accepted.
