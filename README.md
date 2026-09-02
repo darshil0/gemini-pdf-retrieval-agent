@@ -53,14 +53,15 @@ DocuSearch Agent is a React, Vite, and TypeScript application for uploading PDF 
 | `VITE_API_TIMEOUT_MS` | No       | Request timeout in milliseconds. Defaults to `60000`.  |
 | `VITE_MAX_FILE_SIZE`  | No       | Maximum upload size in bytes. Defaults to `209715200`. |
 | `VITE_MAX_FILES`      | No       | Maximum number of uploaded files. Defaults to `10`.    |
-| `VITE_PDF_WORKER_SRC` | No       | Optional custom PDF.js worker URL.                     |
+| `VITE_RATE_LIMIT`     | No       | Search rate limit per minute. Defaults to `10`.        |
+| `VITE_PDF_WORKER_SRC` | No       | Optional custom PDF.js worker URL. Defaults to local bundled worker. |
 | `VITE_DEBUG`          | No       | Enables verbose logging when set to `true`.            |
 | `VITE_PORT`           | No       | Local dev server port. Defaults to `5173`.             |
 
 ## Project structure
 
-- [src/App.tsx](src/App.tsx) — main UI, search workflow, viewer state, result filtering, and CSV export.
-- [src/components/](src/components) — `FileUpload` and `SearchResultCard` presentational components.
+- [src/App.tsx](src/App.tsx) — main UI, search workflow, result filtering, and CSV export.
+- [src/components/](src/components) — `FileUpload`, `SearchResultCard` presentational components, and the in-app PDF viewer.
 - [src/api/gemini.ts](src/api/gemini.ts) — Gemini client with lazy initialization, prompt construction, timeout handling, and response validation.
 - [src/core/architecture/prompts.ts](src/core/architecture/prompts.ts) — structured agent prompt constants (persona, tool instructions, protocol).
 - [src/core/types/index.ts](src/core/types/index.ts) — shared domain types (`SearchResult`, `SearchResponse`, `UploadedFile`, `AppStatus`).
@@ -93,7 +94,7 @@ The application uses a three-layer structure:
 
 ```mermaid
 flowchart TD
-    U[User] --> UI[React UI Layer<br/>App, FileUpload, SearchResultCard]
+    U[User] --> UI[React UI Layer<br/>App, FileUpload, SearchResultCard, PDF Viewer]
     UI --> Files[Uploaded PDF Files]
     Files --> Sec[SecurityService<br/>magic bytes · rate limit · sanitize]
     Sec --> G[Gemini Service<br/>lazy client · timeout · base64]
@@ -112,6 +113,14 @@ flowchart TD
 - [docs/agent_architecture/TOOL_PROMPTS.md](docs/agent_architecture/TOOL_PROMPTS.md) — search instructions.
 - [docs/agent_architecture/PROTOCOLS.md](docs/agent_architecture/PROTOCOLS.md) — matching and response rules.
 - [docs/remaining-issues.md](docs/remaining-issues.md) — current backlog.
+
+## Troubleshooting
+
+- **Amber "API key not configured" banner**: Set `VITE_GEMINI_API_KEY` in your `.env` file with a valid key from [Google AI Studio](https://aistudio.google.com/app/apikey), then restart the dev server.
+- **Search returns no results**: Try lowering the minimum relevance slider or broadening your search term. The AI filters out results below a 0.75 relevance score by default.
+- **Rate limit error**: The app allows 10 searches per minute by default. Wait a moment and try again, or adjust `VITE_RATE_LIMIT` in your `.env` file.
+- **PDF viewer fails to load**: The PDF.js worker defaults to the local bundled worker. If you need a custom CDN URL, set `VITE_PDF_WORKER_SRC` in your `.env` file.
+- **File upload rejected**: Only PDF files are accepted. The app validates both the MIME type and the file's magic bytes (`%PDF` header) to prevent non-PDF files from being uploaded.
 
 ## Status
 

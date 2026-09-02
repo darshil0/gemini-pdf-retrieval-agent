@@ -27,6 +27,8 @@ These are optional enhancements rather than outstanding issues:
 
 The latest verified checks are:
 
-- `npm test`
+- `npm test` (52 tests, 8 suites)
 - `npm run build`
 - `npm run lint`
+- `npm run type-check`
+- `npm audit` (0 vulnerabilities)

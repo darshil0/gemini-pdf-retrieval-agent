@@ -18,9 +18,10 @@ DocuSearch Agent is a browser-based document retrieval experience. A user upload
 
 ### UI layer
 
-- [src/App.tsx](../src/App.tsx) owns state for files, search terms, recent searches, viewer state, filtering, sorting, and result export.
+- [src/App.tsx](../src/App.tsx) owns state for files, search terms, recent searches, filtering, sorting, and result export.
 - [src/components/FileUpload.tsx](../src/components/FileUpload.tsx) handles file validation, upload limits, and file removal.
 - [src/components/SearchResultCard.tsx](../src/components/SearchResultCard.tsx) renders individual search hits with highlighting and view actions.
+- The in-app PDF viewer is embedded directly in `App.tsx` and provides zoom, rotation, page navigation, and download within a modal.
 
 ### Service layer
 
@@ -37,7 +38,7 @@ DocuSearch Agent is a browser-based document retrieval experience. A user upload
 
 ```mermaid
 flowchart TD
-    U[User] --> UI[React UI Layer<br/>App, FileUpload, SearchResultCard]
+    U[User] --> UI[React UI Layer<br/>App, FileUpload, SearchResultCard, PDF Viewer]
     UI --> Files[Uploaded PDF Files]
     Files --> G[Gemini Service]
     UI --> V[Validation & Security Services]
@@ -107,7 +108,7 @@ After search results are loaded, the UI exposes:
 
 ### Viewer behavior
 
-When a result is opened, the app loads the source PDF and displays the target page in a modal viewer. The viewer supports page navigation, rotation, and download of the original file.
+When a result is opened, the app loads the source PDF and displays the target page in a modal viewer. The viewer supports page navigation, zoom, rotation, and download of the original file. The PDF.js worker defaults to the local bundled worker but can be overridden via `VITE_PDF_WORKER_SRC`.
 
 ## 5. Security and reliability
 
@@ -128,6 +129,7 @@ The app is configured through environment variables defined in [.env.example](..
 - `VITE_API_TIMEOUT_MS`
 - `VITE_MAX_FILE_SIZE`
 - `VITE_MAX_FILES`
+- `VITE_RATE_LIMIT`
 - `VITE_PDF_WORKER_SRC`
 - `VITE_DEBUG`
 
@@ -149,14 +151,38 @@ npm run build
 
 The test suite covers:
 
-- UI rendering and interaction
-- File upload validation
-- Search result rendering
-- Security utilities
-- Validation service behavior
+- UI rendering and interaction (App component, theme toggling, file selection)
+- File upload validation (type checking, size limits, duplicate detection, drag-and-drop, file count limits)
+- Search result rendering (highlighting, view actions, empty results)
+- Security utilities (rate limiting, SQL injection detection, XSS sanitization, magic-byte validation)
+- Validation service behavior (response shape validation, CSV escaping, string array validation)
 - Integration flow from upload to result display
+- PDF viewer modal controls (zoom, rotation, page navigation, close via button/Escape)
+- Agent architecture prompt construction (persona, tool instructions, protocol constraints)
 
-## 9. Documentation links
+Run the full suite with:
+
+```bash
+npm test
+```
+
+For coverage reporting:
+
+```bash
+npm run test:coverage
+```
+
+## 9. Troubleshooting
+
+| Symptom | Likely cause | Fix |
+| :--- | :--- | :--- |
+| Amber "API key not configured" banner | `VITE_GEMINI_API_KEY` is missing or malformed | Set a valid key in `.env` and restart the dev server |
+| Search returns no results | Relevance threshold too high or query too narrow | Lower the minimum relevance slider or broaden the search term |
+| "Rate limit exceeded" error | More than 10 searches per minute | Wait a moment or increase `VITE_RATE_LIMIT` |
+| PDF viewer fails to render | PDF.js worker not loading | Set `VITE_PDF_WORKER_SRC` to a custom CDN URL |
+| File upload rejected | Non-PDF file or corrupted PDF | Only valid PDF files with correct magic bytes are accepted |
+
+## 10. Documentation links
 
 - [README.md](../README.md)
 - [docs/agent_architecture/SYSTEM_PROMPT.md](agent_architecture/SYSTEM_PROMPT.md)
