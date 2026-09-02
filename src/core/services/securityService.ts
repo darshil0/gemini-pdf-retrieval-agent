@@ -27,6 +27,7 @@ const RATE_LIMIT_STORAGE_KEY = 'docuSearch_rateLimit';
 interface RateLimitRecord {
   count: number;
   startTime: number;
+  timeframe?: number;
 }
 
 /**
@@ -35,6 +36,8 @@ interface RateLimitRecord {
  * @returns A map of identifier to rate limit records
  */
 function loadRateLimitRecords(): Map<string, RateLimitRecord> {
+  const now = Date.now();
+  const maxLifetime = 24 * 60 * 60 * 1000; // 24 hours max lifetime
   try {
     const stored = localStorage.getItem(RATE_LIMIT_STORAGE_KEY);
     if (stored) {
@@ -51,7 +54,10 @@ function loadRateLimitRecords(): Map<string, RateLimitRecord> {
             typeof (value as RateLimitRecord).count === 'number' &&
             typeof (value as RateLimitRecord).startTime === 'number'
           ) {
-            map.set(key, value as RateLimitRecord);
+            const rec = value as RateLimitRecord;
+            if (now - rec.startTime <= maxLifetime) {
+              map.set(key, rec);
+            }
           }
         }
         return map;
@@ -171,10 +177,20 @@ export const SecurityService = {
     timeframe: number,
   ): boolean {
     const now = Date.now();
-    const record = rateLimitTracker.get(identifier);
 
-    if (!record || now - record.startTime > timeframe) {
-      rateLimitTracker.set(identifier, { count: 1, startTime: now });
+    // Prune stale records to keep localStorage clean
+    rateLimitTracker.forEach((rec, key) => {
+      const recordTimeframe = rec.timeframe ?? timeframe;
+      if (now - rec.startTime > recordTimeframe) {
+        rateLimitTracker.delete(key);
+      }
+    });
+
+    const record = rateLimitTracker.get(identifier);
+    const activeTimeframe = record?.timeframe ?? timeframe;
+
+    if (!record || now - record.startTime > activeTimeframe) {
+      rateLimitTracker.set(identifier, { count: 1, startTime: now, timeframe });
       saveRateLimitRecords(rateLimitTracker);
       return true;
     }

@@ -294,6 +294,7 @@ export async function searchInDocuments(
 
     return validatedResponse;
   } catch (error) {
+    abortController.abort();
     log.error(
       'Search failed',
       { keyword, fileCount: files.length },

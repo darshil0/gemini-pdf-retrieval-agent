@@ -109,6 +109,25 @@ describe('Service Layer Integration Tests', () => {
       // 6th should fail
       expect(SecurityService.checkRateLimit(identifier, 5, 60000)).toBe(false);
     });
+
+    it('should prune expired rate limit records on checkRateLimit', () => {
+      const staleIdentifier = 'stale-rate-limit-' + Date.now();
+      const freshIdentifier = 'fresh-rate-limit-' + Date.now();
+
+      // Set stale entry with timeframe 10ms
+      SecurityService.checkRateLimit(staleIdentifier, 1, 10);
+
+      // Wait 20ms so staleIdentifier is expired
+      const start = Date.now();
+      while (Date.now() - start < 20) {
+        // busy wait
+      }
+
+      // Checking freshIdentifier should trigger pruning of staleIdentifier
+      expect(SecurityService.checkRateLimit(freshIdentifier, 1, 60000)).toBe(true);
+      // Stale identifier should be reset because it was pruned / expired
+      expect(SecurityService.checkRateLimit(staleIdentifier, 1, 60000)).toBe(true);
+    });
   });
 
   describe('GeminiService', () => {

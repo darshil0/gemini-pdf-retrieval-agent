@@ -116,6 +116,20 @@ export default function App(): React.ReactElement {
     }
   }, [viewingResult]);
 
+  // Auto-scroll viewer container to target page when page changes
+  useEffect((): (() => void) | undefined => {
+    if (viewingResult && currentPage) {
+      const timer = setTimeout(() => {
+        const el = document.getElementById(`pdf-page-container-${currentPage}`);
+        if (el) {
+          el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        }
+      }, 50);
+      return () => clearTimeout(timer);
+    }
+    return undefined;
+  }, [viewingResult, currentPage]);
+
   // FIXED: Proper keyboard event handling with cleanup
   useEffect((): (() => void) | undefined => {
     const handleKeyDown = (e: KeyboardEvent): void => {
@@ -443,10 +457,20 @@ export default function App(): React.ReactElement {
                         value={keyword}
                         onChange={(e) => setKeyword(e.target.value)}
                         placeholder="e.g., 'Financial Q3 results', 'Safety Protocols', 'Project Alpha'"
-                        className="w-full bg-slate-900 border border-slate-700 rounded-xl py-4 pl-4 pr-12 text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
+                        className="w-full bg-slate-900 border border-slate-700 rounded-xl py-4 pl-4 pr-20 text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
                         disabled={status === AppStatus.ANALYZING}
                         aria-describedby="search-help"
                       />
+                      {keyword && (
+                        <button
+                          type="button"
+                          onClick={() => setKeyword('')}
+                          className="absolute right-11 top-1/2 -translate-y-1/2 text-slate-500 hover:text-slate-300 p-1 rounded-full transition-colors"
+                          aria-label="Clear search input"
+                        >
+                          <X className="w-4 h-4" />
+                        </button>
+                      )}
                       <Search className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-500 w-5 h-5" />
                     </div>
                     <p id="search-help" className="mt-1 text-xs text-slate-500">
@@ -828,7 +852,10 @@ export default function App(): React.ReactElement {
                       <InView key={`page_${index + 1}`}>
                         {({ inView, ref }) => {
                           return (
-                            <div ref={ref}>
+                            <div
+                              ref={ref}
+                              id={`pdf-page-container-${index + 1}`}
+                            >
                               {inView ? (
                                 <Page
                                   pageNumber={index + 1}

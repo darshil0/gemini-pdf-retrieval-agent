@@ -437,4 +437,22 @@ describe('App Component', () => {
       expect(screen.queryByText('Recent Searches')).not.toBeInTheDocument();
     });
   });
+
+  it('clears search input keyword when clear button is clicked', () => {
+    render(<App />);
+
+    const searchInput = screen.getByPlaceholderText(
+      /e.g., 'Financial Q3 results'/i,
+    ) as HTMLInputElement;
+
+    fireEvent.change(searchInput, { target: { value: 'my query' } });
+    expect(searchInput.value).toBe('my query');
+
+    const clearButton = screen.getByLabelText('Clear search input');
+    expect(clearButton).toBeInTheDocument();
+
+    fireEvent.click(clearButton);
+    expect(searchInput.value).toBe('');
+    expect(screen.queryByLabelText('Clear search input')).not.toBeInTheDocument();
+  });
 });
