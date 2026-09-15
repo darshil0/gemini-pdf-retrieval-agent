@@ -128,6 +128,39 @@ describe('Service Layer Integration Tests', () => {
       // Stale identifier should be reset because it was pruned / expired
       expect(SecurityService.checkRateLimit(staleIdentifier, 1, 60000)).toBe(true);
     });
+
+    it('should handle corrupt localStorage entries gracefully when checking rate limit', () => {
+      localStorage.setItem('docuSearch_rateLimit', 'invalid-json');
+      const identifier = 'corrupt-storage-test-' + Date.now();
+      expect(SecurityService.checkRateLimit(identifier, 5, 60000)).toBe(true);
+    });
+  });
+
+  describe('LoggerService', () => {
+    it('should log messages at various log levels without throwing errors', async () => {
+      const { createLogger, LogLevel } = await import('@core/services/logger');
+      const logger = createLogger('TestContext');
+
+      const consoleSpyDebug = vi.spyOn(console, 'debug').mockImplementation(() => {});
+      const consoleSpyInfo = vi.spyOn(console, 'info').mockImplementation(() => {});
+      const consoleSpyWarn = vi.spyOn(console, 'warn').mockImplementation(() => {});
+      const consoleSpyError = vi.spyOn(console, 'error').mockImplementation(() => {});
+
+      logger.debug('debug message', { key: 'value' });
+      logger.info('info message', { key: 'value' });
+      logger.warn('warn message', { key: 'value' });
+      logger.error('error message', { key: 'value' }, new Error('test error'));
+
+      expect(LogLevel.DEBUG).toBe(0);
+      expect(LogLevel.INFO).toBe(1);
+      expect(LogLevel.WARN).toBe(2);
+      expect(LogLevel.ERROR).toBe(3);
+
+      consoleSpyDebug.mockRestore();
+      consoleSpyInfo.mockRestore();
+      consoleSpyWarn.mockRestore();
+      consoleSpyError.mockRestore();
+    });
   });
 
   describe('GeminiService', () => {

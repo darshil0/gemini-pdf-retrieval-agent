@@ -158,8 +158,9 @@ The test suite covers:
 - UI rendering and interaction (App component, theme toggling, file selection)
 - File upload validation (type checking, size limits, duplicate detection, drag-and-drop, file count limits)
 - Search result rendering (highlighting, view actions, empty results)
-- Security utilities (rate limiting, SQL injection detection, XSS sanitization, magic-byte validation)
+- Security utilities (rate limiting with corrupt localStorage recovery, SQL injection detection, XSS sanitization, magic-byte validation)
 - Validation service behavior (response shape validation, CSV escaping, string array validation)
+- Structured LoggerService (severity levels DEBUG, INFO, WARN, ERROR, and enum assertions)
 - Integration flow from upload to result display
 - PDF viewer modal controls (zoom, rotation, page navigation, close via button/Escape)
 - Agent architecture prompt construction (persona, tool instructions, protocol constraints)
