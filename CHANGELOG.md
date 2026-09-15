@@ -8,43 +8,43 @@ All notable changes to DocuSearch Agent are documented in this file. The project
 
 ### Added
 
-- **API key configuration banner** — the UI now shows an amber notice when `VITE_GEMINI_API_KEY` is absent or malformed, guiding the user to configure `.env` instead of presenting a blank white screen.
-- **`public/vite.svg` favicon** — added the missing SVG favicon referenced in `index.html`; eliminates the 404 error on startup.
-- Exported `isApiKeyConfigured()` and `isValidApiKeyFormat()` from `src/api/gemini.ts` so UI components can query key presence reactively.
-- New security integration tests covering rate limit blocking, SQL injection rejection, XSS sanitization, and magic-byte file rejection.
-- New viewer modal tests covering zoom in/out/reset, rotation, next/prev page navigation, close via button, backdrop click, and Escape key.
-- Logger tests for all four severity levels and `LogLevel` enum values.
-- `SearchResultCard` tests for empty highlight and regex-special-character highlighting.
-- `FileUpload` tests for duplicate file rejection, error-badge dismiss button, and drag-and-drop events.
+- **API key configuration banner** — UI displays an amber notice when `VITE_GEMINI_API_KEY` is missing or malformed, guiding users to set up `.env` rather than crashing silently.
+- **Favicon asset** — added `public/vite.svg` to eliminate HTTP 404 console errors on application startup.
+- **Reactive API key helpers** — exported `isApiKeyConfigured()` and `isValidApiKeyFormat()` from `src/api/gemini.ts` for reactive UI state checks.
+- **Comprehensive security test coverage** — added automated security integration tests in `src/tests/security.test.tsx` covering rate-limit enforcement, SQL injection rejection, XSS payload sanitization, and non-PDF magic-byte validation.
+- **PDF viewer modal controls test suite** — expanded test coverage for PDF viewer modal features including zoom in/out/reset, 90-degree rotation, page navigation, direct download, close button, backdrop click, and Escape key handling.
+- **Structured logger unit tests** — added dedicated test coverage in `src/tests/Services.test.ts` for all four logging levels (`debug`, `info`, `warn`, `error`) and `LogLevel` enum variants.
+- **Highlighting and card component tests** — added tests in `src/tests/Components.test.tsx` for `SearchResultCard` handling empty highlights and regex special characters in search queries.
+- **File upload interaction tests** — added drag-and-drop event tests, duplicate file rejection checks, and error badge dismissal handling in `src/tests/FileUpload.test.tsx`.
 
 ### Fixed
 
-- **Lazy API key initialization** (`src/api/gemini.ts`) — replaced the module-level `GoogleGenerativeAI` instantiation (which threw on import) with a `getGenAI()` factory called lazily at search time; the app now boots without crashing when the key is unconfigured.
-- **Specific API-key error re-throw** — `API_KEY_MISSING` and `API_KEY_INVALID_FORMAT` errors are now preserved through the catch block instead of being swallowed into the generic communication error.
-- **Empty file security bypass** (`src/core/services/securityService.ts`) — `validateFileType` now returns `false` for files with fewer than 4 bytes, fixing a JS `Array.every` edge case where an empty iterable returned `true`.
-- **SQL injection false positives** (`src/core/services/securityService.ts`) — replaced the overly broad `/SELECT|INSERT|UPDATE|DELETE|FROM/i` regex with structured SQL pattern matching so ordinary queries such as "report from Q3" or "update status" are no longer blocked.
-- **Multi-document page sort** (`src/App.tsx`) — the `page` sort mode now compares `docIndex` first and `pageNumber` second, producing a stable cross-document ordering.
-- **Stale results on file removal** (`src/App.tsx`) — `handleRemoveFile` now clears `data` and resets `status` to `IDLE`, preventing orphaned result cards after a file is deleted.
-- **Missing key in vitest mock** (`src/tests/App.test.tsx`, `src/tests/integration.test.tsx`, `src/tests/security.test.tsx`) — added `isApiKeyConfigured: vi.fn().mockReturnValue(true)` to every `@api/gemini` mock that rendered `<App />`, fixing the `No "isApiKeyConfigured" export is defined on the mock` runtime error.
-- **Read-only env var assignment** (`src/tests/Services.test.ts`) — replaced direct `import.meta.env.VITE_GEMINI_API_KEY = ''` assignment (TypeScript error TS2540) with `vi.stubEnv` / `vi.unstubAllEnvs`.
-- **Duplicate CSS rule** (`src/styles/index.css`) — removed the duplicate `body` block.
+- **Lazy Gemini client initialization** (`src/api/gemini.ts`) — replaced top-level `GoogleGenerativeAI` instantiation with a lazy `getGenAI()` factory, preventing startup crashes when environment variables are unconfigured.
+- **API key error propagation** — explicitly re-thrown `API_KEY_MISSING` and `API_KEY_INVALID_FORMAT` error codes so key-related errors are not masked as generic API communication failures.
+- **Empty file security bypass** (`src/core/services/securityService.ts`) — updated `validateFileType` to enforce a minimum file size of 4 bytes before checking magic bytes (`%PDF`), preventing empty 0-byte files from falsely passing validation.
+- **SQL injection false positive elimination** (`src/core/services/securityService.ts`) — replaced broad keyword regex (`/SELECT|INSERT|UPDATE|DELETE|FROM/i`) with structured SQL pattern matching to allow legitimate natural language queries like "report from Q3" or "update status".
+- **Multi-document stable page sorting** (`src/App.tsx`) — updated page-based result sorting to order by `docIndex` first and `pageNumber` second, ensuring stable cross-document result ordering.
+- **Stale search results state reset** (`src/App.tsx`) — `handleRemoveFile` now clears search result data and resets app status to `IDLE` when a file is removed, preventing orphaned result cards.
+- **PDF ObjectURL memory leak prevention** (`src/App.tsx`) — added explicit `URL.revokeObjectURL` cleanup when closing the PDF viewer modal or unmounting components to release browser memory.
+- **Active stream cleanup on timeout** (`src/api/gemini.ts`) — ensured `AbortController.abort()` is called during file reading timeouts or failure paths to cancel lingering file reader streams.
+- **Vitest mock completeness** (`src/tests/App.test.tsx`, `src/tests/integration.test.tsx`, `src/tests/security.test.tsx`) — added `isApiKeyConfigured: vi.fn().mockReturnValue(true)` to `@api/gemini` test mocks rendering `<App />`, resolving `isApiKeyConfigured is not exported` test errors.
+- **Read-only environment variable assignment in tests** (`src/tests/Services.test.ts`) — migrated direct `import.meta.env` mutations to Vitest's `vi.stubEnv` / `vi.unstubAllEnvs` to resolve TypeScript TS2540 compilation errors.
+- **Duplicate CSS rule removal** (`src/styles/index.css`) — removed duplicate `body` selector block to clean up global stylesheet definitions.
+- **Corrupted rate-limit state recovery** (`src/core/services/securityService.ts`) — added defensive `try/catch` parsing in `loadRateLimitRecords` to gracefully reset corrupt `localStorage` rate-limit entries without crashing.
 
 ### Changed
 
-- `src/App.tsx` — added module-level JSDoc header and component JSDoc for the root `App` export.
-- `src/core/types/index.ts` — added full JSDoc to all interfaces, fields, and the `AppStatus` enum.
-- `src/core/constants/errors.ts` — added per-constant JSDoc to all error message strings.
-- `src/core/services/logger.ts` — documented `LogLevel` enum variants, `LogEntry` interface fields, and `Logger` interface methods.
-- `src/api/gemini.ts` — added JSDoc to `getApiKey`, `isApiKeyConfigured`, and `getGenAI`.
-- `src/core/architecture/prompts.ts` — added `@module` / `@since` tags and JSDoc to all exported constants and `buildSearchPrompt`.
-- `src/tests/` — added module-level JSDoc header comments to all test files in the automated test suite.
-- `README.md` — updated status date, verified check results (53 tests across 8 suites), project-structure map, scripts table, architecture diagram, and release highlights.
-- `CHANGELOG.md` — this entry.
+- **CSV Formula Injection Defense** (`src/core/services/validation.ts`, `src/App.tsx`) — integrated `escapeCSVField` utility to prefix values starting with `=`, `+`, `-`, `@`, `\t`, or `\r` with a single quote before quoting, neutralizing spreadsheet formula execution risks upon CSV export.
+- **Centralized Gemini model definition** (`src/api/gemini.ts`, `src/App.tsx`) — unified the Gemini model identifier into the exported `GEMINI_MODEL_NAME` constant (`gemini-2.5-flash`), keeping the API service and UI badge synchronized.
+- **Local PDF worker bundling** (`src/App.tsx`) — configured PDF worker using Vite's native `new URL()` import pattern referencing `pdfjs-dist/build/pdf.worker.min.mjs` for version safety and offline operation.
+- **JSDoc documentation expansion** — added comprehensive JSDoc annotations across all exported functions, types, constants, services, components, and architecture specs (`src/App.tsx`, `src/api/gemini.ts`, `src/core/types/index.ts`, `src/core/constants/errors.ts`, `src/core/services/logger.ts`, `src/core/architecture/prompts.ts`, and test files).
+- **Maintenance scripts synchronization** — updated `apply-fixes.sh` and `apply-fixes.ps1` with v1.4.4 standard verification workflow scripts and output notices.
+- **Documentation and README updates** — refreshed `README.md`, `docs/DOCUMENTATION.md`, and release status to reflect 57 passing tests across 8 suites and 0 vulnerabilities.
 
 ### Security
 
-- `js-yaml` upgraded from `5.2.0` to `5.4.1` (removes known parse vulnerability).
-- `minimatch` ReDoS vulnerability in `@typescript-eslint/typescript-estree` addressed via scoped `overrides` in `package.json`; `npm audit` now reports **0 vulnerabilities**.
+- **`js-yaml` upgrade** — updated `js-yaml` from `5.2.0` to `5.4.1` to resolve known parsing security vulnerabilities.
+- **Dependency audit & ReDoS resolution** — resolved `minimatch` ReDoS vulnerability in `@typescript-eslint/typescript-estree` using scoped `package.json` overrides; achieved zero vulnerabilities across all dependencies (`npm audit`).
 
 ---
 
