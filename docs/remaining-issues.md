@@ -15,6 +15,8 @@ DocuSearch Agent is designed as a client-side React + Vite web application for l
 - **Search Query Sanitization & Validation**: Removed redundant SQL-injection regex checks (eliminating false positives on natural language terms) and updated `sanitizeInput` to avoid entity-mangling search operators (`Sales < 5000`).
 - **Relevance Score Floor Alignment**: Updated `SEARCH_PROTOCOL` in `src/core/architecture/prompts.ts` to allow relevance scores down to `0.50`, matching the UI slider range (`0.50` to `1.00`).
 - **Prompt Injection Defense**: Wrapped target search terms in explicit prompt instruction boundaries (`<<<TARGET SEARCH KEYWORD START>>> ... <<<TARGET SEARCH KEYWORD END>>>`) with clear non-execution instructions.
+- Corrupt LocalStorage Recovery in Rate Limiting: Hardened `loadRateLimitRecords` in `src/core/services/securityService.ts` to gracefully fallback to clean rate limit state if `localStorage` contains malformed JSON data.
+- Logger & Security Test Suite Expansion: Expanded service test suite in `src/tests/Services.test.ts` to test all log levels (`DEBUG`, `INFO`, `WARN`, `ERROR`) in `LoggerService` and corrupt `localStorage` recovery in `SecurityService`.
 
 ## Security model & architectural trade-offs
 
